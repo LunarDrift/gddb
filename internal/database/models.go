@@ -10,24 +10,28 @@ import (
 )
 
 type Set struct {
-	ID       int32
-	ShowID   int32
-	SetName  string
-	Position int32
+	ID        int32
+	ShowID    int32
+	SetName   string
+	Position  int32
+	CreatedAt time.Time
 }
 
-type SetlistEntry struct {
+type SetEntry struct {
 	ID       int32
 	SetID    int32
 	RawEntry string
 	Position int32
+	CratedAt time.Time
 }
 
 type Show struct {
-	ShowID   int32
-	Date     time.Time
-	Day      sql.NullString
-	Venue    string
-	Location string
-	Notes    sql.NullString
+	ShowID    int32
+	ShowDate  time.Time
+	Day       sql.NullString
+	City      string
+	State     string
+	Venue     string
+	Notes     sql.NullString
+	CreatedAt time.Time
 }

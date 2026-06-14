@@ -11,28 +11,46 @@ import (
 	"time"
 )
 
-const insertShow = `-- name: InsertShow :exec
-INSERT INTO shows (show_id, date, day, venue, location, notes)
-VALUES ($1, $2, $3, $4, $5, $6)
+const createShow = `-- name: CreateShow :exec
+INSERT INTO shows (
+show_id,
+show_date,
+day,
+city,
+state,
+venue,
+notes
+)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4,
+  $5,
+  $6,
+  $7
+)
 ON CONFLICT (show_id) DO NOTHING
 `
 
-type InsertShowParams struct {
+type CreateShowParams struct {
 	ShowID   int32
-	Date     time.Time
+	ShowDate time.Time
 	Day      sql.NullString
+	City     string
+	State    string
 	Venue    string
-	Location string
 	Notes    sql.NullString
 }
 
-func (q *Queries) InsertShow(ctx context.Context, arg InsertShowParams) error {
-	_, err := q.db.ExecContext(ctx, insertShow,
+func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
+	_, err := q.db.ExecContext(ctx, createShow,
 		arg.ShowID,
-		arg.Date,
+		arg.ShowDate,
 		arg.Day,
+		arg.City,
+		arg.State,
 		arg.Venue,
-		arg.Location,
 		arg.Notes,
 	)
 	return err

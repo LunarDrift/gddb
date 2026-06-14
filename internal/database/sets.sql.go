@@ -9,20 +9,28 @@ import (
 	"context"
 )
 
-const insertSet = `-- name: InsertSet :one
-INSERT INTO sets (show_id, set_name, position)
-VALUES ($1, $2, $3)
+const createSet = `-- name: CreateSet :one
+INSERT INTO sets (
+show_id,
+set_name,
+position
+)
+VALUES (
+  $1,
+  $2,
+  $3
+)
 RETURNING id
 `
 
-type InsertSetParams struct {
+type CreateSetParams struct {
 	ShowID   int32
 	SetName  string
 	Position int32
 }
 
-func (q *Queries) InsertSet(ctx context.Context, arg InsertSetParams) (int32, error) {
-	row := q.db.QueryRowContext(ctx, insertSet, arg.ShowID, arg.SetName, arg.Position)
+func (q *Queries) CreateSet(ctx context.Context, arg CreateSetParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, createSet, arg.ShowID, arg.SetName, arg.Position)
 	var id int32
 	err := row.Scan(&id)
 	return id, err
