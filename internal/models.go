@@ -1,7 +1,5 @@
-package main
-
-// ShowData is just a type alias that will be used when unmarshaling
-var ShowData map[string][]Show
+// Package internal .
+package internal
 
 // Show is used as a temporary container for unmarshaling the
 // json object, before distributing it across the other tables

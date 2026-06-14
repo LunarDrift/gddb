@@ -1,11 +1,13 @@
 -- +goose Up
 CREATE TABLE shows (
     show_id INTEGER PRIMARY KEY,
-    date DATE NOT NULL,
+    show_date DATE NOT NULL,
     day TEXT,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
     venue TEXT NOT NULL,
-    location TEXT NOT NULL,
-    notes TEXT
+    notes TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
 -- +goose Down
