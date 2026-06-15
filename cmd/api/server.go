@@ -30,6 +30,8 @@ func NewServer(db *sql.DB, queries *database.Queries) *server {
 
 func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /health", s.handleHealth)
+
+	s.mux.HandleFunc("GET /shows", s.handleGetShows)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {

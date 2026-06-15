@@ -1,8 +1,8 @@
-package importer
+package internal
 
 import "fmt"
 
-func setPosition(name string) int {
+func SetPosition(name string) int {
 	if name == "encore" {
 		return 999
 	}

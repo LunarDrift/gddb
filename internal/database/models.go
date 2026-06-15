@@ -18,11 +18,11 @@ type Set struct {
 }
 
 type SetEntry struct {
-	ID       int32
-	SetID    int32
-	RawEntry string
-	Position int32
-	CratedAt time.Time
+	ID        int32
+	SetID     int32
+	RawEntry  string
+	Position  int32
+	CreatedAt time.Time
 }
 
 type Show struct {

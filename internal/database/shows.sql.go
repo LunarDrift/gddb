@@ -55,3 +55,63 @@ func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
 	)
 	return err
 }
+
+const getShowFromDate = `-- name: GetShowFromDate :many
+SELECT 
+	shows.show_date,
+	shows.venue,
+	sets.set_name,
+	sets.position AS set_position,
+	set_entries.raw_entry,
+	set_entries.position AS song_position
+FROM
+	shows
+JOIN SETS ON
+	sets.show_id = shows.show_id
+JOIN set_entries ON
+	set_entries.set_id = sets.id
+WHERE
+	shows.show_date = $1
+ORDER BY
+	sets.position,
+	set_entries."position"
+`
+
+type GetShowFromDateRow struct {
+	ShowDate     time.Time
+	Venue        string
+	SetName      string
+	SetPosition  int32
+	RawEntry     string
+	SongPosition int32
+}
+
+func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]GetShowFromDateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowFromDate, showDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowFromDateRow
+	for rows.Next() {
+		var i GetShowFromDateRow
+		if err := rows.Scan(
+			&i.ShowDate,
+			&i.Venue,
+			&i.SetName,
+			&i.SetPosition,
+			&i.RawEntry,
+			&i.SongPosition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

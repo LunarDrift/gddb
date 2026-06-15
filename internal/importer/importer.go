@@ -1,3 +1,4 @@
+// Package importer used to import JSON data into PostgreSQL database
 package importer
 
 import (
@@ -68,7 +69,7 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i, j int) bool {
-		return setPosition(keys[i]) < setPosition(keys[j])
+		return internal.SetPosition(keys[i]) < internal.SetPosition(keys[j])
 	})
 
 	for i, setName := range keys {
