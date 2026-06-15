@@ -12,3 +12,6 @@ type Show struct {
 	Notes    string              `json:"notes"`
 	Setlist  map[string][]string `json:"setlist"`
 }
+
+// Dataset is a type alias to be used when unmarshaling json file
+type Dataset map[string][]Show
