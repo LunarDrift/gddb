@@ -54,7 +54,7 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, internal.ShowResponse{
-		Date:  date.String(),
+		Date:  date.Format("2006-01-02"),
 		Venue: venue,
 		Sets:  sets,
 	})
