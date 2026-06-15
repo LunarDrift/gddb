@@ -1,3 +1,30 @@
 package main
 
-func main() {}
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/LunarDrift/deadabase/internal/database"
+	"github.com/joho/godotenv"
+)
+
+func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal(err)
+	}
+	connectionString := os.Getenv("DB_URL")
+
+	db, err := sql.Open("postgres", connectionString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	queries := database.New(db)
+	srv := NewServer(db, queries)
+
+	fmt.Println("Listening on 8080...")
+	log.Fatal(http.ListenAndServe(":8080", srv.mux))
+}
