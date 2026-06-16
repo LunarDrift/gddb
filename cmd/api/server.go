@@ -32,6 +32,7 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /health", s.handleHealth)
 
 	s.mux.HandleFunc("GET /shows", s.handleGetShows)
+	s.mux.HandleFunc("GET /shows/{id}", s.handleGetShowFromID)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
