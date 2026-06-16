@@ -38,3 +38,23 @@ WHERE
 ORDER BY
 	sets.position,
 	set_entries."position";
+
+-- name: GetShowFromID :many
+SELECT
+	s.show_date,
+	s.venue,
+	st.set_name,
+	se.raw_entry
+FROM
+	shows s
+JOIN SETS st
+	ON
+	s.show_id = st.show_id
+JOIN set_entries se
+	ON
+	st.id = se.set_id
+WHERE
+	s.show_id = $1
+ORDER BY
+	st.position,
+	se.position;

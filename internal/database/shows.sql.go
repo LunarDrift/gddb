@@ -115,3 +115,59 @@ func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]Ge
 	}
 	return items, nil
 }
+
+const getShowFromID = `-- name: GetShowFromID :many
+SELECT
+	s.show_date,
+	s.venue,
+	st.set_name,
+	se.raw_entry
+FROM
+	shows s
+JOIN SETS st
+	ON
+	s.show_id = st.show_id
+JOIN set_entries se
+	ON
+	st.id = se.set_id
+WHERE
+	s.show_id = $1
+ORDER BY
+	st.position,
+	se.position
+`
+
+type GetShowFromIDRow struct {
+	ShowDate time.Time
+	Venue    string
+	SetName  string
+	RawEntry string
+}
+
+func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFromIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowFromID, showID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowFromIDRow
+	for rows.Next() {
+		var i GetShowFromIDRow
+		if err := rows.Scan(
+			&i.ShowDate,
+			&i.Venue,
+			&i.SetName,
+			&i.RawEntry,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
