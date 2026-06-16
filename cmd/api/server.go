@@ -35,11 +35,13 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /shows/{id}", s.handleGetShowFromID)
 
 	s.mux.HandleFunc("GET /venues", s.handleSearchByVenue)
+
+	s.mux.HandleFunc("GET /songs/mostplayed", s.handleMostPlayedSongs)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	_, _ = fmt.Fprintln(w, `{"status": "ok"}`)
+	_, _ = fmt.Fprintln(w, `🪬𝐎𝐍𝐋𝐈𝐍𝐄🪬`)
 }
 
 func respondWithJSON(w http.ResponseWriter, status int, payload any) {

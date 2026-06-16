@@ -57,3 +57,13 @@ type ShowDetailsPerYear struct {
 		Day      string      `json:"day"`
 	} `json:"year"`
 }
+
+type ShowDetailsPerVenue struct {
+	Venue []struct {
+		Year []struct {
+			Date    string   `json:"date"`
+			Notes   string   `json:"notes"`
+			SetList []string `json:"set_list"`
+		} `json:"year"`
+	} `json:"venue"`
+}

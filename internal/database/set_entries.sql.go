@@ -33,3 +33,38 @@ func (q *Queries) CreateSetEntry(ctx context.Context, arg CreateSetEntryParams) 
 	_, err := q.db.ExecContext(ctx, createSetEntry, arg.SetID, arg.RawEntry, arg.Position)
 	return err
 }
+
+const mostPlayedSongs = `-- name: MostPlayedSongs :many
+SELECT se.raw_entry AS song, count(*) AS times_played
+FROM set_entries se
+GROUP BY se.raw_entry
+ORDER BY times_played DESC
+`
+
+type MostPlayedSongsRow struct {
+	Song        string
+	TimesPlayed int64
+}
+
+func (q *Queries) MostPlayedSongs(ctx context.Context) ([]MostPlayedSongsRow, error) {
+	rows, err := q.db.QueryContext(ctx, mostPlayedSongs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MostPlayedSongsRow
+	for rows.Next() {
+		var i MostPlayedSongsRow
+		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

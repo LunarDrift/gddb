@@ -10,3 +10,9 @@ VALUES (
   $3
   )
 ON CONFLICT (set_id, position) DO NOTHING;
+
+-- name: MostPlayedSongs :many
+SELECT se.raw_entry AS song, count(*) AS times_played
+FROM set_entries se
+GROUP BY se.raw_entry
+ORDER BY times_played DESC;
