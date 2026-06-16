@@ -1,6 +1,8 @@
 // Package internal .
 package internal
 
+import "time"
+
 // Show is used as a temporary container for unmarshaling the
 // json object, before distributing it across the other tables
 type Show struct {
@@ -27,4 +29,12 @@ type ShowResponse struct {
 type SetResponse struct {
 	SetName string   `json:"set_name"`
 	Songs   []string `json:"songs"`
+}
+
+// ShowSortInput is used to hold the data from sqlc-generated structs while the setlist gets sorted
+type ShowSortInput struct {
+	ShowDate time.Time `json:"show_date"`
+	Venue    string    `json:"venue"`
+	SetName  string    `json:"set_name"`
+	RawEntry string    `json:"raw_entry"`
 }

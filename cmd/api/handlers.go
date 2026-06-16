@@ -2,7 +2,6 @@ package main
 
 import (
 	"net/http"
-	"sort"
 	"strconv"
 	"time"
 
@@ -27,37 +26,23 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "could not get show", err)
 	}
 
-	setsMap := map[string][]string{}
-	var venue string
-	var date time.Time
-
-	for _, row := range showRow {
-		venue = row.Venue
-		date = row.ShowDate
-		setsMap[row.SetName] = append(setsMap[row.SetName], row.RawEntry)
-	}
-
-	setNames := make([]string, 0, len(setsMap))
-	for k := range setsMap {
-		setNames = append(setNames, k)
-	}
-	sort.Slice(setNames, func(i, j int) bool {
-		return internal.SetPosition(setNames[i]) < internal.SetPosition(setNames[j])
-	})
-
-	sets := []internal.SetResponse{}
-	for _, key := range setNames {
-		sets = append(sets, internal.SetResponse{
-			SetName: key,
-			Songs:   setsMap[key],
+	var myShows []internal.ShowSortInput
+	for _, show := range showRow {
+		myShows = append(myShows, internal.ShowSortInput{
+			ShowDate: show.ShowDate,
+			Venue:    show.Venue,
+			SetName:  show.SetName,
+			RawEntry: show.RawEntry,
 		})
 	}
 
-	respondWithJSON(w, http.StatusOK, internal.ShowResponse{
-		Date:  date.Format("2006-01-02"),
-		Venue: venue,
-		Sets:  sets,
-	})
+	showResp, err := internal.SortSetPositions(myShows)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, showResp)
 }
 
 func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
@@ -74,35 +59,21 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setsMap := map[string][]string{}
-	var venue string
-	var date time.Time
-
-	for _, row := range shows {
-		venue = row.Venue
-		date = row.ShowDate
-		setsMap[row.SetName] = append(setsMap[row.SetName], row.RawEntry)
-	}
-
-	setNames := make([]string, 0, len(setsMap))
-	for k := range setsMap {
-		setNames = append(setNames, k)
-	}
-	sort.Slice(setNames, func(i, j int) bool {
-		return internal.SetPosition(setNames[i]) < internal.SetPosition(setNames[j])
-	})
-
-	sets := []internal.SetResponse{}
-	for _, key := range setNames {
-		sets = append(sets, internal.SetResponse{
-			SetName: key,
-			Songs:   setsMap[key],
+	var myShows []internal.ShowSortInput
+	for _, show := range shows {
+		myShows = append(myShows, internal.ShowSortInput{
+			ShowDate: show.ShowDate,
+			Venue:    show.Venue,
+			SetName:  show.SetName,
+			RawEntry: show.RawEntry,
 		})
 	}
 
-	respondWithJSON(w, http.StatusOK, internal.ShowResponse{
-		Date:  date.Format("2006-01-02"),
-		Venue: venue,
-		Sets:  sets,
-	})
+	showResp, err := internal.SortSetPositions(myShows)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, showResp)
 }
