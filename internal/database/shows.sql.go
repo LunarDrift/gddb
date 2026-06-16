@@ -171,3 +171,67 @@ func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFro
 	}
 	return items, nil
 }
+
+const searchByVenue = `-- name: SearchByVenue :many
+SELECT
+	shows.show_date AS "date",
+	shows.venue,
+	shows.notes,
+	sets.set_name,
+	sets.position AS set_position,
+	set_entries.raw_entry AS song,
+	set_entries."position" AS song_position
+FROM
+	shows
+JOIN sets ON
+	sets.show_id = shows.show_id
+JOIN set_entries ON
+	set_entries.set_id = sets.id
+WHERE venue ILIKE $1
+ORDER BY
+	shows.venue,
+	shows.show_date,
+	sets.position,
+	set_entries."position"
+`
+
+type SearchByVenueRow struct {
+	Date         time.Time
+	Venue        string
+	Notes        sql.NullString
+	SetName      string
+	SetPosition  int32
+	Song         string
+	SongPosition int32
+}
+
+func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVenueRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchByVenue, venue)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchByVenueRow
+	for rows.Next() {
+		var i SearchByVenueRow
+		if err := rows.Scan(
+			&i.Date,
+			&i.Venue,
+			&i.Notes,
+			&i.SetName,
+			&i.SetPosition,
+			&i.Song,
+			&i.SongPosition,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

@@ -38,3 +38,22 @@ type ShowSortInput struct {
 	SetName  string    `json:"set_name"`
 	RawEntry string    `json:"raw_entry"`
 }
+
+type SearchByVenueShow struct {
+	Date    string `json:"date"`
+	Venue   string `json:"venue"`
+	Notes   string `json:"notes"`
+	SetName string `json:"set_name"`
+	Song    string `json:"song"`
+}
+
+type ShowDetailsPerYear struct {
+	Year []struct {
+		Location string      `json:"location"`
+		Venue    string      `json:"venue"`
+		Setlist  SetResponse `json:"setlist"`
+		Notes    string      `json:"notes"`
+		ShowID   int         `json:"show_id"`
+		Day      string      `json:"day"`
+	} `json:"year"`
+}

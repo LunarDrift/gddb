@@ -3,6 +3,7 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"time"
 )
@@ -13,7 +14,10 @@ func SetPosition(name string) int {
 	}
 	// extract the number from "set_1", "set_2", "set_3"
 	var n int
-	fmt.Sscanf(name, "set_%d", &n)
+	_, err := fmt.Sscanf(name, "set_%d", &n)
+	if err != nil {
+		log.Fatal(err)
+	}
 	return n
 }
 
