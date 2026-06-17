@@ -5,6 +5,9 @@ import "time"
 
 // Show is used as a temporary container for unmarshaling the
 // json object, before distributing it across the other tables
+// ================================================================
+// NO LONGER NEEDED. WAS USED FOR IMPORTING JSON INTO DATABASE
+// ================================================================
 type Show struct {
 	ShowID   int                 `json:"show_id"`
 	Date     string              `json:"date"`
@@ -16,7 +19,14 @@ type Show struct {
 }
 
 // Dataset is a type alias to be used when unmarshaling json file
+// ================================================================
+// NO LONGER NEEDED. WAS USED FOR IMPORTING JSON INTO DATABASE
+// ================================================================
 type Dataset map[string][]Show
+
+// ===================================================================================================================
+// ===================================================================================================================
+// ===================================================================================================================
 
 // ShowResponse will be used as the payload sent in the server response
 type ShowResponse struct {
@@ -39,31 +49,22 @@ type ShowSortInput struct {
 	RawEntry string    `json:"raw_entry"`
 }
 
-type SearchByVenueShow struct {
-	Date    string `json:"date"`
-	Venue   string `json:"venue"`
-	Notes   string `json:"notes"`
-	SetName string `json:"set_name"`
-	Song    string `json:"song"`
+// These three are used in the SearchByVenue endpoint
+
+type SetResult struct {
+	SetName string   `json:"set_name"`
+	Songs   []string `json:"songs"`
 }
 
-type ShowDetailsPerYear struct {
-	Year []struct {
-		Location string      `json:"location"`
-		Venue    string      `json:"venue"`
-		Setlist  SetResponse `json:"setlist"`
-		Notes    string      `json:"notes"`
-		ShowID   int         `json:"show_id"`
-		Day      string      `json:"day"`
-	} `json:"year"`
+type ShowResult struct {
+	Date  string      `json:"date"`
+	Notes string      `json:"notes"`
+	Sets  []SetResult `json:"sets"`
 }
 
-type ShowDetailsPerVenue struct {
-	Venue []struct {
-		Year []struct {
-			Date    string   `json:"date"`
-			Notes   string   `json:"notes"`
-			SetList []string `json:"set_list"`
-		} `json:"year"`
-	} `json:"venue"`
+type VenueResult struct {
+	Venue string       `json:"venue"`
+	City  string       `json:"city"`
+	State string       `json:"state"`
+	Shows []ShowResult `json:"shows"`
 }

@@ -176,6 +176,8 @@ const searchByVenue = `-- name: SearchByVenue :many
 SELECT
 	shows.show_date AS "date",
 	shows.venue,
+  shows.city,
+  shows.state,
 	shows.notes,
 	sets.set_name,
 	sets.position AS set_position,
@@ -198,6 +200,8 @@ ORDER BY
 type SearchByVenueRow struct {
 	Date         time.Time
 	Venue        string
+	City         string
+	State        string
 	Notes        sql.NullString
 	SetName      string
 	SetPosition  int32
@@ -217,6 +221,8 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 		if err := rows.Scan(
 			&i.Date,
 			&i.Venue,
+			&i.City,
+			&i.State,
 			&i.Notes,
 			&i.SetName,
 			&i.SetPosition,

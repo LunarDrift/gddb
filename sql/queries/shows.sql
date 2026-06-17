@@ -63,6 +63,8 @@ ORDER BY
 SELECT
 	shows.show_date AS "date",
 	shows.venue,
+  shows.city,
+  shows.state,
 	shows.notes,
 	sets.set_name,
 	sets.position AS set_position,
