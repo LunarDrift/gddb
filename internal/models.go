@@ -32,6 +32,9 @@ type Dataset map[string][]Show
 type ShowResponse struct {
 	Date  string        `json:"date"`
 	Venue string        `json:"venue"`
+	City  string        `json:"city"`
+	State string        `json:"state"`
+	Notes string        `json:"notes"`
 	Sets  []SetResponse `json:"sets"`
 }
 
@@ -45,6 +48,9 @@ type SetResponse struct {
 type ShowSortInput struct {
 	ShowDate time.Time `json:"show_date"`
 	Venue    string    `json:"venue"`
+	City     string    `json:"city"`
+	State    string    `json:"state"`
+	Notes    string    `json:"notes"`
 	SetName  string    `json:"set_name"`
 	RawEntry string    `json:"raw_entry"`
 }
@@ -55,4 +61,13 @@ type VenueSearchResult struct {
 	Venue  string `json:"venue"`
 	City   string `json:"city"`
 	State  string `json:"state"`
+}
+
+type ShowWithNoSetlist struct {
+	Date    string `json:"date"`
+	Venue   string `json:"venue"`
+	City    string `json:"city"`
+	State   string `json:"state"`
+	Notes   string `json:"notes"`
+	Message string `json:"message"`
 }

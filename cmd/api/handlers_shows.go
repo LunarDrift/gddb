@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -21,18 +22,34 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	showRow, err := s.queries.GetShowFromDate(r.Context(), dateParsed)
+	showRows, err := s.queries.GetShowFromDate(r.Context(), dateParsed)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not get show", err)
 	}
 
+	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
+		s := showRows[0]
+		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
+			Date:    s.ShowDate.Format("2006-01-02"),
+			Venue:   s.Venue,
+			City:    s.City,
+			State:   s.State,
+			Notes:   s.Notes.String,
+			Message: "No setlist available for this show",
+		})
+		return
+	}
+
 	var parsedShows []internal.ShowSortInput
-	for _, show := range showRow {
+	for _, show := range showRows {
 		parsedShows = append(parsedShows, internal.ShowSortInput{
 			ShowDate: show.ShowDate,
 			Venue:    show.Venue,
-			SetName:  show.SetName,
-			RawEntry: show.RawEntry,
+			City:     show.City,
+			State:    show.State,
+			Notes:    show.Notes.String,
+			SetName:  show.SetName.String,
+			RawEntry: show.RawEntry.String,
 		})
 	}
 
@@ -53,23 +70,88 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	shows, err := s.queries.GetShowFromID(r.Context(), int32(id))
+	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	var parsedShows []internal.ShowSortInput
-	for _, show := range shows {
-		parsedShows = append(parsedShows, internal.ShowSortInput{
-			ShowDate: show.ShowDate,
-			Venue:    show.Venue,
-			SetName:  show.SetName,
-			RawEntry: show.RawEntry,
+	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
+		s := showRows[0]
+		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
+			Date:    s.ShowDate.Format("2006-01-02"),
+			Venue:   s.Venue,
+			City:    s.City,
+			State:   s.State,
+			Notes:   s.Notes.String,
+			Message: "No setlist available for this show",
+		})
+		return
+	}
+
+	var parsedShow []internal.ShowSortInput
+	for _, row := range showRows {
+		parsedShow = append(parsedShow, internal.ShowSortInput{
+			ShowDate: row.ShowDate,
+			Venue:    row.Venue,
+			City:     row.City,
+			State:    row.State,
+			Notes:    row.Notes.String,
+			SetName:  row.SetName.String,
+			RawEntry: row.RawEntry.String,
 		})
 	}
 
-	showResp, err := internal.SortSetPositions(parsedShows)
+	showResp, err := internal.SortSetPositions(parsedShow)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, showResp)
+}
+
+func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
+	allIDs, err := s.queries.GetAllShowIDs(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get list of IDs", err)
+		return
+	}
+	id := allIDs[rand.Intn(len(allIDs))]
+
+	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
+		return
+	}
+
+	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
+		s := showRows[0]
+		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
+			Date:    s.ShowDate.Format("2006-01-02"),
+			Venue:   s.Venue,
+			City:    s.City,
+			State:   s.State,
+			Notes:   s.Notes.String,
+			Message: "No setlist available for this show",
+		})
+		return
+	}
+
+	var parsedShow []internal.ShowSortInput
+	for _, row := range showRows {
+		parsedShow = append(parsedShow, internal.ShowSortInput{
+			ShowDate: row.ShowDate,
+			Venue:    row.Venue,
+			City:     row.City,
+			State:    row.State,
+			Notes:    row.Notes.String,
+			SetName:  row.SetName.String,
+			RawEntry: row.RawEntry.String,
+		})
+	}
+
+	showResp, err := internal.SortSetPositions(parsedShow)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
 		return

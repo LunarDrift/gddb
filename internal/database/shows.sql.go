@@ -56,19 +56,49 @@ func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
 	return err
 }
 
+const getAllShowIDs = `-- name: GetAllShowIDs :many
+SELECT show_id FROM shows ORDER BY show_id
+`
+
+func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
+	rows, err := q.db.QueryContext(ctx, getAllShowIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int32
+	for rows.Next() {
+		var show_id int32
+		if err := rows.Scan(&show_id); err != nil {
+			return nil, err
+		}
+		items = append(items, show_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowFromDate = `-- name: GetShowFromDate :many
 SELECT 
 	shows.show_date,
 	shows.venue,
+  shows.city,
+  shows.state,
+  shows.notes,
 	sets.set_name,
 	sets.position AS set_position,
 	set_entries.raw_entry,
 	set_entries.position AS song_position
 FROM
 	shows
-JOIN SETS ON
+LEFT JOIN SETS ON
 	sets.show_id = shows.show_id
-JOIN set_entries ON
+LEFT JOIN set_entries ON
 	set_entries.set_id = sets.id
 WHERE
 	shows.show_date = $1
@@ -81,10 +111,13 @@ ORDER BY
 type GetShowFromDateRow struct {
 	ShowDate     time.Time
 	Venue        string
-	SetName      string
-	SetPosition  int32
-	RawEntry     string
-	SongPosition int32
+	City         string
+	State        string
+	Notes        sql.NullString
+	SetName      sql.NullString
+	SetPosition  sql.NullInt32
+	RawEntry     sql.NullString
+	SongPosition sql.NullInt32
 }
 
 func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]GetShowFromDateRow, error) {
@@ -99,6 +132,9 @@ func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]Ge
 		if err := rows.Scan(
 			&i.ShowDate,
 			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
 			&i.SetName,
 			&i.SetPosition,
 			&i.RawEntry,
@@ -121,14 +157,17 @@ const getShowFromID = `-- name: GetShowFromID :many
 SELECT
 	s.show_date,
 	s.venue,
+  s.city,
+  s.state,
+  s.notes,
 	st.set_name,
 	se.raw_entry
 FROM
 	shows s
-JOIN SETS st
+LEFT JOIN SETS st
 	ON
 	s.show_id = st.show_id
-JOIN set_entries se
+LEFT JOIN set_entries se
 	ON
 	st.id = se.set_id
 WHERE
@@ -141,8 +180,11 @@ ORDER BY
 type GetShowFromIDRow struct {
 	ShowDate time.Time
 	Venue    string
-	SetName  string
-	RawEntry string
+	City     string
+	State    string
+	Notes    sql.NullString
+	SetName  sql.NullString
+	RawEntry sql.NullString
 }
 
 func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFromIDRow, error) {
@@ -157,6 +199,9 @@ func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFro
 		if err := rows.Scan(
 			&i.ShowDate,
 			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
 			&i.SetName,
 			&i.RawEntry,
 		); err != nil {
