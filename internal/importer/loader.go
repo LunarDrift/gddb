@@ -7,7 +7,7 @@ import (
 	"github.com/LunarDrift/deadabase/internal"
 )
 
-func loadFile(filename string) (internal.Dataset, error) {
+func LoadFile(filename string) (internal.Dataset, error) {
 	bytes, err := os.ReadFile(filename)
 	if err != nil {
 		return nil, err

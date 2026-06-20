@@ -36,6 +36,7 @@ JOIN set_entries ON
 WHERE
 	shows.show_date = $1
 ORDER BY
+  shows.show_id,
 	sets.position,
 	set_entries."position";
 
@@ -61,24 +62,15 @@ ORDER BY
 
 -- name: SearchByVenue :many
 SELECT
+  shows.show_id,
 	shows.show_date AS "date",
 	shows.venue,
   shows.city,
-  shows.state,
-	shows.notes,
-	sets.set_name,
-	sets.position AS set_position,
-	set_entries.raw_entry AS song,
-	set_entries."position" AS song_position
+  shows.state
 FROM
 	shows
-JOIN sets ON
-	sets.show_id = shows.show_id
-JOIN set_entries ON
-	set_entries.set_id = sets.id
 WHERE venue ILIKE $1
 ORDER BY
+  shows.show_id,
 	shows.venue,
-	shows.show_date,
-	sets.position,
-	set_entries."position";
+	shows.show_date;

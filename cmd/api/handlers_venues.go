@@ -15,7 +15,15 @@ func (s *server) handleSearchByVenue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := internal.GroupByVenue(searchResults)
-
-	respondWithJSON(w, http.StatusOK, result)
+	var venueResults []internal.VenueSearchResult
+	for _, result := range searchResults {
+		venueResults = append(venueResults, internal.VenueSearchResult{
+			ShowID: int(result.ShowID),
+			Date:   result.Date.Format("2006-01-02"),
+			Venue:  result.Venue,
+			City:   result.City,
+			State:  result.State,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, venueResults)
 }

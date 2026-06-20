@@ -49,22 +49,10 @@ type ShowSortInput struct {
 	RawEntry string    `json:"raw_entry"`
 }
 
-// These three are used in the SearchByVenue endpoint
-
-type SetResult struct {
-	SetName string   `json:"set_name"`
-	Songs   []string `json:"songs"`
-}
-
-type ShowResult struct {
-	Date  string      `json:"date"`
-	Notes string      `json:"notes"`
-	Sets  []SetResult `json:"sets"`
-}
-
-type VenueResult struct {
-	Venue string       `json:"venue"`
-	City  string       `json:"city"`
-	State string       `json:"state"`
-	Shows []ShowResult `json:"shows"`
+type VenueSearchResult struct {
+	ShowID int    `json:"show_id"`
+	Date   string `json:"date"`
+	Venue  string `json:"venue"`
+	City   string `json:"city"`
+	State  string `json:"state"`
 }

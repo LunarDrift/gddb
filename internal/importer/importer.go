@@ -13,7 +13,7 @@ import (
 )
 
 func Run(db *sql.DB, filename string) error {
-	data, err := loadFile(filename)
+	data, err := LoadFile(filename)
 	if err != nil {
 		return err
 	}
