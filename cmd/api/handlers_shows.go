@@ -48,7 +48,7 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 	respondWithJSON(w, http.StatusOK, showResp)
 }
 
-func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 	dateStr := r.URL.Query().Get("date")
 	if dateStr == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing date parameter", nil)
