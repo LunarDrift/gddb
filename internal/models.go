@@ -23,6 +23,7 @@ type Dataset map[string][]Show
 // ===================================================================================================================
 // ===================================================================================================================
 
+// ShowMeta holds the shared elements that multiple show responses use
 type ShowMeta struct {
 	Date  string `json:"date"`
 	Venue string `json:"venue"`
@@ -51,6 +52,7 @@ type SetResponse struct {
 
 // ShowSortInput is used to hold the data from sqlc-generated structs while the setlist gets sorted
 type ShowSortInput struct {
+	ShowID   int32     `json:"show_id"`
 	ShowDate time.Time `json:"show_date"`
 	Venue    string    `json:"venue"`
 	City     string    `json:"city"`

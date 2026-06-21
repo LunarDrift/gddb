@@ -9,6 +9,45 @@ import (
 	"github.com/LunarDrift/deadabase/internal"
 )
 
+// respondWithShow takes a slice of ShowSortInput rows for a single show (already
+// fetched by date, ID, or random selection) and handles the rest of the response:
+// returning a "no setlist available" message if the show has no songs, otherwise
+// sorting the sets/songs and attaching any footnotes before writing the JSON response
+func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedShow []internal.ShowSortInput) {
+	if len(parsedShow) > 0 && parsedShow[0].RawEntry == "" {
+		row := parsedShow[0]
+		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
+			ShowMeta: internal.ShowMeta{
+				Date:  row.ShowDate.Format("2006-01-02"),
+				Venue: row.Venue,
+				City:  row.City,
+				State: row.State,
+				Notes: row.Notes,
+			},
+			Message: "No setlist available for this show",
+		})
+		return
+	}
+
+	showResp, err := internal.SortSetPositions(parsedShow)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
+		return
+	}
+
+	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), parsedShow[0].ShowID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
+		return
+	}
+	showResp.Footnotes = make(map[string]string)
+	for _, f := range footnoteRows {
+		showResp.Footnotes[f.Marker] = f.NoteText
+	}
+
+	respondWithJSON(w, http.StatusOK, showResp)
+}
+
 func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 	dateStr := r.URL.Query().Get("date")
 	if dateStr == "" {
@@ -27,30 +66,10 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
 	}
 
-	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), showRows[0].ShowID)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
-		return
-	}
-
-	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
-		s := showRows[0]
-		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
-			ShowMeta: internal.ShowMeta{
-				Date:  s.ShowDate.Format("2006-01-02"),
-				Venue: s.Venue,
-				City:  s.City,
-				State: s.State,
-				Notes: s.Notes.String,
-			},
-			Message: "No setlist available for this show",
-		})
-		return
-	}
-
 	var parsedShows []internal.ShowSortInput
 	for _, show := range showRows {
 		parsedShows = append(parsedShows, internal.ShowSortInput{
+			ShowID:   show.ShowID,
 			ShowDate: show.ShowDate,
 			Venue:    show.Venue,
 			City:     show.City,
@@ -61,17 +80,7 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	showResp, err := internal.SortSetPositions(parsedShows)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
-		return
-	}
-	showResp.Footnotes = make(map[string]string)
-	for _, f := range footnoteRows {
-		showResp.Footnotes[f.Marker] = f.NoteText
-	}
-
-	respondWithJSON(w, http.StatusOK, showResp)
+	s.respondWithShow(w, r, parsedShows)
 }
 
 func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
@@ -88,30 +97,10 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), int32(id))
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
-		return
-	}
-
-	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
-		s := showRows[0]
-		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
-			ShowMeta: internal.ShowMeta{
-				Date:  s.ShowDate.Format("2006-01-02"),
-				Venue: s.Venue,
-				City:  s.City,
-				State: s.State,
-				Notes: s.Notes.String,
-			},
-			Message: "No setlist available for this show",
-		})
-		return
-	}
-
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
 		parsedShow = append(parsedShow, internal.ShowSortInput{
+			ShowID:   int32(id),
 			ShowDate: row.ShowDate,
 			Venue:    row.Venue,
 			City:     row.City,
@@ -122,18 +111,7 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	showResp, err := internal.SortSetPositions(parsedShow)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
-		return
-	}
-
-	showResp.Footnotes = make(map[string]string)
-	for _, f := range footnoteRows {
-		showResp.Footnotes[f.Marker] = f.NoteText
-	}
-
-	respondWithJSON(w, http.StatusOK, showResp)
+	s.respondWithShow(w, r, parsedShow)
 }
 
 func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
@@ -150,30 +128,10 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), id)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
-		return
-	}
-
-	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
-		s := showRows[0]
-		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
-			ShowMeta: internal.ShowMeta{
-				Date:  s.ShowDate.Format("2006-01-02"),
-				Venue: s.Venue,
-				City:  s.City,
-				State: s.State,
-				Notes: s.Notes.String,
-			},
-			Message: "No setlist available for this show",
-		})
-		return
-	}
-
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
 		parsedShow = append(parsedShow, internal.ShowSortInput{
+			ShowID:   id,
 			ShowDate: row.ShowDate,
 			Venue:    row.Venue,
 			City:     row.City,
@@ -184,15 +142,5 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	showResp, err := internal.SortSetPositions(parsedShow)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
-		return
-	}
-	showResp.Footnotes = make(map[string]string)
-	for _, f := range footnoteRows {
-		showResp.Footnotes[f.Marker] = f.NoteText
-	}
-
-	respondWithJSON(w, http.StatusOK, showResp)
+	s.respondWithShow(w, r, parsedShow)
 }
