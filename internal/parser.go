@@ -9,14 +9,24 @@ import (
 )
 
 func SetPosition(name string) int {
-	if name == "encore" {
+	switch name {
+	case "acoustic_1":
+		return -2
+	case "acoustic_2":
+		return -1
+	case "acoustic":
+		return 0
+	case "electric":
+		return 1
+	case "encore":
 		return 999
 	}
 	// extract the number from "set_1", "set_2", "set_3"
 	var n int
 	_, err := fmt.Sscanf(name, "set_%d", &n)
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("warning: unrecognized set name %q, sorting last", name)
+		return 1000
 	}
 	return n
 }

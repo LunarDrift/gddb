@@ -31,12 +31,13 @@ type Dataset map[string][]Show
 
 // ShowResponse will be used as the payload sent in the server response
 type ShowResponse struct {
-	Date  string        `json:"date"`
-	Venue string        `json:"venue"`
-	City  string        `json:"city"`
-	State string        `json:"state"`
-	Notes string        `json:"notes"`
-	Sets  []SetResponse `json:"sets"`
+	Date      string            `json:"date"`
+	Venue     string            `json:"venue"`
+	City      string            `json:"city"`
+	State     string            `json:"state"`
+	Notes     string            `json:"notes"`
+	Sets      []SetResponse     `json:"sets"`
+	Footnotes map[string]string `json:"footnotes"`
 }
 
 // SetResponse holds the set name (ie. set_1, set_2, encore, etc.) and list of songs
