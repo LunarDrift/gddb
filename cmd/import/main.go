@@ -34,7 +34,7 @@ func main() {
 	}
 	fmt.Println("step 5: db pinged ok")
 
-	const file string = "data/new.json"
+	const file string = "data/data.json"
 	fmt.Println("step 6: about to run import on ", file)
 	err = importer.Run(db, file)
 	if err != nil {

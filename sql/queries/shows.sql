@@ -21,6 +21,7 @@ ON CONFLICT (show_id) DO NOTHING;
 
 -- name: GetShowFromDate :many
 SELECT 
+  shows.show_id,
 	shows.show_date,
 	shows.venue,
   shows.city,

@@ -12,19 +12,25 @@ import (
 func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 	dateStr := r.URL.Query().Get("date")
 	if dateStr == "" {
-		respondWithError(w, http.StatusBadRequest, "missing date parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing date parameter", nil)
 		return
 	}
 
 	dateParsed, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "invalid date format, expected YYYY-MM-DD", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
 		return
 	}
 
 	showRows, err := s.queries.GetShowFromDate(r.Context(), dateParsed)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get show", err)
+		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
+	}
+
+	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), showRows[0].ShowID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
+		return
 	}
 
 	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
@@ -58,6 +64,10 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
 		return
 	}
+	showResp.Footnotes = make(map[string]string)
+	for _, f := range footnoteRows {
+		showResp.Footnotes[f.Marker] = f.NoteText
+	}
 
 	respondWithJSON(w, http.StatusOK, showResp)
 }
@@ -73,6 +83,12 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), int32(id))
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
 		return
 	}
 
@@ -106,6 +122,11 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
 		return
+	}
+
+	showResp.Footnotes = make(map[string]string)
+	for _, f := range footnoteRows {
+		showResp.Footnotes[f.Marker] = f.NoteText
 	}
 
 	respondWithJSON(w, http.StatusOK, showResp)
@@ -125,6 +146,12 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), id)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
+		return
+	}
+
 	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
 		s := showRows[0]
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
@@ -155,6 +182,10 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
 		return
+	}
+	showResp.Footnotes = make(map[string]string)
+	for _, f := range footnoteRows {
+		showResp.Footnotes[f.Marker] = f.NoteText
 	}
 
 	respondWithJSON(w, http.StatusOK, showResp)

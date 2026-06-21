@@ -85,6 +85,7 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 
 const getShowFromDate = `-- name: GetShowFromDate :many
 SELECT 
+  shows.show_id,
 	shows.show_date,
 	shows.venue,
   shows.city,
@@ -109,6 +110,7 @@ ORDER BY
 `
 
 type GetShowFromDateRow struct {
+	ShowID       int32
 	ShowDate     time.Time
 	Venue        string
 	City         string
@@ -130,6 +132,7 @@ func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]Ge
 	for rows.Next() {
 		var i GetShowFromDateRow
 		if err := rows.Scan(
+			&i.ShowID,
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
