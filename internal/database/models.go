@@ -35,3 +35,10 @@ type Show struct {
 	Notes     sql.NullString
 	CreatedAt time.Time
 }
+
+type ShowFootnote struct {
+	ID       int32
+	ShowID   int32
+	Marker   string
+	NoteText string
+}

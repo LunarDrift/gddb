@@ -9,13 +9,14 @@ import "time"
 // NO LONGER NEEDED. WAS USED FOR IMPORTING JSON INTO DATABASE
 // ================================================================
 type Show struct {
-	ShowID   int                 `json:"show_id"`
-	Date     string              `json:"date"`
-	Day      string              `json:"day"`
-	Venue    string              `json:"venue"`
-	Location string              `json:"location"`
-	Notes    string              `json:"notes"`
-	Setlist  map[string][]string `json:"setlist"`
+	ShowID    int                 `json:"show_id"`
+	Date      string              `json:"date"`
+	Day       string              `json:"day"`
+	Venue     string              `json:"venue"`
+	Location  string              `json:"location"`
+	Notes     string              `json:"notes"`
+	Setlist   map[string][]string `json:"setlist"`
+	Footnotes map[string]string   `json:"footnotes"`
 }
 
 // Dataset is a type alias to be used when unmarshaling json file

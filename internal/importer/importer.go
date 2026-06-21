@@ -95,5 +95,16 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 		}
 	}
 
+	for marker, noteText := range show.Footnotes {
+		err = q.CreateFootnote(context.Background(), database.CreateFootnoteParams{
+			ShowID:   int32(show.ShowID),
+			Marker:   marker,
+			NoteText: noteText,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
