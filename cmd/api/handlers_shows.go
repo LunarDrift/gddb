@@ -36,11 +36,13 @@ func (s *server) handleGetShows(w http.ResponseWriter, r *http.Request) {
 	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
 		s := showRows[0]
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
-			Date:    s.ShowDate.Format("2006-01-02"),
-			Venue:   s.Venue,
-			City:    s.City,
-			State:   s.State,
-			Notes:   s.Notes.String,
+			ShowMeta: internal.ShowMeta{
+				Date:  s.ShowDate.Format("2006-01-02"),
+				Venue: s.Venue,
+				City:  s.City,
+				State: s.State,
+				Notes: s.Notes.String,
+			},
 			Message: "No setlist available for this show",
 		})
 		return
@@ -95,11 +97,13 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
 		s := showRows[0]
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
-			Date:    s.ShowDate.Format("2006-01-02"),
-			Venue:   s.Venue,
-			City:    s.City,
-			State:   s.State,
-			Notes:   s.Notes.String,
+			ShowMeta: internal.ShowMeta{
+				Date:  s.ShowDate.Format("2006-01-02"),
+				Venue: s.Venue,
+				City:  s.City,
+				State: s.State,
+				Notes: s.Notes.String,
+			},
 			Message: "No setlist available for this show",
 		})
 		return
@@ -155,11 +159,13 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 	if len(showRows) > 0 && !showRows[0].RawEntry.Valid {
 		s := showRows[0]
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
-			Date:    s.ShowDate.Format("2006-01-02"),
-			Venue:   s.Venue,
-			City:    s.City,
-			State:   s.State,
-			Notes:   s.Notes.String,
+			ShowMeta: internal.ShowMeta{
+				Date:  s.ShowDate.Format("2006-01-02"),
+				Venue: s.Venue,
+				City:  s.City,
+				State: s.State,
+				Notes: s.Notes.String,
+			},
 			Message: "No setlist available for this show",
 		})
 		return

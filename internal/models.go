@@ -5,9 +5,6 @@ import "time"
 
 // Show is used as a temporary container for unmarshaling the
 // json object, before distributing it across the other tables
-// ================================================================
-// NO LONGER NEEDED. WAS USED FOR IMPORTING JSON INTO DATABASE
-// ================================================================
 type Show struct {
 	ShowID    int                 `json:"show_id"`
 	Date      string              `json:"date"`
@@ -20,24 +17,30 @@ type Show struct {
 }
 
 // Dataset is a type alias to be used when unmarshaling json file
-// ================================================================
-// NO LONGER NEEDED. WAS USED FOR IMPORTING JSON INTO DATABASE
-// ================================================================
 type Dataset map[string][]Show
 
 // ===================================================================================================================
 // ===================================================================================================================
 // ===================================================================================================================
 
+type ShowMeta struct {
+	Date  string `json:"date"`
+	Venue string `json:"venue"`
+	City  string `json:"city"`
+	State string `json:"state"`
+	Notes string `json:"notes"`
+}
+
 // ShowResponse will be used as the payload sent in the server response
 type ShowResponse struct {
-	Date      string            `json:"date"`
-	Venue     string            `json:"venue"`
-	City      string            `json:"city"`
-	State     string            `json:"state"`
-	Notes     string            `json:"notes"`
+	ShowMeta
 	Sets      []SetResponse     `json:"sets"`
 	Footnotes map[string]string `json:"footnotes"`
+}
+
+type ShowWithNoSetlist struct {
+	ShowMeta
+	Message string `json:"message"`
 }
 
 // SetResponse holds the set name (ie. set_1, set_2, encore, etc.) and list of songs
@@ -63,13 +66,4 @@ type VenueSearchResult struct {
 	Venue  string `json:"venue"`
 	City   string `json:"city"`
 	State  string `json:"state"`
-}
-
-type ShowWithNoSetlist struct {
-	Date    string `json:"date"`
-	Venue   string `json:"venue"`
-	City    string `json:"city"`
-	State   string `json:"state"`
-	Notes   string `json:"notes"`
-	Message string `json:"message"`
 }
