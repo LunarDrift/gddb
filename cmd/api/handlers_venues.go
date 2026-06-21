@@ -15,9 +15,9 @@ func (s *server) handleSearchByVenue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var venueResults []internal.VenueSearchResult
+	var venueResults []internal.ListOfShowsResult
 	for _, result := range searchResults {
-		venueResults = append(venueResults, internal.VenueSearchResult{
+		venueResults = append(venueResults, internal.ListOfShowsResult{
 			ShowID: int(result.ShowID),
 			Date:   result.Date.Format("2006-01-02"),
 			Venue:  result.Venue,

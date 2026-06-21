@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
+	"github.com/LunarDrift/deadabase/internal/database"
 )
 
 // respondWithShow takes a slice of ShowSortInput rows for a single show (already
@@ -143,4 +144,44 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.respondWithShow(w, r, parsedShow)
+}
+
+func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Request) {
+	startDateStr := r.URL.Query().Get("startdate")
+	endDateStr := r.URL.Query().Get("enddate")
+	if startDateStr == "" || endDateStr == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing date parameter", nil)
+		return
+	}
+
+	startDateParsed, err := time.Parse("2006-01-02", startDateStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
+		return
+	}
+	endDateParsed, err := time.Parse("2006-01-02", endDateStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsBetweenDates(r.Context(), database.GetShowsBetweenDatesParams{
+		ShowDate:   startDateParsed,
+		ShowDate_2: endDateParsed,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
+		return
+	}
+	var showResults []internal.ListOfShowsResult
+	for _, show := range showRows {
+		showResults = append(showResults, internal.ListOfShowsResult{
+			ShowID: int(show.ShowID),
+			Date:   show.ShowDate.Format("2006-01-02"),
+			Venue:  show.Venue,
+			City:   show.City,
+			State:  show.State,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, showResults)
 }

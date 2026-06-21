@@ -84,3 +84,23 @@ ORDER BY
 
 -- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id;
+
+-- name: GetShowsBetweenDates :many
+SELECT
+	s.show_date,
+	s.venue,
+	s.city,
+	s.state,
+	s.show_id
+FROM
+	shows s
+JOIN "sets" st ON 
+	s.show_id = st.show_id 
+JOIN set_entries se ON
+	st.id = se.set_id 
+WHERE
+	s.show_date BETWEEN $1 AND $2
+GROUP BY
+	s.show_date, s.venue, s.show_id 
+ORDER BY
+	s.show_date;

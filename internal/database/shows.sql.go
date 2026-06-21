@@ -221,6 +221,69 @@ func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFro
 	return items, nil
 }
 
+const getShowsBetweenDates = `-- name: GetShowsBetweenDates :many
+SELECT
+	s.show_date,
+	s.venue,
+	s.city,
+	s.state,
+	s.show_id
+FROM
+	shows s
+JOIN "sets" st ON 
+	s.show_id = st.show_id 
+JOIN set_entries se ON
+	st.id = se.set_id 
+WHERE
+	s.show_date BETWEEN $1 AND $2
+GROUP BY
+	s.show_date, s.venue, s.show_id 
+ORDER BY
+	s.show_date
+`
+
+type GetShowsBetweenDatesParams struct {
+	ShowDate   time.Time
+	ShowDate_2 time.Time
+}
+
+type GetShowsBetweenDatesRow struct {
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+	ShowID   int32
+}
+
+func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenDatesParams) ([]GetShowsBetweenDatesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates, arg.ShowDate, arg.ShowDate_2)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsBetweenDatesRow
+	for rows.Next() {
+		var i GetShowsBetweenDatesRow
+		if err := rows.Scan(
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.ShowID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchByVenue = `-- name: SearchByVenue :many
 SELECT
   shows.show_id,

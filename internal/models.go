@@ -62,7 +62,7 @@ type ShowSortInput struct {
 	RawEntry string    `json:"raw_entry"`
 }
 
-type VenueSearchResult struct {
+type ListOfShowsResult struct {
 	ShowID int    `json:"show_id"`
 	Date   string `json:"date"`
 	Venue  string `json:"venue"`
