@@ -18,6 +18,7 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | `/shows?date=`      | Search for a specific show by date                                   |
 | `/shows/:id`        | Search for a specific show by ID                                     |
 | `/shows/random`     | Get details about a random show                                      |
+| `/shows/between?startdate=&enddate=` | List of shows between two dates |
 | `/venues?name=`     | Search for shows by venue. Returns a list of shows with their IDs    |
 | `/songs/mostplayed` | Returns a list of all songs and the amount of times they were played |
 
