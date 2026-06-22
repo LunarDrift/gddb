@@ -284,6 +284,52 @@ func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenD
 	return items, nil
 }
 
+const getShowsFromSongName = `-- name: GetShowsFromSongName :many
+SELECT s.show_date, s.city, s.state, s.venue, s.show_id 
+FROM shows s
+JOIN "sets" st ON st.show_id = s.show_id
+JOIN set_entries se ON se.set_id = st.id
+WHERE se.raw_entry ILIKE $1
+ORDER BY show_date
+`
+
+type GetShowsFromSongNameRow struct {
+	ShowDate time.Time
+	City     string
+	State    string
+	Venue    string
+	ShowID   int32
+}
+
+func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]GetShowsFromSongNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, rawEntry)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromSongNameRow
+	for rows.Next() {
+		var i GetShowsFromSongNameRow
+		if err := rows.Scan(
+			&i.ShowDate,
+			&i.City,
+			&i.State,
+			&i.Venue,
+			&i.ShowID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchByVenue = `-- name: SearchByVenue :many
 SELECT
   shows.show_id,

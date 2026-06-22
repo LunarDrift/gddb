@@ -4,7 +4,8 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 
 ## Features
 - Search for shows by date, venue, or ID
-- Endpoint to get a random show or view most played songs
+- Endpoints to get a random show or view most played songs
+- Search for shows between two dates
 
 ## Tech Stack
 - Go: HTTP server
@@ -16,6 +17,7 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | ENDPOINT            | DESCRIPTION                                                          |
 | ------------------- | -------------------------------------------------------------------- |
 | `/shows?date=`      | Search for a specific show by date                                   |
+|`/shows?song=` | Search for shows where a specific song was played |
 | `/shows/:id`        | Search for a specific show by ID                                     |
 | `/shows/random`     | Get details about a random show                                      |
 | `/shows/between?startdate=&enddate=` | List of shows between two dates |
@@ -70,9 +72,8 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | ENDPOINT                | DESCRIPTION                                             |
 | ----------------------- | ------------------------------------------------------- |
 | `/songs/:name`          | Stats for a song (times played, first/last time played) |
-| `/songs/:name/shows`    | All shows where this song was played                    |
 | `/songs?played_lt=n`    | Songs played less than `n` times                        |
-| `/shows?state=&&city=`  | Search for songs in a specific state/city               |
+| `/shows?state=&city=`  | Search for songs in a specific state/city               |
 | `/venue/:name/songs`    | All songs played at a specific venue                    |
 | `/stats/songs-per-city` | Unique songs per city                                   |
 | `/stats/top-encores`    | Most common encore songs                                |

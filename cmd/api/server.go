@@ -31,7 +31,7 @@ func NewServer(db *sql.DB, queries *database.Queries) *server {
 func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /health", s.handleHealth)
 
-	s.mux.HandleFunc("GET /shows", s.handleGetShowFromDate) // /shows?date=
+	s.mux.HandleFunc("GET /shows", s.handlerShows)
 	s.mux.HandleFunc("GET /shows/{id}", s.handleGetShowFromID)
 	s.mux.HandleFunc("GET /shows/random", s.handleGetRandomShow)
 	s.mux.HandleFunc("GET /shows/between", s.handleGetShowsBetweenDates)
@@ -60,4 +60,20 @@ func respondWithError(w http.ResponseWriter, status int, message string, err err
 		Error string `json:"error"`
 	}
 	respondWithJSON(w, status, errorResponse{Error: message})
+}
+
+func (s *server) handlerShows(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	switch {
+	case query.Has("date"):
+		s.handleGetShowFromDate(w, r)
+		return
+	case query.Has("song"):
+		s.handleGetShowsFromSongName(w, r)
+		return
+	default:
+		respondWithError(w, http.StatusBadRequest, "Must provide a date or song query parameter", nil)
+		return
+	}
 }

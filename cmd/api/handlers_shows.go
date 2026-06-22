@@ -185,3 +185,29 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }
+
+func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Request) {
+	songName := r.URL.Query().Get("song")
+	if songName == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing 'song' query parameter", nil)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromSongName(r.Context(), "%"+songName+"%")
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	var showResults []internal.ListOfShowsResult
+	for _, show := range showRows {
+		showResults = append(showResults, internal.ListOfShowsResult{
+			ShowID: int(show.ShowID),
+			Date:   show.ShowDate.Format("2006-01-02"),
+			Venue:  show.Venue,
+			City:   show.City,
+			State:  show.State,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, showResults)
+}

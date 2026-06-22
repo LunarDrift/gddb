@@ -104,3 +104,11 @@ GROUP BY
 	s.show_date, s.venue, s.show_id 
 ORDER BY
 	s.show_date;
+
+-- name: GetShowsFromSongName :many
+SELECT s.show_date, s.city, s.state, s.venue, s.show_id 
+FROM shows s
+JOIN "sets" st ON st.show_id = s.show_id
+JOIN set_entries se ON se.set_id = st.id
+WHERE se.raw_entry ILIKE $1
+ORDER BY show_date;

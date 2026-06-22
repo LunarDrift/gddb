@@ -8,6 +8,9 @@ import (
 
 func (s *server) handleSearchByVenue(w http.ResponseWriter, r *http.Request) {
 	venue := r.URL.Query().Get("name")
+	if venue == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing 'name' query parameter", nil)
+	}
 
 	searchResults, err := s.queries.SearchByVenue(r.Context(), "%"+venue+"%")
 	if err != nil {
