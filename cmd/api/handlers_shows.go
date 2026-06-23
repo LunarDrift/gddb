@@ -69,17 +69,8 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var parsedShows []internal.ShowSortInput
-	for _, show := range showRows {
-		parsedShows = append(parsedShows, internal.ShowSortInput{
-			ShowID:   show.ShowID,
-			ShowDate: show.ShowDate,
-			Venue:    show.Venue,
-			City:     show.City,
-			State:    show.State,
-			Notes:    show.Notes.String,
-			SetName:  show.SetName.String,
-			RawEntry: show.RawEntry.String,
-		})
+	for _, row := range showRows {
+		parsedShows = append(parsedShows, database.RowToShowSortInput(row))
 	}
 
 	s.respondWithShow(w, r, parsedShows)
@@ -101,16 +92,7 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
-		parsedShow = append(parsedShow, internal.ShowSortInput{
-			ShowID:   int32(id),
-			ShowDate: row.ShowDate,
-			Venue:    row.Venue,
-			City:     row.City,
-			State:    row.State,
-			Notes:    row.Notes.String,
-			SetName:  row.SetName.String,
-			RawEntry: row.RawEntry.String,
-		})
+		parsedShow = append(parsedShow, database.RowToShowSortInput(row))
 	}
 
 	s.respondWithShow(w, r, parsedShow)
