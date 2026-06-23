@@ -25,11 +25,12 @@ type Dataset map[string][]Show
 
 // ShowMeta holds the shared elements that multiple show responses use
 type ShowMeta struct {
-	Date  string `json:"date"`
-	Venue string `json:"venue"`
-	City  string `json:"city"`
-	State string `json:"state"`
-	Notes string `json:"notes"`
+	ShowID int32  `json:"show_id"`
+	Date   string `json:"date"`
+	Venue  string `json:"venue"`
+	City   string `json:"city"`
+	State  string `json:"state"`
+	Notes  string `json:"notes"`
 }
 
 // ShowResponse will be used as the payload sent in the server response
@@ -63,7 +64,7 @@ type ShowSortInput struct {
 }
 
 type ListOfShowsResult struct {
-	ShowID int    `json:"show_id"`
+	ShowID int32  `json:"show_id"`
 	Date   string `json:"date"`
 	Venue  string `json:"venue"`
 	City   string `json:"city"`

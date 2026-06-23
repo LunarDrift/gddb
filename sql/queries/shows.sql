@@ -46,6 +46,7 @@ ORDER BY
 
 -- name: GetShowFromID :many
 SELECT
+  s.show_id,
 	s.show_date,
 	s.venue,
   s.city,
@@ -70,10 +71,11 @@ ORDER BY
 -- name: SearchByVenue :many
 SELECT
   shows.show_id,
-	shows.show_date AS "date",
+	shows.show_date,
 	shows.venue,
   shows.city,
-  shows.state
+  shows.state,
+  shows.notes
 FROM
 	shows
 WHERE venue ILIKE $1
@@ -87,11 +89,12 @@ SELECT show_id FROM shows ORDER BY show_id;
 
 -- name: GetShowsBetweenDates :many
 SELECT
+  s.show_id,
 	s.show_date,
 	s.venue,
 	s.city,
 	s.state,
-	s.show_id
+  s.notes
 FROM
 	shows s
 JOIN "sets" st ON 
@@ -106,7 +109,13 @@ ORDER BY
 	s.show_date;
 
 -- name: GetShowsFromSongName :many
-SELECT s.show_date, s.city, s.state, s.venue, s.show_id 
+SELECT
+  s.show_id,
+  s.show_date,
+  s.venue,
+  s.city,
+  s.state,
+  s.notes
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id

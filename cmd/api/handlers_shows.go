@@ -19,11 +19,12 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 		row := parsedShow[0]
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
 			ShowMeta: internal.ShowMeta{
-				Date:  row.ShowDate.Format("2006-01-02"),
-				Venue: row.Venue,
-				City:  row.City,
-				State: row.State,
-				Notes: row.Notes,
+				ShowID: row.ShowID,
+				Date:   row.ShowDate.Format("2006-01-02"),
+				Venue:  row.Venue,
+				City:   row.City,
+				State:  row.State,
+				Notes:  row.Notes,
 			},
 			Message: "No setlist available for this show",
 		})
@@ -131,16 +132,7 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
-		parsedShow = append(parsedShow, internal.ShowSortInput{
-			ShowID:   id,
-			ShowDate: row.ShowDate,
-			Venue:    row.Venue,
-			City:     row.City,
-			State:    row.State,
-			Notes:    row.Notes.String,
-			SetName:  row.SetName.String,
-			RawEntry: row.RawEntry.String,
-		})
+		parsedShow = append(parsedShow, database.RowToShowSortInput(row))
 	}
 
 	s.respondWithShow(w, r, parsedShow)
@@ -176,7 +168,7 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	var showResults []internal.ListOfShowsResult
 	for _, show := range showRows {
 		showResults = append(showResults, internal.ListOfShowsResult{
-			ShowID: int(show.ShowID),
+			ShowID: show.ShowID,
 			Date:   show.ShowDate.Format("2006-01-02"),
 			Venue:  show.Venue,
 			City:   show.City,
@@ -202,7 +194,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 	var showResults []internal.ListOfShowsResult
 	for _, show := range showRows {
 		showResults = append(showResults, internal.ListOfShowsResult{
-			ShowID: int(show.ShowID),
+			ShowID: show.ShowID,
 			Date:   show.ShowDate.Format("2006-01-02"),
 			Venue:  show.Venue,
 			City:   show.City,
