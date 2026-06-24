@@ -50,6 +50,8 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 	respondWithJSON(w, http.StatusOK, showResp)
 }
 
+// handleGetShow parses the `value` path variable and chooses the appropriate endpoint
+// to send it to
 func (s *server) handleGetShow(w http.ResponseWriter, r *http.Request) {
 	value := r.PathValue("value")
 

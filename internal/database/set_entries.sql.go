@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createSetEntry = `-- name: CreateSetEntry :exec
@@ -55,6 +56,42 @@ func (q *Queries) MostPlayedSongs(ctx context.Context) ([]MostPlayedSongsRow, er
 	var items []MostPlayedSongsRow
 	for rows.Next() {
 		var i MostPlayedSongsRow
+		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const songsPlayedLessThan = `-- name: SongsPlayedLessThan :many
+SELECT se.song_name AS song, count(*) AS times_played
+FROM set_entries se
+GROUP BY se.song_name
+HAVING count(*) < $1
+ORDER BY times_played DESC
+`
+
+type SongsPlayedLessThanRow struct {
+	Song        sql.NullString
+	TimesPlayed int64
+}
+
+func (q *Queries) SongsPlayedLessThan(ctx context.Context, dollar_1 interface{}) ([]SongsPlayedLessThanRow, error) {
+	rows, err := q.db.QueryContext(ctx, songsPlayedLessThan, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SongsPlayedLessThanRow
+	for rows.Next() {
+		var i SongsPlayedLessThanRow
 		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
 			return nil, err
 		}

@@ -23,6 +23,7 @@ type SetEntry struct {
 	RawEntry  string
 	Position  int32
 	CreatedAt time.Time
+	SongName  sql.NullString
 }
 
 type Show struct {

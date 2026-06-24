@@ -39,6 +39,7 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /venues", s.handleSearchByVenue)
 
 	s.mux.HandleFunc("GET /songs/mostplayed", s.handleMostPlayedSongs)
+	s.mux.HandleFunc("GET /songs", s.handleSongsPlayedLessThanNTimes)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {

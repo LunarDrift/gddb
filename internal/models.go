@@ -70,3 +70,8 @@ type ListOfShowsResult struct {
 	City   string `json:"city"`
 	State  string `json:"state"`
 }
+
+type SongsTimesPlayed struct {
+	Song        string `json:"song"`
+	TimesPlayed int    `json:"times_played"`
+}
