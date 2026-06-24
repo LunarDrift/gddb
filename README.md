@@ -23,6 +23,7 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | `/shows/between?startdate=YYYY-MM-DD&enddate=YYYY-MM-DD` | List of shows between two dates |
 | `/venues?name=`     | Search for shows by venue. Returns a list of shows with their IDs    |
 | `/songs/mostplayed` | Returns a list of all songs and the amount of times they were played |
+| `/songs?played_lt=n`    | Songs played less than `n` times                        |
 
 
 ## Example Show Response
@@ -72,7 +73,6 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | ENDPOINT                | DESCRIPTION                                             |
 | ----------------------- | ------------------------------------------------------- |
 | `/songs/:name`          | Stats for a song (times played, first/last time played) |
-| `/songs?played_lt=n`    | Songs played less than `n` times                        |
 | `/shows?state=&city=`  | Search for songs in a specific state/city               |
 | `/venue/:name/songs`    | All songs played at a specific venue                    |
 | `/stats/songs-per-city` | Unique songs per city                                   |
