@@ -8,12 +8,19 @@ import (
 )
 
 func (s *server) handleMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
-	songs, err := s.queries.MostPlayedSongs(r.Context())
+	songRows, err := s.queries.MostPlayedSongs(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get most played songs", err)
 		return
 	}
-	respondWithJSON(w, http.StatusOK, songs)
+	var results []internal.SongsTimesPlayed
+	for _, row := range songRows {
+		results = append(results, internal.SongsTimesPlayed{
+			Song:        row.Song.String,
+			TimesPlayed: int(row.TimesPlayed),
+		})
+	}
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) handleSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.Request) {
