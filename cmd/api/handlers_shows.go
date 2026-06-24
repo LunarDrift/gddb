@@ -50,20 +50,24 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 	respondWithJSON(w, http.StatusOK, showResp)
 }
 
-func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
-	dateStr := r.URL.Query().Get("date")
-	if dateStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing date parameter", nil)
+func (s *server) handleGetShow(w http.ResponseWriter, r *http.Request) {
+	value := r.PathValue("value")
+
+	if id, err := strconv.Atoi(value); err == nil {
+		s.getShowFromID(w, r, int32(id))
 		return
 	}
 
-	dateParsed, err := time.Parse("2006-01-02", dateStr)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
+	if date, err := time.Parse("2006-01-02", value); err == nil {
+		s.getShowFromDate(w, r, date)
 		return
 	}
 
-	showRows, err := s.queries.GetShowFromDate(r.Context(), dateParsed)
+	respondWithError(w, http.StatusBadRequest, "Invalid show identifier, expected an ID or YYYY-MM-DD date", nil)
+}
+
+func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date time.Time) {
+	showRows, err := s.queries.GetShowFromDate(r.Context(), date)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
 	}
@@ -76,14 +80,7 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 	s.respondWithShow(w, r, parsedShows)
 }
 
-func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
-	idStr := r.PathValue("id")
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Missing or invalid id", err)
-		return
-	}
-
+func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32) {
 	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
