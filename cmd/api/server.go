@@ -40,6 +40,8 @@ func (s *server) registerRoutes() {
 
 	s.mux.HandleFunc("GET /songs/mostplayed", s.handleMostPlayedSongs)
 	s.mux.HandleFunc("GET /songs", s.handleSongsPlayedLessThanNTimes)
+
+	s.mux.HandleFunc("GET /stats/top-encores", s.handleMostCommonEncoreSongs)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {

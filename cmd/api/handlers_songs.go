@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/LunarDrift/deadabase/internal"
+	"github.com/LunarDrift/deadabase/internal/database"
 )
 
 func (s *server) handleMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
@@ -15,10 +16,7 @@ func (s *server) handleMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
 	}
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
-		results = append(results, internal.SongsTimesPlayed{
-			Song:        row.Song.String,
-			TimesPlayed: int(row.TimesPlayed),
-		})
+		results = append(results, database.RowToSongsTimesPlayed(row))
 	}
 	respondWithJSON(w, http.StatusOK, results)
 }
@@ -36,11 +34,20 @@ func (s *server) handleSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.
 	}
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
-		results = append(results, internal.SongsTimesPlayed{
-			Song:        row.Song.String,
-			TimesPlayed: int(row.TimesPlayed),
-		})
+		results = append(results, database.RowToSongsTimesPlayed(row))
 	}
 
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleMostCommonEncoreSongs(w http.ResponseWriter, r *http.Request) {
+	songRows, err := s.queries.MostCommonEncore(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+	}
+	var results []internal.SongsTimesPlayed
+	for _, row := range songRows {
+		results = append(results, database.RowToSongsTimesPlayed(row))
+	}
 	respondWithJSON(w, http.StatusOK, results)
 }

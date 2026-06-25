@@ -35,6 +35,43 @@ func (q *Queries) CreateSetEntry(ctx context.Context, arg CreateSetEntryParams) 
 	return err
 }
 
+const mostCommonEncore = `-- name: MostCommonEncore :many
+SELECT se.song_name AS song, count(*) AS times_played
+FROM set_entries se 
+JOIN "sets" s ON se.set_id = s.id
+WHERE s.set_name = 'encore'
+GROUP BY se.song_name 
+ORDER BY times_played  DESC
+`
+
+type MostCommonEncoreRow struct {
+	Song        sql.NullString
+	TimesPlayed int64
+}
+
+func (q *Queries) MostCommonEncore(ctx context.Context) ([]MostCommonEncoreRow, error) {
+	rows, err := q.db.QueryContext(ctx, mostCommonEncore)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []MostCommonEncoreRow
+	for rows.Next() {
+		var i MostCommonEncoreRow
+		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const mostPlayedSongs = `-- name: MostPlayedSongs :many
 SELECT se.song_name AS song, count(*) AS times_played
 FROM set_entries se

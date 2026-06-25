@@ -23,3 +23,11 @@ FROM set_entries se
 GROUP BY se.song_name
 HAVING count(*) < $1
 ORDER BY times_played DESC;
+
+-- name: MostCommonEncore :many
+SELECT se.song_name AS song, count(*) AS times_played
+FROM set_entries se 
+JOIN "sets" s ON se.set_id = s.id
+WHERE s.set_name = 'encore'
+GROUP BY se.song_name 
+ORDER BY times_played  DESC;

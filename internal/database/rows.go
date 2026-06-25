@@ -50,3 +50,24 @@ func RowToShowSortInput(r ShowRow) internal.ShowSortInput {
 		RawEntry: r.GetRawEntry().String,
 	}
 }
+
+type SongCountRow interface {
+	GetSongName() sql.NullString
+	GetTimesPlayed() int64
+}
+
+func (r MostCommonEncoreRow) GetSongName() sql.NullString { return r.Song }
+func (r MostCommonEncoreRow) GetTimesPlayed() int64       { return r.TimesPlayed }
+
+func (r MostPlayedSongsRow) GetSongName() sql.NullString { return r.Song }
+func (r MostPlayedSongsRow) GetTimesPlayed() int64       { return r.TimesPlayed }
+
+func (r SongsPlayedLessThanRow) GetSongName() sql.NullString { return r.Song }
+func (r SongsPlayedLessThanRow) GetTimesPlayed() int64       { return r.TimesPlayed }
+
+func RowToSongsTimesPlayed(r SongCountRow) internal.SongsTimesPlayed {
+	return internal.SongsTimesPlayed{
+		Song:        r.GetSongName().String,
+		TimesPlayed: int(r.GetTimesPlayed()),
+	}
+}
