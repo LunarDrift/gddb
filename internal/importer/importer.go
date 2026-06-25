@@ -47,7 +47,7 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 	city := showLocation[0]
 	state := strings.TrimSpace(showLocation[1])
 
-	parsedShowDate, err := time.Parse("2006-01-02", show.Date)
+	parsedShowDate, err := time.Parse(time.DateOnly, show.Date)
 	if err != nil {
 		return fmt.Errorf("show_id: %d: failed parsing show date %q: %w", show.ShowID, show.Date, err)
 	}

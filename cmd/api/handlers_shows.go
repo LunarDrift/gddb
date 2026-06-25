@@ -20,7 +20,7 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
 			ShowMeta: internal.ShowMeta{
 				ShowID: row.ShowID,
-				Date:   row.ShowDate.Format("2006-01-02"),
+				Date:   row.ShowDate.Format(time.DateOnly),
 				Venue:  row.Venue,
 				City:   row.City,
 				State:  row.State,
@@ -60,7 +60,7 @@ func (s *server) handleGetShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if date, err := time.Parse("2006-01-02", value); err == nil {
+	if date, err := time.Parse(time.DateOnly, value); err == nil {
 		s.getShowFromDate(w, r, date)
 		return
 	}
@@ -127,12 +127,12 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	startDateParsed, err := time.Parse("2006-01-02", startDateStr)
+	startDateParsed, err := time.Parse(time.DateOnly, startDateStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
 		return
 	}
-	endDateParsed, err := time.Parse("2006-01-02", endDateStr)
+	endDateParsed, err := time.Parse(time.DateOnly, endDateStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
 		return
@@ -150,7 +150,7 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	for _, show := range showRows {
 		showResults = append(showResults, internal.ListOfShowsResult{
 			ShowID: show.ShowID,
-			Date:   show.ShowDate.Format("2006-01-02"),
+			Date:   show.ShowDate.Format(time.DateOnly),
 			Venue:  show.Venue,
 			City:   show.City,
 			State:  show.State,
@@ -176,7 +176,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 	for _, show := range showRows {
 		showResults = append(showResults, internal.ListOfShowsResult{
 			ShowID: show.ShowID,
-			Date:   show.ShowDate.Format("2006-01-02"),
+			Date:   show.ShowDate.Format(time.DateOnly),
 			Venue:  show.Venue,
 			City:   show.City,
 			State:  show.State,

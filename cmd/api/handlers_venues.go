@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
 )
@@ -22,7 +23,7 @@ func (s *server) handleSearchByVenue(w http.ResponseWriter, r *http.Request) {
 	for _, result := range searchResults {
 		venueResults = append(venueResults, internal.ListOfShowsResult{
 			ShowID: result.ShowID,
-			Date:   result.ShowDate.Format("2006-01-02"),
+			Date:   result.ShowDate.Format(time.DateOnly),
 			Venue:  result.Venue,
 			City:   result.City,
 			State:  result.State,
