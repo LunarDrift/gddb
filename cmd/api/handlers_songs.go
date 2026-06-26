@@ -51,3 +51,25 @@ func (s *server) handleMostCommonEncoreSongs(w http.ResponseWriter, r *http.Requ
 	}
 	respondWithJSON(w, http.StatusOK, results)
 }
+
+func (s *server) handleUniqueSongsPerCity(w http.ResponseWriter, r *http.Request) {
+	songRows, err := s.queries.UniqueSongsPerCity(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get data", err)
+		return
+	}
+	type resp struct {
+		City            string `json:"city"`
+		StateOrCountry  string `json:"state_or_country"`
+		UniqueSongCount int    `json:"unique_song_count"`
+	}
+	var results []resp
+	for _, row := range songRows {
+		results = append(results, resp{
+			City:            row.City,
+			StateOrCountry:  row.StateOrCountry,
+			UniqueSongCount: int(row.UniqueSongCount),
+		})
+	}
+	respondWithJSON(w, http.StatusOK, results)
+}

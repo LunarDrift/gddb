@@ -142,3 +142,41 @@ func (q *Queries) SongsPlayedLessThan(ctx context.Context, dollar_1 interface{})
 	}
 	return items, nil
 }
+
+const uniqueSongsPerCity = `-- name: UniqueSongsPerCity :many
+SELECT sh.city, sh.state AS state_or_country, count(DISTINCT se.song_name) AS unique_song_count
+FROM set_entries se
+JOIN "sets" s ON se.set_id = s.id
+JOIN shows sh ON s.show_id = sh.show_id
+GROUP BY sh.city, sh.state
+ORDER BY unique_song_count DESC
+`
+
+type UniqueSongsPerCityRow struct {
+	City            string
+	StateOrCountry  string
+	UniqueSongCount int64
+}
+
+func (q *Queries) UniqueSongsPerCity(ctx context.Context) ([]UniqueSongsPerCityRow, error) {
+	rows, err := q.db.QueryContext(ctx, uniqueSongsPerCity)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []UniqueSongsPerCityRow
+	for rows.Next() {
+		var i UniqueSongsPerCityRow
+		if err := rows.Scan(&i.City, &i.StateOrCountry, &i.UniqueSongCount); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
