@@ -73,3 +73,32 @@ func (s *server) handleUniqueSongsPerCity(w http.ResponseWriter, r *http.Request
 	}
 	respondWithJSON(w, http.StatusOK, results)
 }
+
+func (s *server) handleSongsPlayedAtVenue(w http.ResponseWriter, r *http.Request) {
+	venue := r.PathValue("name")
+	if venue == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing venue parameter", nil)
+		return
+	}
+	songRows, err := s.queries.AllSongsPlayedAtVenue(r.Context(), "%"+venue+"%")
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+		return
+	}
+	type resp struct {
+		SongName string `json:"song"`
+		Venue    string `json:"venue"`
+		City     string `json:"city"`
+		State    string `json:"state"`
+	}
+	var results []resp
+	for _, row := range songRows {
+		results = append(results, resp{
+			SongName: row.SongName.String,
+			Venue:    row.Venue,
+			City:     row.City,
+			State:    row.State,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, results)
+}

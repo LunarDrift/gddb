@@ -37,6 +37,7 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /shows/between", s.handleGetShowsBetweenDates)
 
 	s.mux.HandleFunc("GET /venues", s.handleSearchByVenue)
+	s.mux.HandleFunc("GET /venues/{name}/songs", s.handleSongsPlayedAtVenue)
 
 	s.mux.HandleFunc("GET /songs/mostplayed", s.handleMostPlayedSongs)
 	s.mux.HandleFunc("GET /songs", s.handleSongsPlayedLessThanNTimes)

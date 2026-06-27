@@ -26,6 +26,7 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | `/shows/random`     | Get details about a random show                                      |
 | `/shows/between?startdate=&enddate=` | List of shows between two dates (YYYY-MM-DD format)|
 | `/venues?name=`     | Search for shows by venue. Returns a list of shows with their IDs    |
+| `/venue/:name/songs`    | All songs played at a specific venue                    |
 | `/songs/mostplayed` | Returns a list of all songs and the amount of times they were played |
 | `/songs?played_lt=n`    | Songs played less than `n` times                        |
 | `/stats/top-encores`    | Most common encore songs                                |
@@ -80,4 +81,3 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | ----------------------- | ------------------------------------------------------- |
 | `/songs/:name`          | Stats for a song (times played, first/last time played) |
 | `/shows?state=&city=`  | Search for songs in a specific state/city               |
-| `/venue/:name/songs`    | All songs played at a specific venue                    |

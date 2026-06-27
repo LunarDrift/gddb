@@ -10,6 +10,50 @@ import (
 	"database/sql"
 )
 
+const allSongsPlayedAtVenue = `-- name: AllSongsPlayedAtVenue :many
+SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state
+FROM set_entries se
+JOIN "sets" s ON se.set_id = s.id
+JOIN shows sh ON s.show_id = sh.show_id
+WHERE sh.venue ILIKE $1
+ORDER BY sh.venue, se.song_name
+`
+
+type AllSongsPlayedAtVenueRow struct {
+	SongName sql.NullString
+	Venue    string
+	City     string
+	State    string
+}
+
+func (q *Queries) AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]AllSongsPlayedAtVenueRow, error) {
+	rows, err := q.db.QueryContext(ctx, allSongsPlayedAtVenue, venue)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AllSongsPlayedAtVenueRow
+	for rows.Next() {
+		var i AllSongsPlayedAtVenueRow
+		if err := rows.Scan(
+			&i.SongName,
+			&i.Venue,
+			&i.City,
+			&i.State,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const createSetEntry = `-- name: CreateSetEntry :exec
 INSERT INTO set_entries (
 set_id,
