@@ -121,3 +121,13 @@ JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.raw_entry ILIKE $1
 ORDER BY show_date;
+
+-- name: SongStats :one
+SELECT
+  count(*) AS times_played,
+  min(sh.show_date)::date AS first_played,
+  max(sh.show_date)::date AS last_played
+FROM shows sh 
+JOIN "sets" s ON s.show_id = sh.show_id 
+JOIN set_entries se ON se.set_id = s.id 
+WHERE se.song_name ILIKE $1;

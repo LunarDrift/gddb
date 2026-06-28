@@ -50,6 +50,20 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 	respondWithJSON(w, http.StatusOK, showResp)
 }
 
+// handlerShows parses the query parameter and chooses the appropriate endpoint
+func (s *server) handlerShows(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	switch {
+	case query.Has("song"):
+		s.handleGetShowsFromSongName(w, r)
+		return
+	default:
+		respondWithError(w, http.StatusBadRequest, "Must provide a song query parameter", nil)
+		return
+	}
+}
+
 // handleGetShow parses the `value` path variable and chooses the appropriate endpoint
 // to send it to
 func (s *server) handleGetShow(w http.ResponseWriter, r *http.Request) {

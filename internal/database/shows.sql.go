@@ -399,3 +399,27 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 	}
 	return items, nil
 }
+
+const songStats = `-- name: SongStats :one
+SELECT
+  count(*) AS times_played,
+  min(sh.show_date)::date AS first_played,
+  max(sh.show_date)::date AS last_played
+FROM shows sh 
+JOIN "sets" s ON s.show_id = sh.show_id 
+JOIN set_entries se ON se.set_id = s.id 
+WHERE se.song_name ILIKE $1
+`
+
+type SongStatsRow struct {
+	TimesPlayed int64
+	FirstPlayed time.Time
+	LastPlayed  time.Time
+}
+
+func (q *Queries) SongStats(ctx context.Context, songName sql.NullString) (SongStatsRow, error) {
+	row := q.db.QueryRowContext(ctx, songStats, songName)
+	var i SongStatsRow
+	err := row.Scan(&i.TimesPlayed, &i.FirstPlayed, &i.LastPlayed)
+	return i, err
+}

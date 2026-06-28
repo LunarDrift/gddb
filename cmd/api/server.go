@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/LunarDrift/deadabase/internal/database"
 
@@ -41,6 +42,7 @@ func (s *server) registerRoutes() {
 
 	s.mux.HandleFunc("GET /songs/mostplayed", s.handleMostPlayedSongs)
 	s.mux.HandleFunc("GET /songs", s.handleSongsPlayedLessThanNTimes)
+	s.mux.HandleFunc("GET /songs/{song}", s.handleSongStats)
 
 	s.mux.HandleFunc("GET /stats/top-encores", s.handleMostCommonEncoreSongs)
 	s.mux.HandleFunc("GET /stats/songs-per-city", s.handleUniqueSongsPerCity)
@@ -67,15 +69,7 @@ func respondWithError(w http.ResponseWriter, status int, message string, err err
 	respondWithJSON(w, status, errorResponse{Error: message})
 }
 
-func (s *server) handlerShows(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-
-	switch {
-	case query.Has("song"):
-		s.handleGetShowsFromSongName(w, r)
-		return
-	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a song query parameter", nil)
-		return
-	}
+func fuzzyPattern(input string) string {
+	words := strings.Fields(input)
+	return "%" + strings.Join(words, "%") + "%"
 }
