@@ -64,6 +64,9 @@ func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Reque
 	case query.Has("set_type"):
 		s.handleGetShowsFromSetName(w, r)
 		return
+	case query.Has("venue"):
+		s.handleGetShowsFromVenueName(w, r)
+		return
 	default:
 		respondWithError(w, http.StatusBadRequest, "Must provide a song query parameter", nil)
 		return
@@ -233,4 +236,30 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 	}
 
 	respondWithJSON(w, http.StatusOK, showResults)
+}
+
+func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Request) {
+	venue := r.URL.Query().Get("venue")
+	if venue == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing 'name' query parameter", nil)
+	}
+
+	searchPattern := fuzzyPattern(venue)
+	searchResults, err := s.queries.SearchByVenue(r.Context(), searchPattern)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get venues", err)
+		return
+	}
+
+	var venueResults []internal.ListOfShowsResult
+	for _, result := range searchResults {
+		venueResults = append(venueResults, internal.ListOfShowsResult{
+			ShowID: result.ShowID,
+			Date:   result.ShowDate.Format(time.DateOnly),
+			Venue:  result.Venue,
+			City:   result.City,
+			State:  result.State,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, venueResults)
 }

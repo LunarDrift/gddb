@@ -20,14 +20,13 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 
 | ENDPOINT            | DESCRIPTION                                                          |
 | ------------------- | -------------------------------------------------------------------- |
-| `/shows/:date`      | Search for a specific show by date (YYYY-MM-DD format)                                   |
-| `/shows/:id`        | Search for a specific show by ID                                     |
+| `/shows/:value`      | Search for a specific show by show ID or date (YYYY-MM-DD format)                                   |
 |`/shows?song=` | Search for shows where a specific song was played |
 |`/shows?set_type=` | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric) |
+| `/shows?venue=`     | Search for shows by venue. Returns a list of shows with their IDs    |
 | `/shows/random`     | Get details about a random show                                      |
 | `/shows/between?startdate=&enddate=` | List of shows between two dates (YYYY-MM-DD format)|
-| `/venues?name=`     | Search for shows by venue. Returns a list of shows with their IDs    |
-| `/venue/:name/songs`    | All songs played at a specific venue                    |
+| `/venues/:name/songs`    | All songs played at a specific venue                    |
 | `/songs/mostplayed` | Returns a list of all songs and the amount of times they were played |
 | `/songs?played_lt=n`    | Songs played less than `n` times                        |
 | `/songs/:name`          | Stats for a song (times played, first/last time played) |
