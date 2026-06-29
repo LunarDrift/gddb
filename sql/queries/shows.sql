@@ -142,3 +142,24 @@ SELECT
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
 WHERE s.set_name = $1;
+
+-- name: ShowsWithShowNotes :many
+SELECT 
+	sh.show_id,
+	sh.show_date,
+	sh.venue,
+	sh.city,
+	sh.state,
+	sh.notes
+FROM shows sh
+WHERE sh.notes IS NOT NULL AND sh.notes != '';
+
+-- name: ShowsWithoutNotes :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state
+FROM shows sh
+WHERE sh.notes IS NULL OR sh.notes = '';

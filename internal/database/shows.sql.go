@@ -449,6 +449,105 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 	return items, nil
 }
 
+const showsWithShowNotes = `-- name: ShowsWithShowNotes :many
+SELECT 
+	sh.show_id,
+	sh.show_date,
+	sh.venue,
+	sh.city,
+	sh.state,
+	sh.notes
+FROM shows sh
+WHERE sh.notes IS NOT NULL AND sh.notes != ''
+`
+
+type ShowsWithShowNotesRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+	Notes    sql.NullString
+}
+
+func (q *Queries) ShowsWithShowNotes(ctx context.Context) ([]ShowsWithShowNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsWithShowNotes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ShowsWithShowNotesRow
+	for rows.Next() {
+		var i ShowsWithShowNotesRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const showsWithoutNotes = `-- name: ShowsWithoutNotes :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state
+FROM shows sh
+WHERE sh.notes IS NULL OR sh.notes = ''
+`
+
+type ShowsWithoutNotesRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+}
+
+func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsWithoutNotes)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ShowsWithoutNotesRow
+	for rows.Next() {
+		var i ShowsWithoutNotesRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const songStats = `-- name: SongStats :one
 SELECT
   count(*) AS times_played,

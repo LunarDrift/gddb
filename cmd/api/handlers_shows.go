@@ -60,13 +60,16 @@ func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Reque
 	switch {
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
-		return
+
 	case query.Has("set_type"):
 		s.handleGetShowsFromSetName(w, r)
-		return
+
 	case query.Has("venue"):
 		s.handleGetShowsFromVenueName(w, r)
-		return
+
+	case query.Has("has_notes"):
+		s.handleGetShowsFromNotes(w, r)
+
 	default:
 		respondWithError(w, http.StatusBadRequest, "Must provide a song query parameter", nil)
 		return
@@ -262,4 +265,53 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 		})
 	}
 	respondWithJSON(w, http.StatusOK, venueResults)
+}
+
+func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request) {
+	val := r.URL.Query().Get("has_notes")
+
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "has_notes must be true or false", nil)
+		return
+	}
+
+	if b {
+		showRows, err := s.queries.ShowsWithShowNotes(r.Context())
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+			return
+		}
+
+		var results []internal.ShowMeta
+		for _, row := range showRows {
+			results = append(results, internal.ShowMeta{
+				ShowID: row.ShowID,
+				Date:   row.ShowDate.Format(time.DateOnly),
+				Venue:  row.Venue,
+				City:   row.City,
+				State:  row.State,
+				Notes:  row.Notes.String,
+			})
+		}
+		respondWithJSON(w, http.StatusOK, results)
+	} else {
+		showRows, err := s.queries.ShowsWithoutNotes(r.Context())
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+			return
+		}
+
+		var results []internal.ListOfShowsResult
+		for _, row := range showRows {
+			results = append(results, internal.ListOfShowsResult{
+				ShowID: row.ShowID,
+				Date:   row.ShowDate.Format(time.DateOnly),
+				Venue:  row.Venue,
+				City:   row.City,
+				State:  row.State,
+			})
+		}
+		respondWithJSON(w, http.StatusOK, results)
+	}
 }
