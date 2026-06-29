@@ -131,3 +131,14 @@ FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
 JOIN set_entries se ON se.set_id = s.id 
 WHERE se.song_name ILIKE $1;
+
+-- name: GetShowsFromSetName :many
+SELECT
+	sh.show_id,
+	sh.show_date,
+	sh.venue,
+	sh.city,
+	sh.state
+FROM shows sh
+JOIN "sets" s ON s.show_id = sh.show_id 
+WHERE s.set_name = $1;

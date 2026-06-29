@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 	"net/http"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
@@ -57,6 +60,9 @@ func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Reque
 	switch {
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
+		return
+	case query.Has("set_type"):
+		s.handleGetShowsFromSetName(w, r)
 		return
 	default:
 		respondWithError(w, http.StatusBadRequest, "Must provide a song query parameter", nil)
@@ -197,5 +203,34 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 			State:  show.State,
 		})
 	}
+	respondWithJSON(w, http.StatusOK, showResults)
+}
+
+func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
+	setName := r.URL.Query().Get("set_type")
+
+	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
+	if !slices.Contains(validSetNames, setName) {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_type %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromSetName(r.Context(), setName)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	var showResults []internal.ListOfShowsResult
+	for _, show := range showRows {
+		showResults = append(showResults, internal.ListOfShowsResult{
+			ShowID: show.ShowID,
+			Date:   show.ShowDate.Format(time.DateOnly),
+			Venue:  show.Venue,
+			City:   show.City,
+			State:  show.State,
+		})
+	}
+
 	respondWithJSON(w, http.StatusOK, showResults)
 }
