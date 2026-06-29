@@ -51,7 +51,7 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 }
 
 // handlerShows parses the query parameter and chooses the appropriate endpoint
-func (s *server) handlerShows(w http.ResponseWriter, r *http.Request) {
+func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	switch {
@@ -180,7 +180,8 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromSongName(r.Context(), "%"+songName+"%")
+	searchPattern := fuzzyPattern(songName)
+	showRows, err := s.queries.GetShowsFromSongName(r.Context(), searchPattern)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return

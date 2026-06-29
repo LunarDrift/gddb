@@ -32,7 +32,7 @@ func NewServer(db *sql.DB, queries *database.Queries) *server {
 func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /health", s.handleHealth)
 
-	s.mux.HandleFunc("GET /shows", s.handlerShows)
+	s.mux.HandleFunc("GET /shows", s.handlerShowsWithQueryParam)
 	s.mux.HandleFunc("GET /shows/{value}", s.handleGetShow)
 	s.mux.HandleFunc("GET /shows/random", s.handleGetRandomShow)
 	s.mux.HandleFunc("GET /shows/between", s.handleGetShowsBetweenDates)

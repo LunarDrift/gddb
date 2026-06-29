@@ -13,7 +13,8 @@ func (s *server) handleSearchByVenue(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Missing 'name' query parameter", nil)
 	}
 
-	searchResults, err := s.queries.SearchByVenue(r.Context(), "%"+venue+"%")
+	searchPattern := fuzzyPattern(venue)
+	searchResults, err := s.queries.SearchByVenue(r.Context(), searchPattern)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get venues", err)
 		return
