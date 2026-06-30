@@ -62,7 +62,7 @@ func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Reque
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
 
-	case query.Has("set_type"):
+	case query.Has("set_name"):
 		s.handleGetShowsFromSetName(w, r)
 
 	case query.Has("venue"):
@@ -71,8 +71,11 @@ func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Reque
 	case query.Has("has_notes"):
 		s.handleGetShowsFromNotes(w, r)
 
+	case query.Has("start_date") || query.Has("end_date"):
+		s.handleGetShowsBetweenDates(w, r)
+
 	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a song query parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date", nil)
 		return
 	}
 }
@@ -147,10 +150,10 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Request) {
-	startDateStr := r.URL.Query().Get("startdate")
-	endDateStr := r.URL.Query().Get("enddate")
+	startDateStr := r.URL.Query().Get("start_date")
+	endDateStr := r.URL.Query().Get("end_date")
 	if startDateStr == "" || endDateStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing date parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing date parameter. Must provide both start_date and end_date", nil)
 		return
 	}
 
@@ -202,11 +205,11 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
-	setName := r.URL.Query().Get("set_type")
+	setName := r.URL.Query().Get("set_name")
 
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 	if !slices.Contains(validSetNames, setName) {
-		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_type %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return
 	}
 

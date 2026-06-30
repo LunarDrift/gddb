@@ -62,8 +62,8 @@ type SongCountRow interface {
 	GetTimesPlayed() int64
 }
 
-func (r MostCommonEncoreRow) GetSongName() sql.NullString { return r.Song }
-func (r MostCommonEncoreRow) GetTimesPlayed() int64       { return r.TimesPlayed }
+func (r MostCommonSongsBySetNameRow) GetSongName() sql.NullString { return r.Song }
+func (r MostCommonSongsBySetNameRow) GetTimesPlayed() int64       { return r.TimesPlayed }
 
 func (r MostPlayedSongsRow) GetSongName() sql.NullString { return r.Song }
 func (r MostPlayedSongsRow) GetTimesPlayed() int64       { return r.TimesPlayed }
