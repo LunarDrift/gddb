@@ -115,6 +115,20 @@ func (r GetShowsFromSetNameRow) GetCity() string          { return r.City }
 func (r GetShowsFromSetNameRow) GetState() string         { return r.State }
 func (r GetShowsFromSetNameRow) GetNotes() sql.NullString { return r.Notes }
 
+func (r GetShowsFromSongNameRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromSongNameRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromSongNameRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromSongNameRow) GetCity() string          { return r.City }
+func (r GetShowsFromSongNameRow) GetState() string         { return r.State }
+func (r GetShowsFromSongNameRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r GetShowsBetweenDatesRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsBetweenDatesRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsBetweenDatesRow) GetVenue() string         { return r.Venue }
+func (r GetShowsBetweenDatesRow) GetCity() string          { return r.City }
+func (r GetShowsBetweenDatesRow) GetState() string         { return r.State }
+func (r GetShowsBetweenDatesRow) GetNotes() sql.NullString { return r.Notes }
+
 func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
 	return internal.ShowMeta{
 		ShowID: r.GetShowID(),

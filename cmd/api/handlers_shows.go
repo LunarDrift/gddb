@@ -173,15 +173,9 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
 		return
 	}
-	var showResults []internal.ListOfShowsResult
-	for _, show := range showRows {
-		showResults = append(showResults, internal.ListOfShowsResult{
-			ShowID: show.ShowID,
-			Date:   show.ShowDate.Format(time.DateOnly),
-			Venue:  show.Venue,
-			City:   show.City,
-			State:  show.State,
-		})
+	var showResults []internal.ShowMeta
+	for _, row := range showRows {
+		showResults = append(showResults, database.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }
@@ -200,15 +194,9 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var showResults []internal.ListOfShowsResult
-	for _, show := range showRows {
-		showResults = append(showResults, internal.ListOfShowsResult{
-			ShowID: show.ShowID,
-			Date:   show.ShowDate.Format(time.DateOnly),
-			Venue:  show.Venue,
-			City:   show.City,
-			State:  show.State,
-		})
+	var showResults []internal.ShowMeta
+	for _, row := range showRows {
+		showResults = append(showResults, database.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }
