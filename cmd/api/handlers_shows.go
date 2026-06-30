@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -227,15 +228,9 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var showResults []internal.ListOfShowsResult
-	for _, show := range showRows {
-		showResults = append(showResults, internal.ListOfShowsResult{
-			ShowID: show.ShowID,
-			Date:   show.ShowDate.Format(time.DateOnly),
-			Venue:  show.Venue,
-			City:   show.City,
-			State:  show.State,
-		})
+	var showResults []internal.ShowMeta
+	for _, row := range showRows {
+		showResults = append(showResults, database.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, showResults)
@@ -248,21 +243,15 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 	}
 
 	searchPattern := fuzzyPattern(venue)
-	searchResults, err := s.queries.SearchByVenue(r.Context(), searchPattern)
+	venueRows, err := s.queries.SearchByVenue(r.Context(), searchPattern)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get venues", err)
 		return
 	}
 
-	var venueResults []internal.ListOfShowsResult
-	for _, result := range searchResults {
-		venueResults = append(venueResults, internal.ListOfShowsResult{
-			ShowID: result.ShowID,
-			Date:   result.ShowDate.Format(time.DateOnly),
-			Venue:  result.Venue,
-			City:   result.City,
-			State:  result.State,
-		})
+	var venueResults []internal.ShowMeta
+	for _, row := range venueRows {
+		venueResults = append(venueResults, database.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, venueResults)
 }
@@ -277,41 +266,44 @@ func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request)
 	}
 
 	if b {
-		showRows, err := s.queries.ShowsWithShowNotes(r.Context())
+		results, err := s.showsWithNotes(r.Context())
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 			return
-		}
-
-		var results []internal.ShowMeta
-		for _, row := range showRows {
-			results = append(results, internal.ShowMeta{
-				ShowID: row.ShowID,
-				Date:   row.ShowDate.Format(time.DateOnly),
-				Venue:  row.Venue,
-				City:   row.City,
-				State:  row.State,
-				Notes:  row.Notes.String,
-			})
 		}
 		respondWithJSON(w, http.StatusOK, results)
 	} else {
-		showRows, err := s.queries.ShowsWithoutNotes(r.Context())
+		results, err := s.showsNoNotes(r.Context())
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 			return
 		}
-
-		var results []internal.ListOfShowsResult
-		for _, row := range showRows {
-			results = append(results, internal.ListOfShowsResult{
-				ShowID: row.ShowID,
-				Date:   row.ShowDate.Format(time.DateOnly),
-				Venue:  row.Venue,
-				City:   row.City,
-				State:  row.State,
-			})
-		}
 		respondWithJSON(w, http.StatusOK, results)
 	}
+}
+
+func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error) {
+	showRows, err := s.queries.ShowsWithShowNotes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []internal.ShowMeta
+	for _, row := range showRows {
+		results = append(results, database.RowToShowMeta(row))
+	}
+	return results, nil
+}
+
+func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) {
+	showRows, err := s.queries.ShowsWithoutNotes(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []internal.ShowMeta
+	for _, row := range showRows {
+		results = append(results, database.RowToShowMeta(row))
+	}
+	return results, nil
 }

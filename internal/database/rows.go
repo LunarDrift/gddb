@@ -9,6 +9,12 @@ import (
 	"github.com/LunarDrift/deadabase/internal"
 )
 
+/*
+	sqlc generates different struct types per query, even with identical-looking columns.
+	So we use these interfaces + getter methods, plus a mapping function to make it cleaner
+	when mapping sqlc structs in the endpoint handlers.
+*/
+
 type ShowRow interface {
 	GetShowID() int32
 	GetShowDate() time.Time
@@ -69,5 +75,53 @@ func RowToSongsTimesPlayed(r SongCountRow) internal.SongsTimesPlayed {
 	return internal.SongsTimesPlayed{
 		Song:        r.GetSongName().String,
 		TimesPlayed: int(r.GetTimesPlayed()),
+	}
+}
+
+type ShowSummaryRow interface {
+	GetShowID() int32
+	GetShowDate() time.Time
+	GetVenue() string
+	GetCity() string
+	GetState() string
+	GetNotes() sql.NullString
+}
+
+func (r ShowsWithShowNotesRow) GetShowID() int32         { return r.ShowID }
+func (r ShowsWithShowNotesRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r ShowsWithShowNotesRow) GetVenue() string         { return r.Venue }
+func (r ShowsWithShowNotesRow) GetCity() string          { return r.City }
+func (r ShowsWithShowNotesRow) GetState() string         { return r.State }
+func (r ShowsWithShowNotesRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r ShowsWithoutNotesRow) GetShowID() int32         { return r.ShowID }
+func (r ShowsWithoutNotesRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r ShowsWithoutNotesRow) GetVenue() string         { return r.Venue }
+func (r ShowsWithoutNotesRow) GetCity() string          { return r.City }
+func (r ShowsWithoutNotesRow) GetState() string         { return r.State }
+func (r ShowsWithoutNotesRow) GetNotes() sql.NullString { return sql.NullString{} }
+
+func (r SearchByVenueRow) GetShowID() int32         { return r.ShowID }
+func (r SearchByVenueRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r SearchByVenueRow) GetVenue() string         { return r.Venue }
+func (r SearchByVenueRow) GetCity() string          { return r.City }
+func (r SearchByVenueRow) GetState() string         { return r.State }
+func (r SearchByVenueRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r GetShowsFromSetNameRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromSetNameRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromSetNameRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromSetNameRow) GetCity() string          { return r.City }
+func (r GetShowsFromSetNameRow) GetState() string         { return r.State }
+func (r GetShowsFromSetNameRow) GetNotes() sql.NullString { return sql.NullString{} }
+
+func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
+	return internal.ShowMeta{
+		ShowID: r.GetShowID(),
+		Date:   r.GetShowDate().Format(time.DateOnly),
+		Venue:  r.GetVenue(),
+		City:   r.GetCity(),
+		State:  r.GetState(),
+		Notes:  r.GetNotes().String,
 	}
 }

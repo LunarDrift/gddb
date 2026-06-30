@@ -3,6 +3,10 @@ package internal
 
 import "time"
 
+// ===================================================================================================================
+// FOR IMPORTING
+// ===================================================================================================================
+
 // Show is used as a temporary container for unmarshaling the
 // json object, before distributing it across the other tables
 type Show struct {
@@ -40,12 +44,13 @@ type ShowResponse struct {
 	Footnotes map[string]string `json:"footnotes"`
 }
 
+// ShowWithNoSetlist has all other ShowMeta details with a custom message informing about no set list available
 type ShowWithNoSetlist struct {
 	ShowMeta
 	Message string `json:"message"`
 }
 
-// SetResponse holds the set name (ie. set_1, set_2, encore, etc.) and list of songs
+// SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {
 	SetName string   `json:"set_name"`
 	Songs   []string `json:"songs"`
