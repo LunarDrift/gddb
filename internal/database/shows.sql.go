@@ -296,7 +296,8 @@ SELECT
 	sh.show_date,
 	sh.venue,
 	sh.city,
-	sh.state
+	sh.state,
+  sh.notes
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
 WHERE s.set_name = $1
@@ -308,6 +309,7 @@ type GetShowsFromSetNameRow struct {
 	Venue    string
 	City     string
 	State    string
+	Notes    sql.NullString
 }
 
 func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]GetShowsFromSetNameRow, error) {
@@ -325,6 +327,7 @@ func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]Ge
 			&i.Venue,
 			&i.City,
 			&i.State,
+			&i.Notes,
 		); err != nil {
 			return nil, err
 		}

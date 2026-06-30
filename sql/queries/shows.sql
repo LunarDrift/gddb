@@ -138,7 +138,8 @@ SELECT
 	sh.show_date,
 	sh.venue,
 	sh.city,
-	sh.state
+	sh.state,
+  sh.notes
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
 WHERE s.set_name = $1;

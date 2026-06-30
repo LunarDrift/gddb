@@ -113,7 +113,7 @@ func (r GetShowsFromSetNameRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsFromSetNameRow) GetVenue() string         { return r.Venue }
 func (r GetShowsFromSetNameRow) GetCity() string          { return r.City }
 func (r GetShowsFromSetNameRow) GetState() string         { return r.State }
-func (r GetShowsFromSetNameRow) GetNotes() sql.NullString { return sql.NullString{} }
+func (r GetShowsFromSetNameRow) GetNotes() sql.NullString { return r.Notes }
 
 func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
 	return internal.ShowMeta{
