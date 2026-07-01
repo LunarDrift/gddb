@@ -47,7 +47,7 @@ func (r GetShowFromDateRow) GetRawEntry() sql.NullString { return r.RawEntry }
 func RowToShowSortInput(r ShowRow) internal.ShowSortInput {
 	return internal.ShowSortInput{
 		ShowID:   r.GetShowID(),
-		ShowDate: r.GetShowDate(),
+		Date:     r.GetShowDate(),
 		Venue:    r.GetVenue(),
 		City:     r.GetCity(),
 		State:    r.GetState(),

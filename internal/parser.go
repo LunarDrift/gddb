@@ -35,13 +35,14 @@ func SortSetPositions(shows []ShowSortInput) (ShowResponse, error) {
 	if len(shows) < 1 {
 		return ShowResponse{}, errors.New("shows slice is empty")
 	}
+
 	setsMap := map[string][]string{}
 	var venue string
 	var date time.Time
 
 	for _, row := range shows {
 		venue = row.Venue
-		date = row.ShowDate
+		date = row.Date
 		setsMap[row.SetName] = append(setsMap[row.SetName], row.RawEntry)
 	}
 
@@ -54,10 +55,10 @@ func SortSetPositions(shows []ShowSortInput) (ShowResponse, error) {
 	})
 
 	sets := []SetResponse{}
-	for _, key := range setNames {
+	for _, set := range setNames {
 		sets = append(sets, SetResponse{
-			SetName: key,
-			Songs:   setsMap[key],
+			SetName: set,
+			Songs:   setsMap[set],
 		})
 	}
 	return ShowResponse{

@@ -44,36 +44,28 @@ type ShowResponse struct {
 	Footnotes map[string]string `json:"footnotes"`
 }
 
-// ShowWithNoSetlist has all other ShowMeta details with a custom message informing about no set list available
-type ShowWithNoSetlist struct {
-	ShowMeta
-	Message string `json:"message"`
-}
-
 // SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {
 	SetName string   `json:"set_name"`
 	Songs   []string `json:"songs"`
 }
 
+// ShowWithNoSetlist has all other ShowMeta details with a custom message informing about no set list available
+type ShowWithNoSetlist struct {
+	ShowMeta
+	Message string `json:"message"`
+}
+
 // ShowSortInput is used to hold the data from sqlc-generated structs while the setlist gets sorted
 type ShowSortInput struct {
 	ShowID   int32     `json:"show_id"`
-	ShowDate time.Time `json:"show_date"`
+	Date     time.Time `json:"date"`
 	Venue    string    `json:"venue"`
 	City     string    `json:"city"`
 	State    string    `json:"state"`
 	Notes    string    `json:"notes"`
 	SetName  string    `json:"set_name"`
 	RawEntry string    `json:"raw_entry"`
-}
-
-type ListOfShowsResult struct {
-	ShowID int32  `json:"show_id"`
-	Date   string `json:"date"`
-	Venue  string `json:"venue"`
-	City   string `json:"city"`
-	State  string `json:"state"`
 }
 
 type SongsTimesPlayed struct {

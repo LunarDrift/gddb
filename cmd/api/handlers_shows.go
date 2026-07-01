@@ -24,7 +24,7 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
 			ShowMeta: internal.ShowMeta{
 				ShowID: row.ShowID,
-				Date:   row.ShowDate.Format(time.DateOnly),
+				Date:   row.Date.Format(time.DateOnly),
 				Venue:  row.Venue,
 				City:   row.City,
 				State:  row.State,
@@ -207,7 +207,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
 	setName := r.URL.Query().Get("set_name")
 
-	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
+	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
 	if !slices.Contains(validSetNames, setName) {
 		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return

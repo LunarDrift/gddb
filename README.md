@@ -22,7 +22,7 @@ Deadabase is a structured database + API for browsing Grateful Dead show history
 | ------------------- | -------------------------------------------------------------------- |
 | `/shows/:value`      | Search for a specific show by show ID or date (YYYY-MM-DD format)                                   |
 |`/shows?song=` | Search for shows where a specific song was played. Returns a list of shows |
-|`/shows?set_name=` | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric) |
+|`/shows?set_name=` | Search for shows by set name (set_1, set_2, set_3, encore, acoustic_1, acoustic_2, acoustic, electric) |
 | `/shows?venue=`     | Search for shows by venue. Returns a list of shows with their IDs    |
 |`/shows?has_notes=true/false`| Search for shows with/without notes attached |
 | `/shows?startdate=&enddate=` | List of shows between two dates (YYYY-MM-DD format)|
