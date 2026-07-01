@@ -31,16 +31,16 @@ func SetPosition(name string) int {
 	return n
 }
 
-func SortSetPositions(shows []ShowSortInput) (ShowResponse, error) {
-	if len(shows) < 1 {
-		return ShowResponse{}, errors.New("shows slice is empty")
+func SortSetPositions(rawEntries []ShowSortInput) (ShowResponse, error) {
+	if len(rawEntries) < 1 {
+		return ShowResponse{}, errors.New("could not sort set positions: rawEntries slice is empty")
 	}
 
 	setsMap := map[string][]string{}
 	var venue string
 	var date time.Time
 
-	for _, row := range shows {
+	for _, row := range rawEntries {
 		venue = row.Venue
 		date = row.Date
 		setsMap[row.SetName] = append(setsMap[row.SetName], row.RawEntry)
@@ -63,12 +63,12 @@ func SortSetPositions(shows []ShowSortInput) (ShowResponse, error) {
 	}
 	return ShowResponse{
 		ShowMeta: ShowMeta{
-			ShowID: shows[0].ShowID,
+			ShowID: rawEntries[0].ShowID,
 			Date:   date.Format(time.DateOnly),
 			Venue:  venue,
-			City:   shows[0].City,
-			State:  shows[0].State,
-			Notes:  shows[0].Notes,
+			City:   rawEntries[0].City,
+			State:  rawEntries[0].State,
+			Notes:  rawEntries[0].Notes,
 		},
 		Sets: sets,
 	}, nil

@@ -10,21 +10,21 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
-func (s *server) handleSongsWithQueryParam(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleSongsFromQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	switch {
 	case query.Get("sort") == "most_played" && query.Has("set_name"):
-		s.handleMostPlayedSongsBySetName(w, r)
+		s.handleGetMostPlayedSongsBySetName(w, r)
 
 	case query.Get("sort") == "most_played":
-		s.handleMostPlayedSongs(w, r)
+		s.handleGetMostPlayedSongs(w, r)
 
 	case query.Has("played_lt"):
-		s.handleSongsPlayedLessThanNTimes(w, r)
+		s.handleGetSongsPlayedLessThanNTimes(w, r)
 
 	case query.Has("venue"):
-		s.handleSongsPlayedAtVenue(w, r)
+		s.handleGetSongsPlayedAtVenue(w, r)
 
 	default:
 		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: played_lt, venue, sort=most_played, sort=most_played&set_name=", nil)
@@ -32,7 +32,7 @@ func (s *server) handleSongsWithQueryParam(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (s *server) handleMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
 	songRows, err := s.queries.MostPlayedSongs(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get most played songs", err)
@@ -45,7 +45,7 @@ func (s *server) handleMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.Request) {
 	val := r.URL.Query().Get("played_lt")
 	num, err := strconv.Atoi(val)
 	if err != nil {
@@ -65,7 +65,7 @@ func (s *server) handleSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleMostPlayedSongsBySetName(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *http.Request) {
 	setName := r.URL.Query().Get("set_name")
 	if setName == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing set_name query parameter", nil)
@@ -85,7 +85,7 @@ func (s *server) handleMostPlayedSongsBySetName(w http.ResponseWriter, r *http.R
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleUniqueSongsPerCity(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Request) {
 	songRows, err := s.queries.UniqueSongsPerCity(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get data", err)
@@ -110,7 +110,7 @@ func (s *server) handleUniqueSongsPerCity(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleSongsPlayedAtVenue(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Request) {
 	venue := r.URL.Query().Get("venue")
 	if venue == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing venue parameter", nil)
@@ -145,7 +145,7 @@ func (s *server) handleSongsPlayedAtVenue(w http.ResponseWriter, r *http.Request
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleSongStats(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 	song := r.PathValue("song")
 	if song == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing song name parameter", nil)

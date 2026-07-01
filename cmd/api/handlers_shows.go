@@ -17,10 +17,10 @@ import (
 // respondWithShow takes a slice of ShowSortInput rows for a single show (already
 // fetched by date, ID, or random selection) and handles the rest of the response:
 // returning a "no setlist available" message if the show has no songs, otherwise
-// sorting the sets/songs and attaching any footnotes before writing the JSON response
-func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedShow []internal.ShowSortInput) {
-	if len(parsedShow) > 0 && parsedShow[0].RawEntry == "" {
-		row := parsedShow[0]
+// sorting the sets+songs and attaching any footnotes before writing the JSON response
+func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedShowRows []internal.ShowSortInput) {
+	if len(parsedShowRows) > 0 && parsedShowRows[0].RawEntry == "" {
+		row := parsedShowRows[0]
 		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
 			ShowMeta: internal.ShowMeta{
 				ShowID: row.ShowID,
@@ -35,13 +35,13 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 		return
 	}
 
-	showResp, err := internal.SortSetPositions(parsedShow)
+	showResp, err := internal.SortSetPositions(parsedShowRows)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
 		return
 	}
 
-	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), parsedShow[0].ShowID)
+	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), parsedShowRows[0].ShowID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
 		return
@@ -55,7 +55,7 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 }
 
 // handlerShows parses the query parameter and chooses the appropriate endpoint
-func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	switch {
@@ -82,7 +82,7 @@ func (s *server) handlerShowsWithQueryParam(w http.ResponseWriter, r *http.Reque
 
 // handleGetShow parses the `value` path variable and chooses the appropriate endpoint
 // to send it to
-func (s *server) handleGetShow(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleShowsFromPathVal(w http.ResponseWriter, r *http.Request) {
 	value := r.PathValue("value")
 
 	if id, err := strconv.Atoi(value); err == nil {

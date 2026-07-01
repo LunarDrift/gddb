@@ -37,7 +37,7 @@ type ShowMeta struct {
 	Notes  string `json:"notes"`
 }
 
-// ShowResponse will be used as the payload sent in the server response
+// ShowResponse will be used as the payload sent in the server response for a single show
 type ShowResponse struct {
 	ShowMeta
 	Sets      []SetResponse     `json:"sets"`
