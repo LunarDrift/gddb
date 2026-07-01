@@ -9,7 +9,7 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **Fuzzy search** for shows by venue or song name - partial names work
 - Browse full setlists with **set positions** (Set 1, Set 2, Encore, etc.)
 - **Song footnotes** - annotations for notable moments like song debuts or first-time performances
-- Filter shows by **date range**, set name, or whether they include show notes
+- Filter shows by **date range**, **set name**, **year**, **state/country**, or whether they include **show notes**
 - **Song statistics** - times played, first and last performance dates
 - Most played songs across all shows or filtered by **set name**
 - Unique song counts **per city**
@@ -35,7 +35,8 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 | `/shows?has_notes=true/false` | Search for shows with/without notes attached |
 | `/shows?start_date=&end_date=` | List of shows between two dates (YYYY-MM-DD format) |
 | `/shows?year=` | List of shows filtered by year |
-| `/shows?year=&state=` | List of shows filtered by year and state/country (`state` should be the standard 2 letter abbreviations) |
+| `/shows?state=` | List of shows filtered by state/country |
+| `/shows?year=&state=` | List of shows filtered by year and state/country (states should be the standard 2 letter abbreviations) |
 | `/shows/random` | Get details for a random show |
 | `/songs?sort=most_played` | Returns a list of all songs and the amount of times they were played |
 | `/songs?venue=` | All songs played at a specific venue |

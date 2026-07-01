@@ -143,6 +143,13 @@ func (r GetShowsFromYearRow) GetCity() string          { return r.City }
 func (r GetShowsFromYearRow) GetState() string         { return r.State }
 func (r GetShowsFromYearRow) GetNotes() sql.NullString { return r.Notes }
 
+func (r GetShowsFromStateRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromStateRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromStateRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromStateRow) GetCity() string          { return r.City }
+func (r GetShowsFromStateRow) GetState() string         { return r.State }
+func (r GetShowsFromStateRow) GetNotes() sql.NullString { return r.Notes }
+
 func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
 	return internal.ShowMeta{
 		ShowID: r.GetShowID(),

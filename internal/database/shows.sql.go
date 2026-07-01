@@ -396,6 +396,58 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]
 	return items, nil
 }
 
+const getShowsFromState = `-- name: GetShowsFromState :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state,
+  sh.notes
+FROM shows sh
+WHERE sh.state = $1
+ORDER BY sh.show_date
+`
+
+type GetShowsFromStateRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+	Notes    sql.NullString
+}
+
+func (q *Queries) GetShowsFromState(ctx context.Context, stateOrCountry string) ([]GetShowsFromStateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromState, stateOrCountry)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromStateRow
+	for rows.Next() {
+		var i GetShowsFromStateRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowsFromYear = `-- name: GetShowsFromYear :many
 SELECT
   sh.show_id,
