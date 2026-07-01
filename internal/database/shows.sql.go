@@ -396,6 +396,116 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]
 	return items, nil
 }
 
+const getShowsFromYear = `-- name: GetShowsFromYear :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state,
+  sh.notes
+FROM shows sh
+WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
+ORDER BY sh.show_date
+`
+
+type GetShowsFromYearRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+	Notes    sql.NullString
+}
+
+func (q *Queries) GetShowsFromYear(ctx context.Context, year int32) ([]GetShowsFromYearRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromYear, year)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromYearRow
+	for rows.Next() {
+		var i GetShowsFromYearRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getShowsFromYearAndState = `-- name: GetShowsFromYearAndState :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state,
+  sh.notes
+FROM shows sh
+WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
+AND sh.state = $2
+ORDER BY sh.show_date
+`
+
+type GetShowsFromYearAndStateParams struct {
+	Year           int32
+	StateOrCountry string
+}
+
+type GetShowsFromYearAndStateRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+	Notes    sql.NullString
+}
+
+func (q *Queries) GetShowsFromYearAndState(ctx context.Context, arg GetShowsFromYearAndStateParams) ([]GetShowsFromYearAndStateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromYearAndState, arg.Year, arg.StateOrCountry)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromYearAndStateRow
+	for rows.Next() {
+		var i GetShowsFromYearAndStateRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchByVenue = `-- name: SearchByVenue :many
 SELECT
   shows.show_id,
@@ -431,64 +541,6 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 	var items []SearchByVenueRow
 	for rows.Next() {
 		var i SearchByVenueRow
-		if err := rows.Scan(
-			&i.ShowID,
-			&i.ShowDate,
-			&i.Venue,
-			&i.City,
-			&i.State,
-			&i.Notes,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const showsFromYearAndState = `-- name: ShowsFromYearAndState :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state,
-  sh.notes
-FROM shows sh
-WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
-AND sh.state = $2
-ORDER BY sh.show_date
-`
-
-type ShowsFromYearAndStateParams struct {
-	Year           int32
-	StateOrCountry string
-}
-
-type ShowsFromYearAndStateRow struct {
-	ShowID   int32
-	ShowDate time.Time
-	Venue    string
-	City     string
-	State    string
-	Notes    sql.NullString
-}
-
-func (q *Queries) ShowsFromYearAndState(ctx context.Context, arg ShowsFromYearAndStateParams) ([]ShowsFromYearAndStateRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsFromYearAndState, arg.Year, arg.StateOrCountry)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ShowsFromYearAndStateRow
-	for rows.Next() {
-		var i ShowsFromYearAndStateRow
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,

@@ -62,6 +62,9 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	case query.Has("year") && query.Has("state"):
 		s.handleGetShowsFromYearAndState(w, r)
 
+	case query.Has("year"):
+		s.handleGetShowsFromYear(w, r)
+
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
 
@@ -78,7 +81,7 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		s.handleGetShowsBetweenDates(w, r)
 
 	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date", nil)
+		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&state", nil)
 		return
 	}
 }
@@ -320,10 +323,37 @@ func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	showRows, err := s.queries.ShowsFromYearAndState(r.Context(), database.ShowsFromYearAndStateParams{
+	showRows, err := s.queries.GetShowsFromYearAndState(r.Context(), database.GetShowsFromYearAndStateParams{
 		Year:           int32(year),
 		StateOrCountry: state,
 	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	var results []internal.ShowMeta
+	for _, row := range showRows {
+		results = append(results, database.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) {
+	yearStr := r.URL.Query().Get("year")
+	if yearStr == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
+		return
+	}
+
+	year, err := strconv.Atoi(yearStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid year value", err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromYear(r.Context(), int32(year))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return

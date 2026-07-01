@@ -129,12 +129,19 @@ func (r GetShowsBetweenDatesRow) GetCity() string          { return r.City }
 func (r GetShowsBetweenDatesRow) GetState() string         { return r.State }
 func (r GetShowsBetweenDatesRow) GetNotes() sql.NullString { return r.Notes }
 
-func (r ShowsFromYearAndStateRow) GetShowID() int32         { return r.ShowID }
-func (r ShowsFromYearAndStateRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r ShowsFromYearAndStateRow) GetVenue() string         { return r.Venue }
-func (r ShowsFromYearAndStateRow) GetCity() string          { return r.City }
-func (r ShowsFromYearAndStateRow) GetState() string         { return r.State }
-func (r ShowsFromYearAndStateRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetShowsFromYearAndStateRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromYearAndStateRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromYearAndStateRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromYearAndStateRow) GetCity() string          { return r.City }
+func (r GetShowsFromYearAndStateRow) GetState() string         { return r.State }
+func (r GetShowsFromYearAndStateRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r GetShowsFromYearRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromYearRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromYearRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromYearRow) GetCity() string          { return r.City }
+func (r GetShowsFromYearRow) GetState() string         { return r.State }
+func (r GetShowsFromYearRow) GetNotes() sql.NullString { return r.Notes }
 
 func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
 	return internal.ShowMeta{
