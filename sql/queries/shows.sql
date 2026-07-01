@@ -164,3 +164,16 @@ SELECT
   sh.state
 FROM shows sh
 WHERE sh.notes IS NULL OR sh.notes = '';
+
+-- name: ShowsFromYearAndState :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state,
+  sh.notes
+FROM shows sh
+WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
+AND sh.state = @state_or_country
+ORDER BY sh.show_date;

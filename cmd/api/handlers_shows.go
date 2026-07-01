@@ -59,6 +59,9 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	query := r.URL.Query()
 
 	switch {
+	case query.Has("year") && query.Has("state"):
+		s.handleGetShowsFromYearAndState(w, r)
+
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
 
@@ -297,4 +300,39 @@ func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) 
 		results = append(results, database.RowToShowMeta(row))
 	}
 	return results, nil
+}
+
+func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.Request) {
+	yearStr := r.URL.Query().Get("year")
+	if yearStr == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
+		return
+	}
+	state := r.URL.Query().Get("state")
+	if state == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing state parameter", nil)
+		return
+	}
+
+	year, err := strconv.Atoi(yearStr)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid year parameter", err)
+		return
+	}
+
+	showRows, err := s.queries.ShowsFromYearAndState(r.Context(), database.ShowsFromYearAndStateParams{
+		Year:           int32(year),
+		StateOrCountry: state,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	var results []internal.ShowMeta
+	for _, row := range showRows {
+		results = append(results, database.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
 }

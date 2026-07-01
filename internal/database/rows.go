@@ -129,6 +129,13 @@ func (r GetShowsBetweenDatesRow) GetCity() string          { return r.City }
 func (r GetShowsBetweenDatesRow) GetState() string         { return r.State }
 func (r GetShowsBetweenDatesRow) GetNotes() sql.NullString { return r.Notes }
 
+func (r ShowsFromYearAndStateRow) GetShowID() int32         { return r.ShowID }
+func (r ShowsFromYearAndStateRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r ShowsFromYearAndStateRow) GetVenue() string         { return r.Venue }
+func (r ShowsFromYearAndStateRow) GetCity() string          { return r.City }
+func (r ShowsFromYearAndStateRow) GetState() string         { return r.State }
+func (r ShowsFromYearAndStateRow) GetNotes() sql.NullString { return r.Notes }
+
 func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
 	return internal.ShowMeta{
 		ShowID: r.GetShowID(),

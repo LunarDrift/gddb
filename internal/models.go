@@ -28,6 +28,7 @@ type Dataset map[string][]Show
 // ===================================================================================================================
 
 // ShowMeta holds the shared elements that multiple show responses use
+// Also used in responses where a list of shows is returned
 type ShowMeta struct {
 	ShowID int32  `json:"show_id"`
 	Date   string `json:"date"`

@@ -452,6 +452,64 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 	return items, nil
 }
 
+const showsFromYearAndState = `-- name: ShowsFromYearAndState :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state,
+  sh.notes
+FROM shows sh
+WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
+AND sh.state = $2
+ORDER BY sh.show_date
+`
+
+type ShowsFromYearAndStateParams struct {
+	Year           int32
+	StateOrCountry string
+}
+
+type ShowsFromYearAndStateRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	State    string
+	Notes    sql.NullString
+}
+
+func (q *Queries) ShowsFromYearAndState(ctx context.Context, arg ShowsFromYearAndStateParams) ([]ShowsFromYearAndStateRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsFromYearAndState, arg.Year, arg.StateOrCountry)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ShowsFromYearAndStateRow
+	for rows.Next() {
+		var i ShowsFromYearAndStateRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.State,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const showsWithShowNotes = `-- name: ShowsWithShowNotes :many
 SELECT 
 	sh.show_id,
