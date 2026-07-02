@@ -101,3 +101,6 @@ docker compose up --build
 
 ## Credits
 Show and setlist data sourced from [Grateful Sets](https://www.gratefulsets.net/)
+
+## License
+This project is licensed under the MIT license - see the [LICENSE](LICENSE) file for details.
