@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/LunarDrift/deadabase/cmd/api/middleware"
 	"github.com/LunarDrift/deadabase/internal/database"
 	"github.com/joho/godotenv"
 )
@@ -25,6 +26,9 @@ func main() {
 	queries := database.New(db)
 	srv := NewServer(db, queries)
 
+	limiter := middleware.NewIPRateLimiter(2, 10) // 2 req/sec sustained, burst of 10
+	handler := limiter.Middleware(srv.mux)
+
 	fmt.Println("Listening on 8080...")
-	log.Fatal(http.ListenAndServe(":8080", srv.mux))
+	log.Fatal(http.ListenAndServe(":8080", handler))
 }
