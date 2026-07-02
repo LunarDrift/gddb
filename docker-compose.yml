@@ -22,17 +22,11 @@ services:
       retries: 10
 
   migrate:
-    image: ghcr.io/pressly/goose:latest
+    <<: *app
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      GOOSE_DRIVER: postgres
-      GOOSE_DBSTRING: postgres://postgres:postgres@db:5432/deadabase?sslmode=disable
-      GOOSE_MIGRATION_DIR: /migrations
-    volumes:
-      - ./sql/schema:/migrations
-    command: ["up"]
+    command: ["./goose", "-dir", "sql/schema", "postgres", "postgres://postgres:postgres@db:5432/deadabase?sslmode=disable", "up"]
 
   import:
     <<: *app

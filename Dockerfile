@@ -10,6 +10,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/api ./cmd/api
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/importer ./cmd/import
+RUN CGO_ENABLED=0 GOOS=linux GOBIN=/app/bin go install github.com/pressly/goose/v3/cmd/goose@v3.27.1
 
 # ---- Runtime stage ----
 FROM alpine:3.20
@@ -20,7 +21,9 @@ WORKDIR /app
 
 COPY --from=builder /app/bin/api ./api
 COPY --from=builder /app/bin/importer ./importer
+COPY --from=builder /app/bin/goose ./goose
 COPY data ./data
+COPY sql/schema ./sql/schema
 
 # godotenv.Load() errors if no .env file exists in the working dir.
 # Real config comes from env vars set by docker-compose, which

@@ -20,9 +20,15 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **PostgreSQL:** persistent data storage
 - **goose:** database migrations
 - **sqlc:** type-safe SQL query generation
+- **Docker:** package everything together and make setup a simple command
 
-## Planned
-- Docker support with `docker compose up` as the only required setup step
+## Setup
+```bash
+git clone https://github.com/LunarDrift/gddb
+cd gddb
+docker compose up --build
+```
+*The Postgres credentials are hardcoded in `docker-compose.yml` for local/demo purposes*
 
 ## API Endpoints (GET only)
 
