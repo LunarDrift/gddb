@@ -53,6 +53,7 @@ docker compose up --build
 | `/songs/{name}` | Stats for a song (times played, first/last time played) |
 | `/stats/songs-per-city` | Unique song count per city |
 
+For further details, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
 ## Rate Limiting
 Requests are limited per IP address to **2 requests/second** (burst up to 10). Exceeding this returns a `429 Too Many Requests`
@@ -99,7 +100,6 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
   }
 }
 ```
-For further details, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
 ## Notes
 - Venue and song name searches use fuzzy matching - partial names work
