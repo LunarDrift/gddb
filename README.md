@@ -53,6 +53,10 @@ docker compose up --build
 | `/songs/{name}` | Stats for a song (times played, first/last time played) |
 | `/stats/songs-per-city` | Unique song count per city |
 
+
+## Rate Limiting
+Requests are limited per IP address to **2 requests/second** (burst up to 10). Exceeding this returns a `429 Too Many Requests`
+
 ## Example Show Response
 
 ```json
