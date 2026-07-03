@@ -29,7 +29,8 @@ git clone https://github.com/LunarDrift/gddb
 cd gddb
 docker compose up --build
 ```
-*The Postgres credentials are hardcoded in `docker-compose.yml` for local/demo purposes*
+Use `--build` on first run or after any change to the Go source or Dockerfile, so `docker-compose` rebuilds the `deadabase:local` app image before starting the containers.
+*The Postgres credentials are hardcoded in `docker-compose.yml` for local/demo purposes*.
 
 ## API Endpoints (GET only)
 
