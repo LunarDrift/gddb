@@ -14,14 +14,13 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
-// respondWithShow takes a slice of ShowSortInput rows for a single show (already
-// fetched by date, ID, or random selection) and handles the rest of the response:
-// returning a "no setlist available" message if the show has no songs, otherwise
-// sorting the sets+songs and attaching any footnotes before writing the JSON response
-func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedShowRows []internal.ShowSortInput) {
+// buildShowResponse takes a slice of ShowSortInput rows for a single show and returns
+// a 'no setlist available' message if the show has no songs, otherwise sorting the
+// sets + songs and attaching any footnotes, returning the completed show response.
+func (s *server) buildShowResponse(r *http.Request, parsedShowRows []internal.ShowSortInput) (any, error) {
 	if len(parsedShowRows) > 0 && parsedShowRows[0].RawEntry == "" {
 		row := parsedShowRows[0]
-		respondWithJSON(w, http.StatusOK, internal.ShowWithNoSetlist{
+		return internal.ShowWithNoSetlist{
 			ShowMeta: internal.ShowMeta{
 				ShowID: row.ShowID,
 				Date:   row.Date.Format(time.DateOnly),
@@ -31,27 +30,24 @@ func (s *server) respondWithShow(w http.ResponseWriter, r *http.Request, parsedS
 				Notes:  row.Notes,
 			},
 			Message: "No setlist available for this show",
-		})
-		return
+		}, nil
 	}
 
 	showResp, err := internal.SortSetPositions(parsedShowRows)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not sort set positions", err)
-		return
+		return nil, err
 	}
 
 	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), parsedShowRows[0].ShowID)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get footnotes", err)
-		return
+		return nil, err
 	}
 	showResp.Footnotes = make(map[string]string)
 	for _, f := range footnoteRows {
 		showResp.Footnotes[f.Marker] = f.NoteText
 	}
 
-	respondWithJSON(w, http.StatusOK, showResp)
+	return showResp, nil
 }
 
 // handlerShows parses the query parameter and chooses the appropriate endpoint
@@ -111,14 +107,32 @@ func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date ti
 	showRows, err := s.queries.GetShowFromDate(r.Context(), date)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
+		return
 	}
 
-	var parsedShows []internal.ShowSortInput
+	// some dates have multiple shows attached - early show + late show
+	// need to sort those separately so they don't get combined into a single show object
+	var groups [][]internal.ShowSortInput
 	for _, row := range showRows {
-		parsedShows = append(parsedShows, database.RowToShowSortInput(row))
+		parsed := database.RowToShowSortInput(row)
+		if n := len(groups); n > 0 && groups[n-1][0].ShowID == parsed.ShowID {
+			groups[n-1] = append(groups[n-1], parsed)
+		} else {
+			groups = append(groups, []internal.ShowSortInput{parsed})
+		}
 	}
 
-	s.respondWithShow(w, r, parsedShows)
+	results := []any{}
+	for _, group := range groups {
+		resp, err := s.buildShowResponse(r, group)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Could not build show response", err)
+			return
+		}
+		results = append(results, resp)
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32) {
@@ -133,7 +147,13 @@ func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32)
 		parsedShow = append(parsedShow, database.RowToShowSortInput(row))
 	}
 
-	s.respondWithShow(w, r, parsedShow)
+	resp, err := s.buildShowResponse(r, parsedShow)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not build show response", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, resp)
 }
 
 func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +175,13 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		parsedShow = append(parsedShow, database.RowToShowSortInput(row))
 	}
 
-	s.respondWithShow(w, r, parsedShow)
+	resp, err := s.buildShowResponse(r, parsedShow)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not build show response", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, resp)
 }
 
 func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Request) {
