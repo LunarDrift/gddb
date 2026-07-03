@@ -34,6 +34,7 @@ Use `--build` on first run or after any change to the Go source or Dockerfile, s
 *The Postgres credentials are hardcoded in `docker-compose.yml` for local/demo purposes*.
 
 ## API Endpoints (GET only)
+For further details about each endpoint and their response shapes, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
 | ENDPOINT | DESCRIPTION|
 | ------------------- | --------------------------------------------------------------------|
@@ -55,7 +56,6 @@ Use `--build` on first run or after any change to the Go source or Dockerfile, s
 | `/songs/{name}` | Stats for a song (times played, first/last time played) |
 | `/stats/songs-per-city` | Unique song count per city |
 
-For further details, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
 ## Rate Limiting
 Requests are limited per IP address to **2 requests/second** (burst up to 10). Exceeding this returns a `429 Too Many Requests`
