@@ -99,6 +99,7 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
   }
 }
 ```
+For further details, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
 ## Notes
 - Venue and song name searches use fuzzy matching - partial names work
