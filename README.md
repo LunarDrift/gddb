@@ -108,6 +108,11 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 - Shows without a recorded setlist return a custom `message` field instead of `sets`
 - `footnotes` in show responses are keyed by marker symbol (e.g. `"*": "First time played"`)
 
+## TODO
+- Add more unit tests
+- Server logging
+- Continue learning
+
 ## Credits
 Show and setlist data sourced from [Grateful Sets](https://www.gratefulsets.net/)
 
