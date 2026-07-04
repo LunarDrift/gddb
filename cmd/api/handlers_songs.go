@@ -51,7 +51,7 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 		respondWithError(w, http.StatusBadRequest, "Invalid value. Expecting number", err)
 	}
 
-	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), num)
+	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), int32(num))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
 	}
