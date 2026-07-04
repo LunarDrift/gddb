@@ -13,13 +13,17 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
+// fakeQuerier is a fake 'database' with all the methods required to satisfy ShowQuerier. Used so
+// tests don't require a connection to the real database
 type fakeQuerier struct {
-	allShowIDs     []int32
-	allShowIDsErr  error
-	showFromIDRows []database.GetShowFromIDRow
-	showFromIDErr  error
-	footnoteRows   []database.GetFootnotesFromShowIDRow
-	footnoteErr    error
+	allShowIDs       []int32
+	allShowIDsErr    error
+	showFromIDRows   []database.GetShowFromIDRow
+	showFromIDErr    error
+	footnoteRows     []database.GetFootnotesFromShowIDRow
+	footnoteErr      error
+	showFromDateRows []database.GetShowFromDateRow
+	showFromDateErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -31,7 +35,7 @@ func (f *fakeQuerier) GetShowFromID(ctx context.Context, showID int32) ([]databa
 }
 
 func (f *fakeQuerier) GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error) {
-	return nil, nil
+	return f.showFromDateRows, f.showFromDateErr
 }
 
 func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error) {
@@ -95,11 +99,11 @@ func (f *fakeQuerier) UniqueSongsPerCity(ctx context.Context) ([]database.Unique
 }
 
 func (f *fakeQuerier) GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error) {
-	return nil, nil
+	return f.footnoteRows, f.footnoteErr
 }
 
 // ----------------------------------------------------------------------------------------------------------------------------------
-// ----------------------------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------- TESTS -------------------------------------------------------------
 // ----------------------------------------------------------------------------------------------------------------------------------
 
 func TestHandleShowsFromPathVal_ByID(t *testing.T) {
@@ -192,5 +196,54 @@ func TestHandleShowsFromPathVal_ByID_EmptySetlist(t *testing.T) {
 	expectedMessage := "No setlist available for this show"
 	if got.Message != expectedMessage {
 		t.Errorf("got.Message = %q; want %q", got.Message, expectedMessage)
+	}
+}
+
+func TestHandleShowsFromPathVal_ByDate(t *testing.T) {
+	date, err := time.Parse(time.DateOnly, "1969-09-30")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	fake := &fakeQuerier{
+		showFromDateRows: []database.GetShowFromDateRow{
+			{
+				ShowID:   int32(1949),
+				ShowDate: date,
+				Venue:    "Cafe Au Go Go",
+				City:     "New York",
+				State:    "NY",
+				Notes:    sql.NullString{},
+				SetName:  sql.NullString{String: "set_1", Valid: true},
+				RawEntry: sql.NullString{String: "China Cat Sunflower > I Know You Rider", Valid: true},
+			},
+		},
+		footnoteRows: []database.GetFootnotesFromShowIDRow{},
+	}
+
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows/1969-09-30", nil)
+	req.SetPathValue("value", "1969-09-30")
+	w := httptest.NewRecorder()
+
+	s.handleShowsFromPathVal(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status = %d; want 200", res.StatusCode)
+	}
+
+	var got []internal.ShowResponse
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if len(got) != 1 {
+		t.Errorf("len(got) = %v; want 1", len(got))
+	}
+
+	if got[0].Date != "1969-09-30" {
+		t.Errorf("got.Date = %v; want 1969-09-30", got[0].Date)
 	}
 }
