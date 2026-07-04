@@ -15,6 +15,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// ShowQuerier is needed in order to be able to make unit tests for the endpoints
+// without relying on a connection to the database
 type ShowQuerier interface {
 	GetAllShowIDs(ctx context.Context) ([]int32, error)
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
@@ -44,7 +46,7 @@ type server struct {
 	// queries *database.Queries
 }
 
-func NewServer(db *sql.DB, queries *database.Queries) *server {
+func NewServer(db *sql.DB, queries ShowQuerier) *server {
 	srv := &server{
 		mux:     http.NewServeMux(),
 		db:      db,
