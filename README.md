@@ -113,6 +113,9 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 - Server logging
 - Continue learning
 
+## A Note on AI Usage
+This project's code and queries were written by me. I used LLMs as a study aid - discussing concepts, sanity-checking design and query decisions, and for help debugging. No AI generated code was used - with the exception of the `docker-compose` file which was 90% AI-authored.
+
 ## Credits
 Show and setlist data sourced from [Grateful Sets](https://www.gratefulsets.net/)
 
