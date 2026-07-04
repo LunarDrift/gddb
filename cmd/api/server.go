@@ -15,7 +15,6 @@ type server struct {
 	mux     *http.ServeMux
 	db      *sql.DB
 	queries internal.ShowQuerier
-	// queries *database.Queries
 }
 
 func NewServer(db *sql.DB, queries internal.ShowQuerier) *server {
