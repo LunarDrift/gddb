@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -43,8 +42,10 @@ func (s *server) registerRoutes() {
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = fmt.Fprintln(w, `🪬𝐎𝐍𝐋𝐈𝐍𝐄🪬`)
+	type healthResponse struct {
+		Status string `json:"status"`
+	}
+	respondWithJSON(w, http.StatusOK, healthResponse{Status: `🪬𝐎𝐍𝐋𝐈𝐍𝐄🪬`})
 }
 
 func respondWithJSON(w http.ResponseWriter, status int, payload any) {
