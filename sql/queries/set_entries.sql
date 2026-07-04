@@ -21,7 +21,7 @@ ORDER BY times_played DESC;
 SELECT se.song_name AS song, count(*) AS times_played
 FROM set_entries se
 GROUP BY se.song_name
-HAVING count(*) < $1
+HAVING count(*) < $1::int
 ORDER BY times_played DESC;
 
 -- name: MostCommonSongsBySetName :many

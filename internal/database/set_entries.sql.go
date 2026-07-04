@@ -155,7 +155,7 @@ const songsPlayedLessThan = `-- name: SongsPlayedLessThan :many
 SELECT se.song_name AS song, count(*) AS times_played
 FROM set_entries se
 GROUP BY se.song_name
-HAVING count(*) < $1
+HAVING count(*) < $1::int
 ORDER BY times_played DESC
 `
 
@@ -164,7 +164,7 @@ type SongsPlayedLessThanRow struct {
 	TimesPlayed int64
 }
 
-func (q *Queries) SongsPlayedLessThan(ctx context.Context, dollar_1 interface{}) ([]SongsPlayedLessThanRow, error) {
+func (q *Queries) SongsPlayedLessThan(ctx context.Context, dollar_1 int32) ([]SongsPlayedLessThanRow, error) {
 	rows, err := q.db.QueryContext(ctx, songsPlayedLessThan, dollar_1)
 	if err != nil {
 		return nil, err

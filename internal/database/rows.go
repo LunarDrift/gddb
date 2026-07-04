@@ -5,8 +5,6 @@ package database
 import (
 	"database/sql"
 	"time"
-
-	"github.com/LunarDrift/deadabase/internal"
 )
 
 /*
@@ -44,18 +42,7 @@ func (r GetShowFromDateRow) GetNotes() sql.NullString    { return r.Notes }
 func (r GetShowFromDateRow) GetSetName() sql.NullString  { return r.SetName }
 func (r GetShowFromDateRow) GetRawEntry() sql.NullString { return r.RawEntry }
 
-func RowToShowSortInput(r ShowRow) internal.ShowSortInput {
-	return internal.ShowSortInput{
-		ShowID:   r.GetShowID(),
-		Date:     r.GetShowDate(),
-		Venue:    r.GetVenue(),
-		City:     r.GetCity(),
-		State:    r.GetState(),
-		Notes:    r.GetNotes().String,
-		SetName:  r.GetSetName().String,
-		RawEntry: r.GetRawEntry().String,
-	}
-}
+//------------------------------------------------------------------------------------
 
 type SongCountRow interface {
 	GetSongName() sql.NullString
@@ -71,12 +58,7 @@ func (r MostPlayedSongsRow) GetTimesPlayed() int64       { return r.TimesPlayed 
 func (r SongsPlayedLessThanRow) GetSongName() sql.NullString { return r.Song }
 func (r SongsPlayedLessThanRow) GetTimesPlayed() int64       { return r.TimesPlayed }
 
-func RowToSongsTimesPlayed(r SongCountRow) internal.SongsTimesPlayed {
-	return internal.SongsTimesPlayed{
-		Song:        r.GetSongName().String,
-		TimesPlayed: int(r.GetTimesPlayed()),
-	}
-}
+//------------------------------------------------------------------------------------
 
 type ShowSummaryRow interface {
 	GetShowID() int32
@@ -149,14 +131,3 @@ func (r GetShowsFromStateRow) GetVenue() string         { return r.Venue }
 func (r GetShowsFromStateRow) GetCity() string          { return r.City }
 func (r GetShowsFromStateRow) GetState() string         { return r.State }
 func (r GetShowsFromStateRow) GetNotes() sql.NullString { return r.Notes }
-
-func RowToShowMeta(r ShowSummaryRow) internal.ShowMeta {
-	return internal.ShowMeta{
-		ShowID: r.GetShowID(),
-		Date:   r.GetShowDate().Format(time.DateOnly),
-		Venue:  r.GetVenue(),
-		City:   r.GetCity(),
-		State:  r.GetState(),
-		Notes:  r.GetNotes().String,
-	}
-}

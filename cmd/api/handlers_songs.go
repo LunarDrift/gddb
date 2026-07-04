@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
-	"github.com/LunarDrift/deadabase/internal/database"
 )
 
 func (s *server) handleSongsFromQueryParam(w http.ResponseWriter, r *http.Request) {
@@ -40,7 +39,7 @@ func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request
 	}
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
-		results = append(results, database.RowToSongsTimesPlayed(row))
+		results = append(results, internal.RowToSongsTimesPlayed(row))
 	}
 	respondWithJSON(w, http.StatusOK, results)
 }
@@ -52,14 +51,14 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 		respondWithError(w, http.StatusBadRequest, "Invalid value. Expecting number", err)
 	}
 
-	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), num)
+	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), int32(num))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
 	}
 
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
-		results = append(results, database.RowToSongsTimesPlayed(row))
+		results = append(results, internal.RowToSongsTimesPlayed(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
@@ -79,7 +78,7 @@ func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *htt
 
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
-		results = append(results, database.RowToSongsTimesPlayed(row))
+		results = append(results, internal.RowToSongsTimesPlayed(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)

@@ -8,18 +8,18 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/LunarDrift/deadabase/internal/database"
-
+	"github.com/LunarDrift/deadabase/internal"
 	_ "github.com/lib/pq"
 )
 
 type server struct {
 	mux     *http.ServeMux
 	db      *sql.DB
-	queries *database.Queries
+	queries internal.ShowQuerier
+	// queries *database.Queries
 }
 
-func NewServer(db *sql.DB, queries *database.Queries) *server {
+func NewServer(db *sql.DB, queries internal.ShowQuerier) *server {
 	srv := &server{
 		mux:     http.NewServeMux(),
 		db:      db,
