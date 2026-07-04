@@ -45,13 +45,15 @@ func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	type healthResponse struct {
 		Status string `json:"status"`
 	}
-	respondWithJSON(w, http.StatusOK, healthResponse{Status: `🪬𝐎𝐍𝐋𝐈𝐍𝐄🪬`})
+	respondWithJSON(w, http.StatusOK, healthResponse{Status: `🪬 𝐎𝐍𝐋𝐈𝐍𝐄 🪬`})
 }
 
 func respondWithJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(payload)
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		log.Println("respondWithJSON - could not encode payload:", err)
+	}
 }
 
 func respondWithError(w http.ResponseWriter, status int, message string, err error) {
@@ -64,6 +66,7 @@ func respondWithError(w http.ResponseWriter, status int, message string, err err
 	respondWithJSON(w, status, errorResponse{Error: message})
 }
 
+// fuzzyPattern wraps and inserts a '%' between every character of `input` to be used during SQL query searches
 func fuzzyPattern(input string) string {
 	words := strings.Fields(input)
 	return "%" + strings.Join(words, "%") + "%"
