@@ -114,7 +114,7 @@ func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date ti
 	// need to sort those separately so they don't get combined into a single show object
 	var groups [][]internal.ShowSortInput
 	for _, row := range showRows {
-		parsed := database.RowToShowSortInput(row)
+		parsed := internal.RowToShowSortInput(row)
 		if n := len(groups); n > 0 && groups[n-1][0].ShowID == parsed.ShowID {
 			groups[n-1] = append(groups[n-1], parsed)
 		} else {
@@ -144,7 +144,7 @@ func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32)
 
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
-		parsedShow = append(parsedShow, database.RowToShowSortInput(row))
+		parsedShow = append(parsedShow, internal.RowToShowSortInput(row))
 	}
 
 	resp, err := s.buildShowResponse(r, parsedShow)
@@ -172,7 +172,7 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
-		parsedShow = append(parsedShow, database.RowToShowSortInput(row))
+		parsedShow = append(parsedShow, internal.RowToShowSortInput(row))
 	}
 
 	resp, err := s.buildShowResponse(r, parsedShow)
@@ -213,7 +213,7 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	}
 	var showResults []internal.ShowMeta
 	for _, row := range showRows {
-		showResults = append(showResults, database.RowToShowMeta(row))
+		showResults = append(showResults, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }
@@ -234,7 +234,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 
 	var showResults []internal.ShowMeta
 	for _, row := range showRows {
-		showResults = append(showResults, database.RowToShowMeta(row))
+		showResults = append(showResults, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }
@@ -256,7 +256,7 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 
 	var showResults []internal.ShowMeta
 	for _, row := range showRows {
-		showResults = append(showResults, database.RowToShowMeta(row))
+		showResults = append(showResults, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, showResults)
@@ -277,7 +277,7 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 
 	var venueResults []internal.ShowMeta
 	for _, row := range venueRows {
-		venueResults = append(venueResults, database.RowToShowMeta(row))
+		venueResults = append(venueResults, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, venueResults)
 }
@@ -316,7 +316,7 @@ func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error
 
 	var results []internal.ShowMeta
 	for _, row := range showRows {
-		results = append(results, database.RowToShowMeta(row))
+		results = append(results, internal.RowToShowMeta(row))
 	}
 	return results, nil
 }
@@ -329,7 +329,7 @@ func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) 
 
 	var results []internal.ShowMeta
 	for _, row := range showRows {
-		results = append(results, database.RowToShowMeta(row))
+		results = append(results, internal.RowToShowMeta(row))
 	}
 	return results, nil
 }
@@ -363,7 +363,7 @@ func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.R
 
 	var results []internal.ShowMeta
 	for _, row := range showRows {
-		results = append(results, database.RowToShowMeta(row))
+		results = append(results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
@@ -390,7 +390,7 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 
 	var results []internal.ShowMeta
 	for _, row := range showRows {
-		results = append(results, database.RowToShowMeta(row))
+		results = append(results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
@@ -411,7 +411,7 @@ func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request)
 
 	var results []internal.ShowMeta
 	for _, row := range showRows {
-		results = append(results, database.RowToShowMeta(row))
+		results = append(results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
