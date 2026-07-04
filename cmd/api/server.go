@@ -34,12 +34,14 @@ type ShowQuerier interface {
 	MostPlayedSongs(ctx context.Context) ([]database.MostPlayedSongsRow, error)
 	SongsPlayedLessThan(ctx context.Context, dollar_1 interface{}) ([]database.SongsPlayedLessThanRow, error)
 	UniqueSongsPerCity(ctx context.Context) ([]database.UniqueSongsPerCityRow, error)
+	GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error)
 }
 
 type server struct {
 	mux     *http.ServeMux
 	db      *sql.DB
-	queries *database.Queries
+	queries ShowQuerier
+	// queries *database.Queries
 }
 
 func NewServer(db *sql.DB, queries *database.Queries) *server {
