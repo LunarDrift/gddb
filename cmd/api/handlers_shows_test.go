@@ -16,20 +16,22 @@ import (
 // fakeQuerier is a fake 'database' with all the methods required to satisfy ShowQuerier. Used so
 // tests don't require a connection to the real database
 type fakeQuerier struct {
-	allShowIDs            []int32
-	allShowIDsErr         error
-	showFromIDRows        []database.GetShowFromIDRow
-	showFromIDErr         error
-	footnoteRows          []database.GetFootnotesFromShowIDRow
-	footnoteErr           error
-	showFromDateRows      []database.GetShowFromDateRow
-	showFromDateErr       error
-	showsBetweenDatesRows []database.GetShowsBetweenDatesRow
-	showsBetweenDatesErr  error
-	showsFromSongNameRows []database.GetShowsFromSongNameRow
-	showsFromSongNameErr  error
-	showsFromSetNameRows  []database.GetShowsFromSetNameRow
-	showsFromSetNameErr   error
+	allShowIDs             []int32
+	allShowIDsErr          error
+	showFromIDRows         []database.GetShowFromIDRow
+	showFromIDErr          error
+	footnoteRows           []database.GetFootnotesFromShowIDRow
+	footnoteErr            error
+	showFromDateRows       []database.GetShowFromDateRow
+	showFromDateErr        error
+	showsBetweenDatesRows  []database.GetShowsBetweenDatesRow
+	showsBetweenDatesErr   error
+	showsFromSongNameRows  []database.GetShowsFromSongNameRow
+	showsFromSongNameErr   error
+	showsFromSetNameRows   []database.GetShowsFromSetNameRow
+	showsFromSetNameErr    error
+	showsFromVenueNameRows []database.SearchByVenueRow
+	showsFromVenueNameErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -69,7 +71,7 @@ func (f *fakeQuerier) GetShowsFromYearAndState(ctx context.Context, arg database
 }
 
 func (f *fakeQuerier) SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error) {
-	return nil, nil
+	return f.showsFromVenueNameRows, f.showsFromVenueNameErr
 }
 
 func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context) ([]database.ShowsWithShowNotesRow, error) {
@@ -421,5 +423,44 @@ func TestHandleGetShowsFromSetName_InvalidSetName(t *testing.T) {
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromVenueName(t *testing.T) {
+	date1, _ := time.Parse(time.DateOnly, "1995-01-01")
+	date2, _ := time.Parse(time.DateOnly, "1995-01-02")
+	fake := &fakeQuerier{
+		showsFromVenueNameRows: []database.SearchByVenueRow{
+			{ShowID: 1, ShowDate: date1, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date2, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?venue=soldier", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromVenueName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].Venue != "Soldier Field" {
+		t.Errorf("got[0].Venue = %q; want %s", got[0].Venue, "Soldier Field")
+	}
+
+	if got[0].Venue != got[1].Venue {
+		t.Errorf("different venues: got[0].Venue = %q, got[1].Venue = %q", got[0].Venue, got[1].Venue)
 	}
 }
