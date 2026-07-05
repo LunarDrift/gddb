@@ -110,6 +110,11 @@ func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date ti
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "No show on that date", nil)
+		return
+	}
+
 	// some dates have multiple shows attached - early show + late show
 	// need to sort those separately so they don't get combined into a single show object
 	var groups [][]internal.ShowSortInput
@@ -139,6 +144,11 @@ func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32)
 	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "No show with that ID", nil)
 		return
 	}
 
@@ -192,26 +202,31 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	startDateParsed, err := time.Parse(time.DateOnly, startDateStr)
+	startDate, err := time.Parse(time.DateOnly, startDateStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
 		return
 	}
-	endDateParsed, err := time.Parse(time.DateOnly, endDateStr)
+	endDate, err := time.Parse(time.DateOnly, endDateStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
 		return
 	}
 
+	if endDate.Before(startDate) {
+		respondWithError(w, http.StatusBadRequest, "end_date must be later than start_date", nil)
+		return
+	}
+
 	showRows, err := s.queries.GetShowsBetweenDates(r.Context(), database.GetShowsBetweenDatesParams{
-		ShowDate:   startDateParsed,
-		ShowDate_2: endDateParsed,
+		ShowDate:   startDate,
+		ShowDate_2: endDate,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
 		return
 	}
-	var showResults []internal.ShowMeta
+	showResults := []internal.ShowMeta{}
 	for _, row := range showRows {
 		showResults = append(showResults, internal.RowToShowMeta(row))
 	}
@@ -232,7 +247,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var showResults []internal.ShowMeta
+	showResults := []internal.ShowMeta{}
 	for _, row := range showRows {
 		showResults = append(showResults, internal.RowToShowMeta(row))
 	}
