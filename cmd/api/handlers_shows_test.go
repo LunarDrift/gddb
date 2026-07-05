@@ -16,14 +16,16 @@ import (
 // fakeQuerier is a fake 'database' with all the methods required to satisfy ShowQuerier. Used so
 // tests don't require a connection to the real database
 type fakeQuerier struct {
-	allShowIDs       []int32
-	allShowIDsErr    error
-	showFromIDRows   []database.GetShowFromIDRow
-	showFromIDErr    error
-	footnoteRows     []database.GetFootnotesFromShowIDRow
-	footnoteErr      error
-	showFromDateRows []database.GetShowFromDateRow
-	showFromDateErr  error
+	allShowIDs            []int32
+	allShowIDsErr         error
+	showFromIDRows        []database.GetShowFromIDRow
+	showFromIDErr         error
+	footnoteRows          []database.GetFootnotesFromShowIDRow
+	footnoteErr           error
+	showFromDateRows      []database.GetShowFromDateRow
+	showFromDateErr       error
+	showsBetweenDatesRows []database.GetShowsBetweenDatesRow
+	showsBetweenDatesErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -39,7 +41,7 @@ func (f *fakeQuerier) GetShowFromDate(ctx context.Context, showDate time.Time) (
 }
 
 func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error) {
-	return nil, nil
+	return f.showsBetweenDatesRows, f.showsBetweenDatesErr
 }
 
 func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error) {
@@ -279,5 +281,21 @@ func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
 
 	if len(got) != 2 {
 		t.Fatalf("len(got) = %d; want 2 (early + late show)", len(got))
+	}
+}
+
+func TestHandleShowsBetweenDates_StartDateAfterEndDate(t *testing.T) {
+	// empty querier - validation should reject the request before ever getting to query step
+	fake := &fakeQuerier{}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?start_date=1980-09-01&end_date=1980-02-01", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsBetweenDates(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
 	}
 }
