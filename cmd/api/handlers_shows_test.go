@@ -359,3 +359,17 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 		t.Errorf("got[1].Venue = %q; want 'test venue 2'", got[1].Venue)
 	}
 }
+
+func TestHandleGetShowsFromSongName_EmptySongName(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?song=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromSongName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
