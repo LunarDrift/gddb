@@ -310,4 +310,9 @@ func TestHandleGetRandomShow_NoShowsAvailable(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.handleGetRandomShow(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusInternalServerError {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusInternalServerError)
+	}
 }
