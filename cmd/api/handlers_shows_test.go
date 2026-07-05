@@ -28,6 +28,8 @@ type fakeQuerier struct {
 	showsBetweenDatesErr  error
 	showsFromSongNameRows []database.GetShowsFromSongNameRow
 	showsFromSongNameErr  error
+	showsFromSetNameRows  []database.GetShowsFromSetNameRow
+	showsFromSetNameErr   error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -47,7 +49,7 @@ func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.Get
 }
 
 func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error) {
-	return nil, nil
+	return f.showsFromSetNameRows, f.showsFromSetNameErr
 }
 
 func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error) {
@@ -371,6 +373,50 @@ func TestHandleGetShowsFromSongName_EmptySongName(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromSongName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromSetName(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromSetNameRows: []database.GetShowsFromSetNameRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "test state", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?set_name=encore", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromSetName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if got[0].ShowID != 1 {
+		t.Errorf("got[0].ShowID = %q; want 1", got[0].ShowID)
+	}
+}
+
+func TestHandleGetShowsFromSetName_InvalidSetName(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?set_name=hello", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromSetName(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {
