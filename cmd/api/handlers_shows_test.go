@@ -26,6 +26,8 @@ type fakeQuerier struct {
 	showFromDateErr       error
 	showsBetweenDatesRows []database.GetShowsBetweenDatesRow
 	showsBetweenDatesErr  error
+	showsFromSongNameRows []database.GetShowsFromSongNameRow
+	showsFromSongNameErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -49,7 +51,7 @@ func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, setName string) (
 }
 
 func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error) {
-	return nil, nil
+	return f.showsFromSongNameRows, f.showsFromSongNameErr
 }
 
 func (f *fakeQuerier) GetShowsFromState(ctx context.Context, stateOrCountry string) ([]database.GetShowsFromStateRow, error) {
@@ -314,5 +316,46 @@ func TestHandleGetRandomShow_NoShowsAvailable(t *testing.T) {
 	res := w.Result()
 	if res.StatusCode != http.StatusInternalServerError {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusInternalServerError)
+	}
+}
+
+func TestHandleGetShowsFromSongName(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromSongNameRows: []database.GetShowsFromSongNameRow{
+			{ShowID: 1, ShowDate: date, Venue: "test venue", City: "test city", State: "test state", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 48), Venue: "test venue 2", City: "test city 2", State: "test state 2", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?song=althea", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromSongName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != len(fake.showsFromSongNameRows) {
+		t.Errorf("len(got) = %d; want %d", len(got), len(fake.showsFromSongNameRows))
+	}
+
+	if got[0].Date != "1995-01-01" {
+		t.Errorf("got[0].Date = %q; want %q", got[0].Date, "1995-01-01")
+	}
+
+	if got[0].Venue != "test venue" {
+		t.Errorf("got[0].Venue = %q; want 'test venue'", got[0].Venue)
+	}
+	if got[1].Venue != "test venue 2" {
+		t.Errorf("got[1].Venue = %q; want 'test venue 2'", got[1].Venue)
 	}
 }
