@@ -464,3 +464,18 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 		t.Errorf("different venues: got[0].Venue = %q, got[1].Venue = %q", got[0].Venue, got[1].Venue)
 	}
 }
+
+func TestHandleGetShowsFromVenueName_EmptyVenueParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?venue=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromVenueName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
