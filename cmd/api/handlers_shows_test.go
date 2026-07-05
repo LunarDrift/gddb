@@ -143,7 +143,7 @@ func TestHandleShowsFromPathVal_ByID(t *testing.T) {
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("status = %d; want 200", res.StatusCode)
+		t.Fatalf("status = %d; want 200", res.StatusCode)
 	}
 
 	var got internal.ShowResponse
@@ -189,7 +189,7 @@ func TestHandleShowsFromPathVal_ByID_EmptySetlist(t *testing.T) {
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("status = %d; want 200", res.StatusCode)
+		t.Fatalf("status = %d; want 200", res.StatusCode)
 	}
 
 	var got internal.ShowWithNoSetlist
@@ -235,7 +235,7 @@ func TestHandleShowsFromPathVal_ByDate(t *testing.T) {
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
-		t.Errorf("status = %d; want 200", res.StatusCode)
+		t.Fatalf("status = %d; want 200", res.StatusCode)
 	}
 
 	var got []internal.ShowResponse
@@ -282,7 +282,11 @@ func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
 	}
 
 	if len(got) != 2 {
-		t.Fatalf("len(got) = %d; want 2 (early + late show)", len(got))
+		t.Errorf("len(got) = %d; want 2 (early + late show)", len(got))
+	}
+
+	if got[0].Date != got[1].Date {
+		t.Errorf("got[0].Date = %q; want %q", got[0].Date, got[1].Date)
 	}
 }
 
