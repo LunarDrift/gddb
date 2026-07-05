@@ -247,3 +247,37 @@ func TestHandleShowsFromPathVal_ByDate(t *testing.T) {
 		t.Errorf("got.Date = %v; want 1969-09-30", got[0].Date)
 	}
 }
+
+func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1969-09-30")
+
+	fake := &fakeQuerier{
+		showFromDateRows: []database.GetShowFromDateRow{
+			{
+				ShowID: 1949, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", State: "NY",
+				SetName: sql.NullString{String: "set_1", Valid: true}, RawEntry: sql.NullString{String: "Early show song", Valid: true},
+			},
+			{
+				ShowID: 1950, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", State: "NY",
+				SetName: sql.NullString{String: "set_1", Valid: true}, RawEntry: sql.NullString{String: "Late show song", Valid: true},
+			},
+		},
+		footnoteRows: []database.GetFootnotesFromShowIDRow{},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows/1969-09-30", nil)
+	req.SetPathValue("value", "1969-09-30")
+	w := httptest.NewRecorder()
+
+	s.handleShowsFromPathVal(w, req)
+
+	var got []internal.ShowResponse
+	if err := json.NewDecoder(w.Result().Body).Decode(&got); err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Fatalf("len(got) = %d; want 2 (early + late show)", len(got))
+	}
+}
