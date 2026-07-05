@@ -172,6 +172,10 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "Could not get list of IDs", err)
 		return
 	}
+	if len(allIDs) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "No shows available", nil)
+		return
+	}
 	id := allIDs[rand.Intn(len(allIDs))]
 
 	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))

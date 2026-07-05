@@ -299,3 +299,15 @@ func TestHandleShowsBetweenDates_StartDateAfterEndDate(t *testing.T) {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
 	}
 }
+
+func TestHandleGetRandomShow_NoShowsAvailable(t *testing.T) {
+	fake := &fakeQuerier{
+		allShowIDs: []int32{},
+	}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows/random", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetRandomShow(w, req)
+}
