@@ -437,7 +437,7 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 	}
 
 	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?venue=soldier", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows?venue=soldier", nil)
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromVenueName(w, req)
