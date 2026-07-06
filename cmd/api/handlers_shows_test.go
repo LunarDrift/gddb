@@ -34,6 +34,8 @@ type fakeQuerier struct {
 	showsFromVenueNameErr  error
 	showsFromStateRows     []database.GetShowsFromStateRow
 	showsFromStateErr      error
+	showsFromYearRows      []database.GetShowsFromYearRow
+	showsFromYearErr       error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -65,7 +67,7 @@ func (f *fakeQuerier) GetShowsFromState(ctx context.Context, stateOrCountry stri
 }
 
 func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error) {
-	return nil, nil
+	return f.showsFromYearRows, f.showsFromYearErr
 }
 
 func (f *fakeQuerier) GetShowsFromYearAndState(ctx context.Context, arg database.GetShowsFromYearAndStateParams) ([]database.GetShowsFromYearAndStateRow, error) {
@@ -567,5 +569,89 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 
 	if got[0].State != "England" {
 		t.Errorf("got[0].State = %q; want 'England'", got[0].State)
+	}
+}
+
+func TestHandleGetShowsFromYear(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromYearRows: []database.GetShowsFromYearRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYear(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].Date[:4] != "1995" {
+		t.Errorf("got[0].Date year %q; want '1995'", got[0].Date[:4])
+	}
+
+	if got[0].Date != "1995-01-01" {
+		t.Errorf("got[0].Date = %q; want '1995-01-01'", got[0].Date)
+	}
+}
+
+func TestHandleGetShowsFromYear_MissingYearParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYear(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromYear_InvalidYearNumber(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYear(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromYear_InvalidYearString(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=hello", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYear(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
 	}
 }

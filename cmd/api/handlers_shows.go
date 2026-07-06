@@ -408,6 +408,11 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if year < 1965 || year > 1995 {
+		respondWithError(w, http.StatusBadRequest, "Year must be between 1965-1995", nil)
+		return
+	}
+
 	showRows, err := s.queries.GetShowsFromYear(r.Context(), int32(year))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
