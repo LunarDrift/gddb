@@ -32,6 +32,8 @@ type fakeQuerier struct {
 	showsFromSetNameErr    error
 	showsFromVenueNameRows []database.SearchByVenueRow
 	showsFromVenueNameErr  error
+	showsFromStateRows     []database.GetShowsFromStateRow
+	showsFromStateErr      error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -59,7 +61,7 @@ func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, rawEntry string)
 }
 
 func (f *fakeQuerier) GetShowsFromState(ctx context.Context, stateOrCountry string) ([]database.GetShowsFromStateRow, error) {
-	return nil, nil
+	return f.showsFromStateRows, f.showsFromStateErr
 }
 
 func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error) {
@@ -477,5 +479,93 @@ func TestHandleGetShowsFromVenueName_EmptyVenueParam(t *testing.T) {
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromState(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromStateRows: []database.GetShowsFromStateRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(24 * time.Hour), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?state=IL", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].State != "IL" {
+		t.Errorf("got[0].State = %q; want 'IL'", got[0].State)
+	}
+
+	if got[0].State != got[1].State {
+		t.Errorf("different states: got[0].State = %q, got[1].State = %q", got[0].State, got[1].State)
+	}
+}
+
+func TestHandleGetShowsFromState_EmptyStateParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?state=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromState_CountryName(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromStateRows: []database.GetShowsFromStateRow{
+			{ShowID: 1, ShowDate: date, Venue: "Wembly Empire Pool", City: "London", State: "England", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?state=England", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 1 {
+		t.Errorf("len(got) = %d; want 1", len(got))
+	}
+
+	if got[0].State != "England" {
+		t.Errorf("got[0].State = %q; want 'England'", got[0].State)
 	}
 }
