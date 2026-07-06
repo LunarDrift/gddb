@@ -16,26 +16,28 @@ import (
 // fakeQuerier is a fake 'database' with all the methods required to satisfy ShowQuerier. Used so
 // tests don't require a connection to the real database
 type fakeQuerier struct {
-	allShowIDs             []int32
-	allShowIDsErr          error
-	showFromIDRows         []database.GetShowFromIDRow
-	showFromIDErr          error
-	footnoteRows           []database.GetFootnotesFromShowIDRow
-	footnoteErr            error
-	showFromDateRows       []database.GetShowFromDateRow
-	showFromDateErr        error
-	showsBetweenDatesRows  []database.GetShowsBetweenDatesRow
-	showsBetweenDatesErr   error
-	showsFromSongNameRows  []database.GetShowsFromSongNameRow
-	showsFromSongNameErr   error
-	showsFromSetNameRows   []database.GetShowsFromSetNameRow
-	showsFromSetNameErr    error
-	showsFromVenueNameRows []database.SearchByVenueRow
-	showsFromVenueNameErr  error
-	showsFromStateRows     []database.GetShowsFromStateRow
-	showsFromStateErr      error
-	showsFromYearRows      []database.GetShowsFromYearRow
-	showsFromYearErr       error
+	allShowIDs                []int32
+	allShowIDsErr             error
+	showFromIDRows            []database.GetShowFromIDRow
+	showFromIDErr             error
+	footnoteRows              []database.GetFootnotesFromShowIDRow
+	footnoteErr               error
+	showFromDateRows          []database.GetShowFromDateRow
+	showFromDateErr           error
+	showsBetweenDatesRows     []database.GetShowsBetweenDatesRow
+	showsBetweenDatesErr      error
+	showsFromSongNameRows     []database.GetShowsFromSongNameRow
+	showsFromSongNameErr      error
+	showsFromSetNameRows      []database.GetShowsFromSetNameRow
+	showsFromSetNameErr       error
+	showsFromVenueNameRows    []database.SearchByVenueRow
+	showsFromVenueNameErr     error
+	showsFromStateRows        []database.GetShowsFromStateRow
+	showsFromStateErr         error
+	showsFromYearRows         []database.GetShowsFromYearRow
+	showsFromYearErr          error
+	showsFromYearAndStateRows []database.GetShowsFromYearAndStateRow
+	showsFromYearAndStateErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -71,7 +73,7 @@ func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, year int32) ([]datab
 }
 
 func (f *fakeQuerier) GetShowsFromYearAndState(ctx context.Context, arg database.GetShowsFromYearAndStateParams) ([]database.GetShowsFromYearAndStateRow, error) {
-	return nil, nil
+	return f.showsFromYearAndStateRows, f.showsFromYearAndStateErr
 }
 
 func (f *fakeQuerier) SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error) {
@@ -649,6 +651,115 @@ func TestHandleGetShowsFromYear_InvalidYearString(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromYear(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromYearAndState(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromYearAndStateRows: []database.GetShowsFromYearAndStateRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&state=IL", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYearAndState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].State != "IL" {
+		t.Errorf("got[0].State = %q; want 'IL'", got[0].State)
+	}
+
+	if got[0].Date[:4] != "1995" {
+		t.Errorf("got[0].Date year = %q; want '1995'", got[0].Date[:4])
+	}
+}
+
+func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromYearAndStateRows: []database.GetShowsFromYearAndStateRow{
+			{ShowID: 1, ShowDate: date, Venue: "Wembly Stadium", City: "London", State: "England", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&state=london", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYearAndState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 1 {
+		t.Errorf("len(got) = %d; want 1", len(got))
+	}
+
+	if got[0].State != "England" {
+		t.Errorf("got[0].State = %q; want 'England'", got[0].State)
+	}
+
+	if got[0].Date[:4] != "1995" {
+		t.Errorf("got[0].Date year = %q; want '1995'", got[0].Date[:4])
+	}
+}
+
+func TestHandleGetShowsFromYearAndState_EmptyYearParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=&state=IL", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYearAndState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromYearAndState_EmptyStateParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&state=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromYearAndState(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {
