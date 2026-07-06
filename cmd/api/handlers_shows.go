@@ -284,13 +284,20 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Request) {
 	venue := r.URL.Query().Get("venue")
 	if venue == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'name' query parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'venue' query parameter", nil)
+		return
 	}
 
 	searchPattern := fuzzyPattern(venue)
 	venueRows, err := s.queries.SearchByVenue(r.Context(), searchPattern)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get venues", err)
+		return
+	}
+
+	if len(venueRows) == 0 {
+		msg := fmt.Sprintf("Venue '%s' not found", venue)
+		respondWithError(w, http.StatusNotFound, msg, nil)
 		return
 	}
 
