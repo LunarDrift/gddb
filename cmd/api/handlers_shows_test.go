@@ -266,7 +266,7 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromSongName_EmptySongName(t *testing.T) {
+func TestHandleGetShowsFromSongName_MissingSongName(t *testing.T) {
 	fake := &fakeQuerier{}
 	s := &server{queries: fake}
 	req := httptest.NewRequest(http.MethodGet, "/shows?song=", nil)
@@ -277,6 +277,20 @@ func TestHandleGetShowsFromSongName_EmptySongName(t *testing.T) {
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromSongName_InvalidSongName(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?song=123", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromSongName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusNotFound {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusNotFound)
 	}
 }
 

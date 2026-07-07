@@ -68,5 +68,8 @@ func respondWithError(w http.ResponseWriter, status int, message string, err err
 // fuzzyPattern wraps and inserts a '%' between every character of `input` to be used during SQL query searches
 func fuzzyPattern(input string) string {
 	words := strings.Fields(input)
+	if len(words) == 0 {
+		return ""
+	}
 	return "%" + strings.Join(words, "%") + "%"
 }

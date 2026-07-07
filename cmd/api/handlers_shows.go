@@ -251,6 +251,11 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "Song not found", nil)
+		return
+	}
+
 	showResults := []internal.ShowMeta{}
 	for _, row := range showRows {
 		showResults = append(showResults, internal.RowToShowMeta(row))
