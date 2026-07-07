@@ -80,6 +80,12 @@ type SongsTimesPlayed struct {
 	TimesPlayed int    `json:"times_played"`
 }
 
+type SongStats struct {
+	TimesPlayed int    `json:"times_played"`
+	FirstPlayed string `json:"first_played"`
+	LastPlayed  string `json:"last_played"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {

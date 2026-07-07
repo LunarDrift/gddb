@@ -146,6 +146,10 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 
 func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 	song := r.PathValue("song")
+
+	// This can never actually happen client-side; `/songs/` without a parameter will always 404.
+	// But I'll keep it just in case I make changes in the future to /songs
+	// And I'm asserting the 400 status code in the test. Otherwise I'd have to connect to the real server mux for a single test case
 	if song == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing song name parameter", nil)
 		return
@@ -160,13 +164,7 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type resp struct {
-		TimesPlayed int    `json:"times_played"`
-		FirstPlayed string `json:"first_played"`
-		LastPlayed  string `json:"last_played"`
-	}
-
-	respondWithJSON(w, http.StatusOK, resp{
+	respondWithJSON(w, http.StatusOK, internal.SongStats{
 		TimesPlayed: int(songStatRow.TimesPlayed),
 		FirstPlayed: songStatRow.FirstPlayed.Format(time.DateOnly),
 		LastPlayed:  songStatRow.LastPlayed.Format(time.DateOnly),
