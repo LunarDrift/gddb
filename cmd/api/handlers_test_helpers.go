@@ -47,6 +47,8 @@ type fakeQuerier struct {
 	songsFromSetNameErr    error
 	songsMostPlayedRows    []database.MostPlayedSongsRow
 	songsMostplayedErr     error
+	songsUniquePerCityRows []database.UniqueSongsPerCityRow
+	songsUniquePerCityErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -118,7 +120,7 @@ func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, number int32) ([]
 }
 
 func (f *fakeQuerier) UniqueSongsPerCity(ctx context.Context) ([]database.UniqueSongsPerCityRow, error) {
-	return nil, nil
+	return f.songsUniquePerCityRows, f.songsUniquePerCityErr
 }
 
 func (f *fakeQuerier) GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error) {

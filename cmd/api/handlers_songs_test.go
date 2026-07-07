@@ -234,3 +234,44 @@ func TestHandleGetMostPlayedSongs(t *testing.T) {
 		t.Errorf("got[1].Song = %q; want 'Dark Star'", got[1].Song)
 	}
 }
+
+func TestHandleUniqueSongsPerCity(t *testing.T) {
+	fake := &fakeQuerier{
+		songsUniquePerCityRows: []database.UniqueSongsPerCityRow{
+			{City: "Chicago", StateOrCountry: "IL", UniqueSongCount: 50},
+			{City: "London", StateOrCountry: "England", UniqueSongCount: 24},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/stats/songs-per-city", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetUniqueSongsPerCity(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.UniqueSongsPerCity
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].City != "Chicago" {
+		t.Errorf("got[0].City = %q; want 'Chicago'", got[0].City)
+	}
+
+	if got[1].StateOrCountry != "England" {
+		t.Errorf("got[1].StateOrCountry = %q; want 'London'", got[1].StateOrCountry)
+	}
+	if got[1].UniqueSongCount != 24 {
+		t.Errorf("got[1].UniqueSongCount = %d; want 24", got[1].UniqueSongCount)
+	}
+}
