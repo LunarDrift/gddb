@@ -93,6 +93,12 @@ type SongsFromVenue struct {
 	State    string `json:"state"`
 }
 
+type UniqueSongsPerCity struct {
+	City            string `json:"city"`
+	StateOrCountry  string `json:"state_or_country"`
+	UniqueSongCount int    `json:"unique_song_count"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {

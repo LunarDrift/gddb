@@ -100,15 +100,9 @@ func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	type resp struct {
-		City            string `json:"city"`
-		StateOrCountry  string `json:"state_or_country"`
-		UniqueSongCount int    `json:"unique_song_count"`
-	}
-
-	var results []resp
+	var results []internal.UniqueSongsPerCity
 	for _, row := range songRows {
-		results = append(results, resp{
+		results = append(results, internal.UniqueSongsPerCity{
 			City:            row.City,
 			StateOrCountry:  row.StateOrCountry,
 			UniqueSongCount: int(row.UniqueSongCount),

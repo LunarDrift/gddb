@@ -197,3 +197,40 @@ func TestHandleGetMostPlayedSongsBySetName_InvalidSetNameParam(t *testing.T) {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
 	}
 }
+
+func TestHandleGetMostPlayedSongs(t *testing.T) {
+	fake := &fakeQuerier{
+		songsMostPlayedRows: []database.MostPlayedSongsRow{
+			{Song: sql.NullString{String: "Althea", Valid: true}, TimesPlayed: 100},
+			{Song: sql.NullString{String: "Dark Star", Valid: true}, TimesPlayed: 90},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?sort=most_played", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetMostPlayedSongs(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.SongsTimesPlayed
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].Song != "Althea" {
+		t.Errorf("got[0].Song = %q; want 'Althea'", got[0].Song)
+	}
+	if got[1].Song != "Dark Star" {
+		t.Errorf("got[1].Song = %q; want 'Dark Star'", got[1].Song)
+	}
+}
