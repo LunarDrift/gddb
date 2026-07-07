@@ -124,7 +124,12 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	var results []internal.SongsFromVenue
+	if len(songRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "Venue not found", nil)
+		return
+	}
+
+	results := []internal.SongsFromVenue{}
 	for _, row := range songRows {
 		results = append(results, internal.SongsFromVenue{
 			SongName: row.SongName.String,

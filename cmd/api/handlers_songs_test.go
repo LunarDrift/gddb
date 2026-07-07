@@ -118,3 +118,17 @@ func TestHandleGetSongsPlayedAtVenue_MissingParam(t *testing.T) {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
 	}
 }
+
+func TestHandleGetSongsPlayedAtVenue_InvalidParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?venue=hello", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetSongsPlayedAtVenue(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusNotFound {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusNotFound)
+	}
+}
