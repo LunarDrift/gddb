@@ -97,7 +97,7 @@ func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 	}
 
 	if got[1].Venue != "Soldier Field" {
-		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got[0].Venue)
+		t.Errorf("got[1].Venue = %q; want 'Soldier Field'", got[1].Venue)
 	}
 
 	if got[0].Venue != got[1].Venue {
@@ -269,7 +269,7 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 	}
 
 	if got[1].StateOrCountry != "England" {
-		t.Errorf("got[1].StateOrCountry = %q; want 'London'", got[1].StateOrCountry)
+		t.Errorf("got[1].StateOrCountry = %q; want 'England'", got[1].StateOrCountry)
 	}
 	if got[1].UniqueSongCount != 24 {
 		t.Errorf("got[1].UniqueSongCount = %d; want 24", got[1].UniqueSongCount)
