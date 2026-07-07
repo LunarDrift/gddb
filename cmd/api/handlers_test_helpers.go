@@ -39,16 +39,18 @@ type fakeQuerier struct {
 	showsWithoutNotesRows     []database.ShowsWithoutNotesRow
 	showsWithoutNotesErr      error
 	// Songs
-	songStatsRow           database.SongStatsRow
-	songStatsErr           error
-	songsPlayedAtVenueRows []database.AllSongsPlayedAtVenueRow
-	songsPlayedAtVenueErr  error
-	songsFromSetNameRows   []database.MostCommonSongsBySetNameRow
-	songsFromSetNameErr    error
-	songsMostPlayedRows    []database.MostPlayedSongsRow
-	songsMostplayedErr     error
-	songsUniquePerCityRows []database.UniqueSongsPerCityRow
-	songsUniquePerCityErr  error
+	songStatsRow            database.SongStatsRow
+	songStatsErr            error
+	songsPlayedAtVenueRows  []database.AllSongsPlayedAtVenueRow
+	songsPlayedAtVenueErr   error
+	songsFromSetNameRows    []database.MostCommonSongsBySetNameRow
+	songsFromSetNameErr     error
+	songsMostPlayedRows     []database.MostPlayedSongsRow
+	songsMostplayedErr      error
+	songsUniquePerCityRows  []database.UniqueSongsPerCityRow
+	songsUniquePerCityErr   error
+	songsPlayedLessThanRows []database.SongsPlayedLessThanRow
+	songsPlayedLessThanErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -116,7 +118,7 @@ func (f *fakeQuerier) MostPlayedSongs(ctx context.Context) ([]database.MostPlaye
 }
 
 func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, number int32) ([]database.SongsPlayedLessThanRow, error) {
-	return nil, nil
+	return f.songsPlayedLessThanRows, f.songsPlayedLessThanErr
 }
 
 func (f *fakeQuerier) UniqueSongsPerCity(ctx context.Context) ([]database.UniqueSongsPerCityRow, error) {

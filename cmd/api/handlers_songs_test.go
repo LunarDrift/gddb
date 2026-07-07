@@ -275,3 +275,72 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 		t.Errorf("got[1].UniqueSongCount = %d; want 24", got[1].UniqueSongCount)
 	}
 }
+
+func TestHandleSongsPlayedLessThanNTimes(t *testing.T) {
+	fake := &fakeQuerier{
+		songsPlayedLessThanRows: []database.SongsPlayedLessThanRow{
+			{Song: sql.NullString{String: "Althea", Valid: true}, TimesPlayed: 19},
+			{Song: sql.NullString{String: "Dark Star", Valid: true}, TimesPlayed: 10},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?played_lt=20", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetSongsPlayedLessThanNTimes(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.SongsTimesPlayed
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].Song != "Althea" {
+		t.Errorf("got[0].Song = %q; want 'Althea'", got[0].Song)
+	}
+	if got[0].TimesPlayed != 19 {
+		t.Errorf("got[0].TimesPlayed = %d; want 19", got[0].TimesPlayed)
+	}
+
+	if got[1].Song != "Dark Star" {
+		t.Errorf("got[1].Song = %q; want 'Dark Star'", got[1].Song)
+	}
+}
+
+func TestHandleSongsPlayedLessThanNTimes_MissingParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?played_lt=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetSongsPlayedLessThanNTimes(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleSongsPlayedLessThanNTimes_InvalidParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?played_lt=five", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetSongsPlayedLessThanNTimes(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
