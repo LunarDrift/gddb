@@ -132,3 +132,68 @@ func TestHandleGetSongsPlayedAtVenue_InvalidParam(t *testing.T) {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusNotFound)
 	}
 }
+
+func TestHandleGetMostPlayedSongsBySetName(t *testing.T) {
+	fake := &fakeQuerier{
+		songsFromSetNameRows: []database.MostCommonSongsBySetNameRow{
+			{Song: sql.NullString{String: "Dark Star", Valid: true}, TimesPlayed: 10},
+			{Song: sql.NullString{String: "Althea", Valid: true}, TimesPlayed: 8},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?sort=most_played&set_name=encore", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetMostPlayedSongsBySetName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.SongsTimesPlayed
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].TimesPlayed != 10 {
+		t.Errorf("got[0].TimesPlayed = %d; want 10", got[0].TimesPlayed)
+	}
+	if got[1].TimesPlayed != 8 {
+		t.Errorf("got[1].TimesPlayed = %d; want 8", got[1].TimesPlayed)
+	}
+}
+
+func TestHandleGetMostPlayedSongsBySetName_MissingSetNameParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?set_name=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetMostPlayedSongsBySetName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetMostPlayedSongsBySetName_InvalidSetNameParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?set_name=hello", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetMostPlayedSongsBySetName(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}

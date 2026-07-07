@@ -2,8 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
@@ -74,6 +77,12 @@ func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *htt
 	songRows, err := s.queries.MostCommonSongsBySetName(r.Context(), setName)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+	}
+
+	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
+	if !slices.Contains(validSetNames, setName) {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
+		return
 	}
 
 	var results []internal.SongsTimesPlayed
