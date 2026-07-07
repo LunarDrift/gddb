@@ -124,16 +124,9 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	type resp struct {
-		SongName string `json:"song"`
-		Venue    string `json:"venue"`
-		City     string `json:"city"`
-		State    string `json:"state"`
-	}
-
-	var results []resp
+	var results []internal.SongsFromVenue
 	for _, row := range songRows {
-		results = append(results, resp{
+		results = append(results, internal.SongsFromVenue{
 			SongName: row.SongName.String,
 			Venue:    row.Venue,
 			City:     row.City,

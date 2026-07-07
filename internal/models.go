@@ -86,6 +86,13 @@ type SongStats struct {
 	LastPlayed  string `json:"last_played"`
 }
 
+type SongsFromVenue struct {
+	SongName string `json:"song"`
+	Venue    string `json:"venue"`
+	City     string `json:"city"`
+	State    string `json:"state"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {

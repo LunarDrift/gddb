@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -56,6 +57,62 @@ func TestHandleGetSongStats_MissingPathParam(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.handleGetSongStats(w, req)
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
+	fake := &fakeQuerier{
+		songsPlayedAtVenueRows: []database.AllSongsPlayedAtVenueRow{
+			{SongName: sql.NullString{String: "Althea", Valid: true}, Venue: "Soldier Field", City: "Chicago", State: "IL"},
+			{SongName: sql.NullString{String: "Dark Star", Valid: true}, Venue: "Soldier Field", City: "Chicago", State: "IL"},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?venue=soldier_field", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetSongsPlayedAtVenue(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.SongsFromVenue
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].Venue != "Soldier Field" {
+		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got[0].Venue)
+	}
+
+	if got[1].Venue != "Soldier Field" {
+		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got[0].Venue)
+	}
+
+	if got[0].Venue != got[1].Venue {
+		t.Errorf("different venues: got[0].Venue = %q; got[1].Venue = %q", got[0].Venue, got[1].Venue)
+	}
+}
+
+func TestHandleGetSongsPlayedAtVenue_MissingParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?venue=", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetSongsPlayedAtVenue(w, req)
+
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)

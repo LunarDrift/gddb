@@ -11,6 +11,7 @@ import (
 // fakeQuerier is a fake 'database' with all the methods required to satisfy ShowQuerier. Used so
 // tests don't require a connection to the real database
 type fakeQuerier struct {
+	// Shows
 	allShowIDs                []int32
 	allShowIDsErr             error
 	showFromIDRows            []database.GetShowFromIDRow
@@ -37,8 +38,11 @@ type fakeQuerier struct {
 	showsWithNotesErr         error
 	showsWithoutNotesRows     []database.ShowsWithoutNotesRow
 	showsWithoutNotesErr      error
-	songStatsRow              database.SongStatsRow
-	songStatsErr              error
+	// Songs
+	songStatsRow           database.SongStatsRow
+	songStatsErr           error
+	songsPlayedAtVenueRows []database.AllSongsPlayedAtVenueRow
+	songsPlayedAtVenueErr  error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -94,7 +98,7 @@ func (f *fakeQuerier) SongStats(ctx context.Context, songName sql.NullString) (d
 }
 
 func (f *fakeQuerier) AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]database.AllSongsPlayedAtVenueRow, error) {
-	return nil, nil
+	return f.songsPlayedAtVenueRows, f.songsPlayedAtVenueErr
 }
 
 func (f *fakeQuerier) MostCommonSongsBySetName(ctx context.Context, setName string) ([]database.MostCommonSongsBySetNameRow, error) {
