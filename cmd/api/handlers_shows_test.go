@@ -38,6 +38,10 @@ type fakeQuerier struct {
 	showsFromYearErr          error
 	showsFromYearAndStateRows []database.GetShowsFromYearAndStateRow
 	showsFromYearAndStateErr  error
+	showsWithNotesRows        []database.ShowsWithShowNotesRow
+	showsWithNotesErr         error
+	showsWithoutNotesRows     []database.ShowsWithoutNotesRow
+	showsWithoutNotesErr      error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -81,11 +85,11 @@ func (f *fakeQuerier) SearchByVenue(ctx context.Context, venue string) ([]databa
 }
 
 func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context) ([]database.ShowsWithShowNotesRow, error) {
-	return nil, nil
+	return f.showsWithNotesRows, f.showsWithNotesErr
 }
 
 func (f *fakeQuerier) ShowsWithoutNotes(ctx context.Context) ([]database.ShowsWithoutNotesRow, error) {
-	return nil, nil
+	return f.showsWithoutNotesRows, f.showsWithoutNotesErr
 }
 
 func (f *fakeQuerier) SongStats(ctx context.Context, songName sql.NullString) (database.SongStatsRow, error) {
@@ -760,6 +764,89 @@ func TestHandleGetShowsFromYearAndState_EmptyStateParam(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromYearAndState(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	}
+}
+
+func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-07-09")
+	fake := &fakeQuerier{
+		showsWithNotesRows: []database.ShowsWithShowNotesRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{String: "Final show", Valid: true}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?has_notes=true", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromNotes(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 1 {
+		t.Errorf("len(got) = %d; want 1", len(got))
+	}
+
+	if got[0].Notes != "Final show" {
+		t.Errorf("got[0].Notes = %q; want 'Final show", got[0].Notes)
+	}
+}
+
+func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-07-09")
+	fake := &fakeQuerier{
+		showsWithoutNotesRows: []database.ShowsWithoutNotesRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL"},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Wembly", City: "London", State: "England"},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?has_notes=false", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromNotes(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	err := json.NewDecoder(res.Body).Decode(&got)
+	if err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].Notes != "" {
+		t.Errorf("got[0].Notes = %q; want ''", got[0].Notes)
+	}
+}
+
+func TestHandleGetShowsFromNotes_InvalidParam(t *testing.T) {
+	fake := &fakeQuerier{}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?has_notes=yes", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromNotes(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusBadRequest {

@@ -337,7 +337,7 @@ func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request)
 func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error) {
 	showRows, err := s.queries.ShowsWithShowNotes(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("showsWithNotes: %w", err)
 	}
 
 	var results []internal.ShowMeta
@@ -350,7 +350,7 @@ func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error
 func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) {
 	showRows, err := s.queries.ShowsWithoutNotes(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("showsNoNotes: %w", err)
 	}
 
 	var results []internal.ShowMeta

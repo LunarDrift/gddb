@@ -21,7 +21,7 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **PostgreSQL:** persistent data storage
 - **goose:** database migrations
 - **sqlc:** type-safe SQL query generation
-- **Docker:** package everything together and make setup a simple command
+- **Docker:** package dependencies together and make setup a simple command
 
 ## Setup
 ```bash
@@ -114,7 +114,7 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 - Continue learning
 
 ## A Note on AI Usage
-This project's code and queries were written by me. I used LLMs as a study aid - discussing concepts, sanity-checking design and query decisions, and for help debugging. No AI generated code was used - with the exception of the `docker-compose` file which was 90% AI-authored.
+This project's code and queries were written by me. I used LLMs sparingly as a study aid - discussing concepts and query decisions, and occasionally help debugging. No AI generated code was used - with the exception of the `docker-compose` file which I had a lot of help with from Claude.
 
 ## Credits
 Show and setlist data sourced from [Grateful Sets](https://www.gratefulsets.net/)
