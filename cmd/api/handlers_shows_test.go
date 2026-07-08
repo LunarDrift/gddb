@@ -551,7 +551,7 @@ func TestHandleGetShowsFromYear_InvalidYearNumber(t *testing.T) {
 
 func TestHandleGetShowsFromYear_InvalidYearString(t *testing.T) {
 	fake := &fakeQuerier{}
-	s := server{queries: fake}
+	s := &server{queries: fake}
 
 	req := httptest.NewRequest(http.MethodGet, "/shows?year=hello", nil)
 	w := httptest.NewRecorder()
