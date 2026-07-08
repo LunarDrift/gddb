@@ -8,6 +8,14 @@ RUN go mod download
 
 COPY . .
 
+# ---- Test stage ----
+FROM builder AS tester
+RUN go vet ./...
+RUN go test ./... -v
+
+# ---- Compile Stage ----
+FROM tester AS build
+
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/api ./cmd/api
 RUN CGO_ENABLED=0 GOOS=linux go build -o /app/bin/importer ./cmd/import
 RUN CGO_ENABLED=0 GOOS=linux GOBIN=/app/bin go install github.com/pressly/goose/v3/cmd/goose@v3.27.1
