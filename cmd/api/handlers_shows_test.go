@@ -335,14 +335,16 @@ func TestHandleGetShowsFromSongName_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing song name", "/shows?song=", http.StatusBadRequest},
-		{"invalid song name", "/shows?song=Drak_Star", http.StatusNotFound},
+		{"missing song name", "/shows?song=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid song name", "/shows?song=Drak_Star", http.StatusNotFound, &fakeQuerier{}},
+		{"server error", "/shows?song=althea", http.StatusInternalServerError, &fakeQuerier{showsFromSongNameErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromSongName(w, req)
@@ -387,14 +389,16 @@ func TestHandleGetShowsFromSetName_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing set name", "/shows?set_name=", http.StatusBadRequest},
-		{"invalid set name", "/shows?set_name=hello", http.StatusBadRequest},
+		{"missing set name", "/shows?set_name=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid set name", "/shows?set_name=hello", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?set_name=set_1", http.StatusInternalServerError, &fakeQuerier{showsFromSetNameErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromSetName(w, req)
@@ -449,14 +453,16 @@ func TestHandleGetShowsFromVenueName_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing venue param", "/shows?venue=", http.StatusBadRequest},
-		{"invalid venue param", "/shows?venue=hello_world", http.StatusNotFound},
+		{"missing venue param", "/shows?venue=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid venue param", "/shows?venue=hello_world", http.StatusNotFound, &fakeQuerier{}},
+		{"server error", "/shows?venue=deer_creek", http.StatusInternalServerError, &fakeQuerier{showsFromVenueNameErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromVenueName(w, req)
@@ -545,16 +551,16 @@ func TestHandleGetShowsFromState_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"empty param", "/shows?state=", http.StatusBadRequest},
-		{"invalid param", "/shows?state=hello", http.StatusBadRequest},
+		{"empty param", "/shows?state=", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
+		{"invalid param", "/shows?state=hello", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
+		{"server error", "/shows?state=IL", http.StatusInternalServerError, &fakeQuerier{showsFromStateErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{
-				validLocationRows: []string{"IL", "England"},
-			}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromState(w, req)
@@ -608,15 +614,17 @@ func TestHandleGetShowsFromYear_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"empty year param", "/shows?year=", http.StatusBadRequest},
-		{"invalid year", "/shows?year=1", http.StatusBadRequest},
-		{"invalid year string", "/shows?year=hello", http.StatusBadRequest},
+		{"empty year param", "/shows?year=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid year", "/shows?year=1", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid year string", "/shows?year=hello", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?year=1967", http.StatusInternalServerError, &fakeQuerier{showsFromYearErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromYear(w, req)
@@ -709,14 +717,16 @@ func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"empty year param", "/shows?year=&state=IL", http.StatusBadRequest},
-		{"empty state param", "/shows?year=1995&state=", http.StatusBadRequest},
+		{"empty year param", "/shows?year=&state=IL", http.StatusBadRequest, &fakeQuerier{}},
+		{"empty state param", "/shows?year=1995&state=", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?year=1965&state=CA", http.StatusInternalServerError, &fakeQuerier{showsFromYearAndStateErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromYearAndState(w, req)
@@ -799,14 +809,17 @@ func TestHandleGetShowsFromNotes_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing notes param", "/shows?has_notes=", http.StatusBadRequest},
-		{"invalid notes param", "/shows?has_notes=yes", http.StatusBadRequest},
+		{"missing notes param", "/shows?has_notes=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid notes param", "/shows?has_notes=yes", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?has_notes=false", http.StatusInternalServerError, &fakeQuerier{showsWithoutNotesErr: errors.New("without notes: db exploded")}},
+		{"server error", "/shows?has_notes=true", http.StatusInternalServerError, &fakeQuerier{showsWithNotesErr: errors.New("with notes: db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetShowsFromNotes(w, req)
