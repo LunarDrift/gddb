@@ -542,48 +542,27 @@ func TestHandleGetShowsFromYear(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromYear_MissingYearParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromYear(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+func TestHandleGetShowsFromYear_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"empty param", "/shows?year=", http.StatusBadRequest},
+		{"invalid year", "/shows?year=1", http.StatusBadRequest},
+		{"invalid year string", "/shows?year=hello", http.StatusBadRequest},
 	}
-}
 
-func TestHandleGetShowsFromYear_InvalidYearNumber(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=1", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromYear(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
-	}
-}
-
-func TestHandleGetShowsFromYear_InvalidYearString(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=hello", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromYear(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromYear(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -666,33 +645,26 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromYearAndState_EmptyYearParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=&state=IL", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromYearAndState(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"empty year param", "/shows?year=&state=IL", http.StatusBadRequest},
+		{"empty state param", "/shows?year=1995&state=", http.StatusBadRequest},
 	}
-}
 
-func TestHandleGetShowsFromYearAndState_EmptyStateParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&state=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromYearAndState(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromYearAndState(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -765,16 +737,25 @@ func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromNotes_InvalidParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?has_notes=yes", nil)
-	w := httptest.NewRecorder()
+func TestHandleGetShowsFromNotes_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing param", "/shows?has_notes=", http.StatusBadRequest},
+		{"invalid param", "/shows?has_notes=yes", http.StatusBadRequest},
+	}
 
-	s.handleGetShowsFromNotes(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromNotes(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
+			}
+		})
 	}
 }
