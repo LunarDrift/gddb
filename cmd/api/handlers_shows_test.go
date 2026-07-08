@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -189,6 +190,69 @@ func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
 
 	if got[0].Date != got[1].Date {
 		t.Errorf("got[0].Date = %q; want %q", got[0].Date, got[1].Date)
+	}
+}
+
+func TestHandleShowsFromPathVal_ServerErr(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1969-09-30")
+	tests := []struct {
+		name string
+		url  string
+		val  string
+		fake *fakeQuerier
+	}{
+		{name: "show query fails (date path)", url: "/shows/1969-09-30", val: "1969-09-30", fake: &fakeQuerier{
+			showFromDateErr: errors.New("db exploded"),
+		}},
+		{name: "footnote query fails (date path)", url: "/shows/1969-09-30", val: "1969-09-30", fake: &fakeQuerier{
+			showFromDateRows: []database.GetShowFromDateRow{
+				{
+					ShowID:   4,
+					ShowDate: date,
+					Venue:    "Soldier Field",
+					City:     "Chicago",
+					State:    "IL",
+					SetName:  sql.NullString{String: "set_1", Valid: true},
+					RawEntry: sql.NullString{String: "Dark Star", Valid: true},
+				},
+			},
+			footnoteErr: errors.New("db exploded"),
+		}},
+		{name: "show query fails (id path)", url: "/shows/42", val: "42", fake: &fakeQuerier{
+			allShowIDs:    []int32{42},
+			showFromIDErr: errors.New("db exploded"),
+		}},
+		{name: "footnote query fails (id path)", url: "/shows/42", val: "42", fake: &fakeQuerier{
+			allShowIDs: []int32{42},
+			showFromIDRows: []database.GetShowFromIDRow{
+				{
+					ShowID:   42,
+					ShowDate: date,
+					Venue:    "Soldier Field",
+					City:     "Chicago",
+					State:    "IL",
+					Notes:    sql.NullString{},
+					SetName:  sql.NullString{String: "set_1", Valid: true},
+					RawEntry: sql.NullString{String: "Dark Star", Valid: true},
+				},
+			},
+			footnoteErr: errors.New("db exploded"),
+		}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			req.SetPathValue("value", tt.val)
+			w := httptest.NewRecorder()
+
+			s.handleShowsFromPathVal(w, req)
+
+			if got := w.Result().StatusCode; got != http.StatusInternalServerError {
+				t.Errorf("status code = %d; want %d", got, http.StatusInternalServerError)
+			}
+		})
 	}
 }
 
