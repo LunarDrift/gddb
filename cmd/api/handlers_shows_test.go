@@ -266,31 +266,26 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromSongName_MissingSongName(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?song=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromSongName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+func TestHandleGetShowsFromSongName_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing song name", "/shows?song=", http.StatusBadRequest},
+		{"invalid song name", "/shows?song=123", http.StatusNotFound},
 	}
-}
 
-func TestHandleGetShowsFromSongName_InvalidSongName(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?song=123", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromSongName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusNotFound {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusNotFound)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromSongName(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -323,18 +318,26 @@ func TestHandleGetShowsFromSetName(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromSetName_InvalidSetName(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
+func TestHandleGetShowsFromSetName_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing set name", "/shows?set_name=", http.StatusBadRequest},
+		{"invalid set name", "/shows?set_name=hello", http.StatusBadRequest},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/shows?set_name=hello", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromSetName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromSetName(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -377,18 +380,26 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromVenueName_EmptyVenueParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
+func TestHandleGetShowsFromVenueName_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing venue param", "/shows?venue=", http.StatusBadRequest},
+		{"invalid venue param", "/shows?venue=hello_world", http.StatusNotFound},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/shows?venue=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromVenueName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromVenueName(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -431,18 +442,26 @@ func TestHandleGetShowsFromState(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromState_EmptyStateParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
+func TestHandleGetShowsFromState_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"empty param", "/shows?state=", http.StatusBadRequest},
+		{"invalid param", "/shows?state=hello", http.StatusBadRequest},
+	}
 
-	req := httptest.NewRequest(http.MethodGet, "/shows?state=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromState(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromState(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 

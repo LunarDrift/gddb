@@ -445,6 +445,11 @@ func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
+		return
+	}
+
 	var results []internal.ShowMeta
 	for _, row := range showRows {
 		results = append(results, internal.RowToShowMeta(row))
