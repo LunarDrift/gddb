@@ -105,31 +105,26 @@ func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 	}
 }
 
-func TestHandleGetSongsPlayedAtVenue_MissingParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?venue=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetSongsPlayedAtVenue(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+func TestHandleGetSongsPlayedAtVenue_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing param", "/songs?venue=", http.StatusBadRequest},
+		{"invalid param", "/songs?venue=hello_world", http.StatusNotFound},
 	}
-}
 
-func TestHandleGetSongsPlayedAtVenue_InvalidParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?venue=hello", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetSongsPlayedAtVenue(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusNotFound {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusNotFound)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetSongsPlayedAtVenue(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -170,31 +165,26 @@ func TestHandleGetMostPlayedSongsBySetName(t *testing.T) {
 	}
 }
 
-func TestHandleGetMostPlayedSongsBySetName_MissingSetNameParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?set_name=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetMostPlayedSongsBySetName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+func TestHandleGetMostPlayedSongsBySetName_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing set name param", "/songs?set_name=", http.StatusBadRequest},
+		{"invalid set name param", "/songs?set_name=hello", http.StatusBadRequest},
 	}
-}
 
-func TestHandleGetMostPlayedSongsBySetName_InvalidSetNameParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?set_name=hello", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetMostPlayedSongsBySetName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetMostPlayedSongsBySetName(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 
@@ -317,30 +307,25 @@ func TestHandleSongsPlayedLessThanNTimes(t *testing.T) {
 	}
 }
 
-func TestHandleSongsPlayedLessThanNTimes_MissingParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?played_lt=", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetSongsPlayedLessThanNTimes(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+func TestHandleSongsPlayedLessThanNTimes_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"missing set name param", "/songs?played_lt=", http.StatusBadRequest},
+		{"invalid set name param", "/songs?set_name=five", http.StatusBadRequest},
 	}
-}
 
-func TestHandleSongsPlayedLessThanNTimes_InvalidParam(t *testing.T) {
-	fake := &fakeQuerier{}
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/songs?played_lt=five", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetSongsPlayedLessThanNTimes(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetMostPlayedSongsBySetName(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
