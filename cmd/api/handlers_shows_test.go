@@ -273,7 +273,7 @@ func TestHandleGetShowsFromSongName_Errors(t *testing.T) {
 		wantStatus int
 	}{
 		{"missing song name", "/shows?song=", http.StatusBadRequest},
-		{"invalid song name", "/shows?song=123", http.StatusNotFound},
+		{"invalid song name", "/shows?song=Drak_Star", http.StatusNotFound},
 	}
 
 	for _, tt := range tests {
@@ -425,8 +425,7 @@ func TestHandleGetShowsFromState(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -464,8 +463,7 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -524,8 +522,7 @@ func TestHandleGetShowsFromYear(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -548,7 +545,7 @@ func TestHandleGetShowsFromYear_Errors(t *testing.T) {
 		url        string
 		wantStatus int
 	}{
-		{"empty param", "/shows?year=", http.StatusBadRequest},
+		{"empty year param", "/shows?year=", http.StatusBadRequest},
 		{"invalid year", "/shows?year=1", http.StatusBadRequest},
 		{"invalid year string", "/shows?year=hello", http.StatusBadRequest},
 	}
@@ -588,8 +585,7 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -627,8 +623,7 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -688,8 +683,7 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -698,7 +692,7 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 	}
 
 	if got[0].Notes != "Final show" {
-		t.Errorf("got[0].Notes = %q; want 'Final show", got[0].Notes)
+		t.Errorf("got[0].Notes = %q; want 'Final show'", got[0].Notes)
 	}
 }
 
@@ -723,8 +717,7 @@ func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 	}
 
 	var got []internal.ShowMeta
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -743,8 +736,8 @@ func TestHandleGetShowsFromNotes_Errors(t *testing.T) {
 		url        string
 		wantStatus int
 	}{
-		{"missing param", "/shows?has_notes=", http.StatusBadRequest},
-		{"invalid param", "/shows?has_notes=yes", http.StatusBadRequest},
+		{"missing notes param", "/shows?has_notes=", http.StatusBadRequest},
+		{"invalid notes param", "/shows?has_notes=yes", http.StatusBadRequest},
 	}
 
 	for _, tt := range tests {

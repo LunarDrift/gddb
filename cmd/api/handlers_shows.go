@@ -14,42 +14,6 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
-// buildShowResponse takes a slice of ShowSortInput rows for a single show and returns
-// a 'no setlist available' message if the show has no songs, otherwise sorting the
-// sets + songs and attaching any footnotes, returning the completed show response.
-func (s *server) buildShowResponse(r *http.Request, parsedShowRows []internal.ShowSortInput) (any, error) {
-	if len(parsedShowRows) > 0 && parsedShowRows[0].RawEntry == "" {
-		row := parsedShowRows[0]
-		return internal.ShowWithNoSetlist{
-			ShowMeta: internal.ShowMeta{
-				ShowID: row.ShowID,
-				Date:   row.Date.Format(time.DateOnly),
-				Venue:  row.Venue,
-				City:   row.City,
-				State:  row.State,
-				Notes:  row.Notes,
-			},
-			Message: "No setlist available for this show",
-		}, nil
-	}
-
-	showResp, err := internal.SortSetPositions(parsedShowRows)
-	if err != nil {
-		return nil, err
-	}
-
-	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), parsedShowRows[0].ShowID)
-	if err != nil {
-		return nil, err
-	}
-	showResp.Footnotes = make(map[string]string)
-	for _, f := range footnoteRows {
-		showResp.Footnotes[f.Marker] = f.NoteText
-	}
-
-	return showResp, nil
-}
-
 // handlerShows parses the query parameter and chooses the appropriate endpoint
 func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -85,7 +49,7 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// handleGetShow parses the `value` path variable and chooses the appropriate endpoint
+// handleShowsFromPathVal parses the `value` path variable and chooses the appropriate endpoint
 // to send it to
 func (s *server) handleShowsFromPathVal(w http.ResponseWriter, r *http.Request) {
 	value := r.PathValue("value")

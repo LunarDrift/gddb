@@ -34,8 +34,7 @@ func TestHandleGetSongStats(t *testing.T) {
 	}
 
 	var got internal.SongStats
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -43,7 +42,7 @@ func TestHandleGetSongStats(t *testing.T) {
 		t.Errorf("got.FirstPlayed = %q; want '1990-01-01'", got.FirstPlayed)
 	}
 	if got.LastPlayed != "1990-01-02" {
-		t.Errorf("got.LastPlayed = %q; want '1990-01-02", got.LastPlayed)
+		t.Errorf("got.LastPlayed = %q; want '1990-01-02'", got.LastPlayed)
 	}
 	if got.TimesPlayed != 10 {
 		t.Errorf("got.TimesPlayed = %d; want 10", got.TimesPlayed)
@@ -83,8 +82,7 @@ func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 	}
 
 	var got []internal.SongsFromVenue
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -111,8 +109,8 @@ func TestHandleGetSongsPlayedAtVenue_Errors(t *testing.T) {
 		url        string
 		wantStatus int
 	}{
-		{"missing param", "/songs?venue=", http.StatusBadRequest},
-		{"invalid param", "/songs?venue=hello_world", http.StatusNotFound},
+		{"missing venue param", "/songs?venue=", http.StatusBadRequest},
+		{"invalid venue param", "/songs?venue=hello_world", http.StatusNotFound},
 	}
 
 	for _, tt := range tests {
@@ -148,8 +146,7 @@ func TestHandleGetMostPlayedSongsBySetName(t *testing.T) {
 	}
 
 	var got []internal.SongsTimesPlayed
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -208,8 +205,7 @@ func TestHandleGetMostPlayedSongs(t *testing.T) {
 	}
 
 	var got []internal.SongsTimesPlayed
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -245,8 +241,7 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 	}
 
 	var got []internal.UniqueSongsPerCity
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
@@ -286,8 +281,7 @@ func TestHandleSongsPlayedLessThanNTimes(t *testing.T) {
 	}
 
 	var got []internal.SongsTimesPlayed
-	err := json.NewDecoder(res.Body).Decode(&got)
-	if err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 

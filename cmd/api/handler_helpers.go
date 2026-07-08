@@ -5,6 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
+
+	"github.com/LunarDrift/deadabase/internal"
 )
 
 // fuzzyPattern wraps and inserts a '%' between every character of `input` to be used during SQL query searches
@@ -32,4 +35,40 @@ func respondWithError(w http.ResponseWriter, status int, message string, err err
 		Error string `json:"error"`
 	}
 	respondWithJSON(w, status, errorResponse{Error: message})
+}
+
+// buildShowResponse takes a slice of ShowSortInput rows for a single show and returns
+// a 'no setlist available' message if the show has no songs, otherwise sorting the
+// sets + songs and attaching any footnotes, returning the completed show response.
+func (s *server) buildShowResponse(r *http.Request, parsedShowRows []internal.ShowSortInput) (any, error) {
+	if len(parsedShowRows) > 0 && parsedShowRows[0].RawEntry == "" {
+		row := parsedShowRows[0]
+		return internal.ShowWithNoSetlist{
+			ShowMeta: internal.ShowMeta{
+				ShowID: row.ShowID,
+				Date:   row.Date.Format(time.DateOnly),
+				Venue:  row.Venue,
+				City:   row.City,
+				State:  row.State,
+				Notes:  row.Notes,
+			},
+			Message: "No setlist available for this show",
+		}, nil
+	}
+
+	showResp, err := internal.SortSetPositions(parsedShowRows)
+	if err != nil {
+		return nil, err
+	}
+
+	footnoteRows, err := s.queries.GetFootnotesFromShowID(r.Context(), parsedShowRows[0].ShowID)
+	if err != nil {
+		return nil, err
+	}
+	showResp.Footnotes = make(map[string]string)
+	for _, f := range footnoteRows {
+		showResp.Footnotes[f.Marker] = f.NoteText
+	}
+
+	return showResp, nil
 }
