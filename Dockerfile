@@ -10,6 +10,7 @@ COPY . .
 
 # ---- Test stage ----
 FROM builder AS tester
+
 RUN go vet ./...
 RUN go test ./... -v
 
@@ -27,9 +28,9 @@ RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
-COPY --from=builder /app/bin/api ./api
-COPY --from=builder /app/bin/importer ./importer
-COPY --from=builder /app/bin/goose ./goose
+COPY --from=build /app/bin/api ./api
+COPY --from=build /app/bin/importer ./importer
+COPY --from=build /app/bin/goose ./goose
 COPY data ./data
 COPY sql/schema ./sql/schema
 
