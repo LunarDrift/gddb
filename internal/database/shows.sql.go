@@ -558,6 +558,33 @@ func (q *Queries) GetShowsFromYearAndState(ctx context.Context, arg GetShowsFrom
 	return items, nil
 }
 
+const getValidLocations = `-- name: GetValidLocations :many
+SELECT DISTINCT state AS location FROM shows
+`
+
+func (q *Queries) GetValidLocations(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getValidLocations)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var location string
+		if err := rows.Scan(&location); err != nil {
+			return nil, err
+		}
+		items = append(items, location)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchByVenue = `-- name: SearchByVenue :many
 SELECT
   shows.show_id,

@@ -16,8 +16,6 @@ type fakeQuerier struct {
 	allShowIDsErr             error
 	showFromIDRows            []database.GetShowFromIDRow
 	showFromIDErr             error
-	footnoteRows              []database.GetFootnotesFromShowIDRow
-	footnoteErr               error
 	showFromDateRows          []database.GetShowFromDateRow
 	showFromDateErr           error
 	showsBetweenDatesRows     []database.GetShowsBetweenDatesRow
@@ -51,6 +49,11 @@ type fakeQuerier struct {
 	songsUniquePerCityErr   error
 	songsPlayedLessThanRows []database.SongsPlayedLessThanRow
 	songsPlayedLessThanErr  error
+	// Other
+	validLocationRows []string
+	validLocationErr  error
+	footnoteRows      []database.GetFootnotesFromShowIDRow
+	footnoteErr       error
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
@@ -127,4 +130,8 @@ func (f *fakeQuerier) UniqueSongsPerCity(ctx context.Context) ([]database.Unique
 
 func (f *fakeQuerier) GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error) {
 	return f.footnoteRows, f.footnoteErr
+}
+
+func (f *fakeQuerier) GetValidLocations(ctx context.Context) ([]string, error) {
+	return f.validLocationRows, f.validLocationErr
 }

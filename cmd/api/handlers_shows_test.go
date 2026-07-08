@@ -410,6 +410,7 @@ func TestHandleGetShowsFromState(t *testing.T) {
 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
 			{ShowID: 2, ShowDate: date.Add(24 * time.Hour), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
 		},
+		validLocationRows: []string{"IL", "England"},
 	}
 
 	s := &server{queries: fake}
@@ -442,35 +443,13 @@ func TestHandleGetShowsFromState(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromState_Errors(t *testing.T) {
-	tests := []struct {
-		name       string
-		url        string
-		wantStatus int
-	}{
-		{"empty param", "/shows?state=", http.StatusBadRequest},
-		{"invalid param", "/shows?state=hello", http.StatusBadRequest},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-			w := httptest.NewRecorder()
-			s.handleGetShowsFromState(w, req)
-			if got := w.Result().StatusCode; got != tt.wantStatus {
-				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
-			}
-		})
-	}
-}
-
 func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromStateRows: []database.GetShowsFromStateRow{
 			{ShowID: 1, ShowDate: date, Venue: "Wembly Empire Pool", City: "London", State: "England", Notes: sql.NullString{}},
 		},
+		validLocationRows: []string{"England", "IL"},
 	}
 
 	s := &server{queries: fake}
@@ -496,6 +475,31 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 
 	if got[0].State != "England" {
 		t.Errorf("got[0].State = %q; want 'England'", got[0].State)
+	}
+}
+
+func TestHandleGetShowsFromState_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+	}{
+		{"empty param", "/shows?state=", http.StatusBadRequest},
+		{"invalid param", "/shows?state=hello", http.StatusBadRequest},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: &fakeQuerier{
+				validLocationRows: []string{"IL", "England"},
+			}}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromState(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 

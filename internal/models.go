@@ -121,4 +121,5 @@ type ShowQuerier interface {
 	SongsPlayedLessThan(ctx context.Context, number int32) ([]database.SongsPlayedLessThanRow, error)
 	UniqueSongsPerCity(ctx context.Context) ([]database.UniqueSongsPerCityRow, error)
 	GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error)
+	GetValidLocations(ctx context.Context) ([]string, error)
 }

@@ -445,7 +445,17 @@ func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if len(showRows) == 0 {
+	validLocations, err := s.queries.GetValidLocations(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
+		return
+	}
+	if len(validLocations) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Valid locations list empty", nil)
+		return
+	}
+
+	if !slices.Contains(validLocations, state) {
 		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
 		return
 	}

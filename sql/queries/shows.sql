@@ -201,3 +201,6 @@ SELECT
 FROM shows sh
 WHERE sh.state = @state_or_country
 ORDER BY sh.show_date;
+
+-- name: GetValidLocations :many
+SELECT DISTINCT state AS location FROM shows;
