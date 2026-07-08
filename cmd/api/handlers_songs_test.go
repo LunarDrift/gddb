@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -108,14 +109,16 @@ func TestHandleGetSongsPlayedAtVenue_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing venue param", "/songs?venue=", http.StatusBadRequest},
-		{"invalid venue param", "/songs?venue=hello_world", http.StatusNotFound},
+		{"missing venue param", "/songs?venue=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid venue param", "/songs?venue=hello_world", http.StatusNotFound, &fakeQuerier{}},
+		{"server error", "/songs?venue=deer_creek", http.StatusInternalServerError, &fakeQuerier{songsPlayedAtVenueErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetSongsPlayedAtVenue(w, req)
@@ -167,14 +170,16 @@ func TestHandleGetMostPlayedSongsBySetName_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing set name param", "/songs?set_name=", http.StatusBadRequest},
-		{"invalid set name param", "/songs?set_name=hello", http.StatusBadRequest},
+		{"missing set name param", "/songs?set_name=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid set name param", "/songs?set_name=hello", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/songs?set_name=encore", http.StatusInternalServerError, &fakeQuerier{songsFromSetNameErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
 			s.handleGetMostPlayedSongsBySetName(w, req)
@@ -221,6 +226,19 @@ func TestHandleGetMostPlayedSongs(t *testing.T) {
 	}
 }
 
+func TestHandleGetMostPlayedSongs_ServerErr(t *testing.T) {
+	fake := &fakeQuerier{songsMostplayedErr: errors.New("db exploded")}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/songs?sort=most_played", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetMostPlayedSongs(w, req)
+
+	if got := w.Result().StatusCode; got != http.StatusInternalServerError {
+		t.Errorf("status code = %d; want %d", got, http.StatusInternalServerError)
+	}
+}
+
 func TestHandleUniqueSongsPerCity(t *testing.T) {
 	fake := &fakeQuerier{
 		songsUniquePerCityRows: []database.UniqueSongsPerCityRow{
@@ -258,6 +276,19 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 	}
 	if got[1].UniqueSongCount != 24 {
 		t.Errorf("got[1].UniqueSongCount = %d; want 24", got[1].UniqueSongCount)
+	}
+}
+
+func TestHandleUniqueSongsPerCity_ServerErr(t *testing.T) {
+	fake := &fakeQuerier{songsUniquePerCityErr: errors.New("db exploded")}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/stats/songs-per-city", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetUniqueSongsPerCity(w, req)
+
+	if got := w.Result().StatusCode; got != http.StatusInternalServerError {
+		t.Errorf("status code = %d; want %d", got, http.StatusInternalServerError)
 	}
 }
 
@@ -306,17 +337,19 @@ func TestHandleSongsPlayedLessThanNTimes_Errors(t *testing.T) {
 		name       string
 		url        string
 		wantStatus int
+		fake       *fakeQuerier
 	}{
-		{"missing set name param", "/songs?played_lt=", http.StatusBadRequest},
-		{"invalid set name param", "/songs?set_name=five", http.StatusBadRequest},
+		{"missing param", "/songs?played_lt=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid param", "/songs?played_lt=five", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/songs?played_lt=10", http.StatusInternalServerError, &fakeQuerier{songsPlayedLessThanErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: &fakeQuerier{}}
+			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
-			s.handleGetMostPlayedSongsBySetName(w, req)
+			s.handleGetSongsPlayedLessThanNTimes(w, req)
 			if got := w.Result().StatusCode; got != tt.wantStatus {
 				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
 			}
