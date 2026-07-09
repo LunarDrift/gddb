@@ -42,4 +42,4 @@ RUN touch .env
 
 EXPOSE 8080
 
-CMD ["./api"]
+CMD ["./migrate-and-import.sh"]
