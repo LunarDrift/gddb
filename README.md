@@ -46,8 +46,8 @@ For further details about each endpoint and their response shapes, take a look a
 | `/shows?has_notes=true/false` | Search for shows with/without notes attached |
 | `/shows?start_date=&end_date=` | List of shows between two dates (YYYY-MM-DD format) |
 | `/shows?year=` | List of shows filtered by year |
-| `/shows?state=` | List of shows filtered by state/country (states should be the standard 2 letter abbreviations) |
-| `/shows?year=&state=` | List of shows filtered by year and state/country (states should be the standard 2 letter abbreviations) |
+| `/shows?location=` | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations) |
+| `/shows?year=&location=` | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
 | `/shows/random` | Get details for a random show |
 | `/songs?sort=most_played` | Returns a list of all songs and the amount of times they were played |
 | `/songs?venue=` | All songs played at a specific venue |
@@ -67,7 +67,7 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
   "date": "1993-03-14",
   "venue": "Richfield Coliseum",
   "city": "Richfield",
-  "state": "OH",
+  "location": "OH",
   "notes": "",
   "sets": [
     {
@@ -107,11 +107,13 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 - Venue and song name searches use fuzzy matching - partial names work
 - Shows without a recorded setlist return a custom `message` field instead of `sets`
 - `footnotes` in show responses are keyed by marker symbol (e.g. `"*": "First time played"`)
+- `location` can either be a state abbreviation (NY, CA, etc) or a country name (England, Spain, etc). Currently case-sensitive
 
 ## TODO
-- Add more unit tests
+- Continue adding/improving unit tests
 - Server logging
-- Continue learning
+- Change location validation so it's case-insensitive i.e. `location=england` responds with results for `England`. Currently responds with `400 Bad Request`
+- Keep learning
 
 ## A Note on AI Usage
 This project's code and queries were written by me. I used LLMs sparingly as a study aid - discussing concepts and query decisions, and occasionally help debugging. No AI generated code was used - with the exception of the `docker-compose` file which I had a lot of help with from Claude.
