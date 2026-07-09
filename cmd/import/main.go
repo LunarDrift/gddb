@@ -19,8 +19,8 @@ func main() {
 	}
 	fmt.Println("step 2: env loaded")
 
+	fmt.Println("step 3: grabbing db url from env")
 	connStr := os.Getenv("DB_URL")
-	fmt.Println("step 3: connStr = ", connStr)
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Could not connect to database:", err)
@@ -35,7 +35,7 @@ func main() {
 	fmt.Println("step 5: db pinged ok")
 
 	const file string = "data/data.json"
-	fmt.Println("step 6: about to run import on ", file)
+	fmt.Printf("step 6: about to run import on %q\n", file)
 	err = importer.Run(db, file)
 	if err != nil {
 		log.Fatalf("error running import script on '%s': %v", file, err)
