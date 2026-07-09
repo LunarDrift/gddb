@@ -104,7 +104,7 @@ func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Requ
 	for _, row := range songRows {
 		results = append(results, internal.UniqueSongsPerCity{
 			City:            row.City,
-			Location:        row.StateOrCountry,
+			Location:        row.Location,
 			UniqueSongCount: int(row.UniqueSongCount),
 		})
 	}
@@ -138,7 +138,7 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 			SongName: row.SongName.String,
 			Venue:    row.Venue,
 			City:     row.City,
-			Location: row.State,
+			Location: row.Location,
 		})
 	}
 

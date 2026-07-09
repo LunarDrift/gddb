@@ -66,8 +66,8 @@ func TestHandleGetSongStats_MissingPathParam(t *testing.T) {
 func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 	fake := &fakeQuerier{
 		songsPlayedAtVenueRows: []database.AllSongsPlayedAtVenueRow{
-			{SongName: sql.NullString{String: "Althea", Valid: true}, Venue: "Soldier Field", City: "Chicago", State: "IL"},
-			{SongName: sql.NullString{String: "Dark Star", Valid: true}, Venue: "Soldier Field", City: "Chicago", State: "IL"},
+			{SongName: sql.NullString{String: "Althea", Valid: true}, Venue: "Soldier Field", City: "Chicago", Location: "IL"},
+			{SongName: sql.NullString{String: "Dark Star", Valid: true}, Venue: "Soldier Field", City: "Chicago", Location: "IL"},
 		},
 	}
 
@@ -242,8 +242,8 @@ func TestHandleGetMostPlayedSongs_ServerErr(t *testing.T) {
 func TestHandleUniqueSongsPerCity(t *testing.T) {
 	fake := &fakeQuerier{
 		songsUniquePerCityRows: []database.UniqueSongsPerCityRow{
-			{City: "Chicago", StateOrCountry: "IL", UniqueSongCount: 50},
-			{City: "London", StateOrCountry: "England", UniqueSongCount: 24},
+			{City: "Chicago", Location: "IL", UniqueSongCount: 50},
+			{City: "London", Location: "England", UniqueSongCount: 24},
 		},
 	}
 

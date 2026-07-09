@@ -33,7 +33,7 @@ GROUP BY se.song_name
 ORDER BY times_played  DESC;
 
 -- name: UniqueSongsPerCity :many
-SELECT sh.city, sh.state AS state_or_country, count(DISTINCT se.song_name) AS unique_song_count
+SELECT sh.city, sh.state AS location, count(DISTINCT se.song_name) AS unique_song_count
 FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
 JOIN shows sh ON s.show_id = sh.show_id
@@ -41,7 +41,7 @@ GROUP BY sh.city, sh.state
 ORDER BY unique_song_count DESC;
 
 -- name: AllSongsPlayedAtVenue :many
-SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state
+SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state AS location
 FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
 JOIN shows sh ON s.show_id = sh.show_id
