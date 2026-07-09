@@ -642,6 +642,7 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
 			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
 		},
+		validLocationRows: []string{"England", "IL"},
 	}
 
 	s := &server{queries: fake}
@@ -680,11 +681,12 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 		showsFromYearAndStateRows: []database.GetShowsFromYearAndStateRow{
 			{ShowID: 1, ShowDate: date, Venue: "Wembly Stadium", City: "London", State: "England", Notes: sql.NullString{}},
 		},
+		validLocationRows: []string{"England", "IL"},
 	}
 
 	s := &server{queries: fake}
 
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&location=london", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&location=England", nil)
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromYearAndState(w, req)

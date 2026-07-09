@@ -335,9 +335,26 @@ func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.R
 		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
 		return
 	}
-	state := r.URL.Query().Get("location")
-	if state == "" {
+	location := r.URL.Query().Get("location")
+	if location == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
+		return
+	}
+
+	// TODO: Update these validLocation checks so that lowercase locations are valid.
+	//       At the moment, these are case-sensitive
+	validLocations, err := s.queries.GetValidLocations(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
+		return
+	}
+	if len(validLocations) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Valid locations list empty", nil)
+		return
+	}
+
+	if !slices.Contains(validLocations, location) {
+		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
 		return
 	}
 
@@ -349,7 +366,7 @@ func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.R
 
 	showRows, err := s.queries.GetShowsFromYearAndState(r.Context(), database.GetShowsFromYearAndStateParams{
 		Year:           int32(year),
-		StateOrCountry: state,
+		StateOrCountry: location,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
@@ -409,6 +426,8 @@ func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	// TODO: Update these validLocation checks so that lowercase locations are valid.
+	//       At the moment, these are case-sensitive
 	validLocations, err := s.queries.GetValidLocations(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
