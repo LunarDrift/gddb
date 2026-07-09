@@ -107,12 +107,11 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 - Venue and song name searches use fuzzy matching - partial names work
 - Shows without a recorded setlist return a custom `message` field instead of `sets`
 - `footnotes` in show responses are keyed by marker symbol (e.g. `"*": "First time played"`)
-- `location` can either be a state abbreviation (NY, CA, etc) or a country name (England, Spain, etc). Currently case-sensitive
+- `location` can either be a state abbreviation (NY, CA, etc) or a country name (England, Spain, etc). Case-insensitive
 
 ## TODO
 - Continue adding/improving unit tests
 - Server logging
-- Change location validation so it's case-insensitive i.e. `location=england` responds with results for `England`. Currently responds with `400 Bad Request`
 - Keep learning
 
 ## A Note on AI Usage
