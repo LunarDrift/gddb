@@ -18,7 +18,7 @@ type ShowRow interface {
 	GetShowDate() time.Time
 	GetVenue() string
 	GetCity() string
-	GetState() string
+	GetLocation() string
 	GetNotes() sql.NullString
 	GetSetName() sql.NullString
 	GetRawEntry() sql.NullString
@@ -28,7 +28,7 @@ func (r GetShowFromIDRow) GetShowID() int32            { return r.ShowID }
 func (r GetShowFromIDRow) GetShowDate() time.Time      { return r.ShowDate }
 func (r GetShowFromIDRow) GetVenue() string            { return r.Venue }
 func (r GetShowFromIDRow) GetCity() string             { return r.City }
-func (r GetShowFromIDRow) GetState() string            { return r.State }
+func (r GetShowFromIDRow) GetLocation() string         { return r.Location }
 func (r GetShowFromIDRow) GetNotes() sql.NullString    { return r.Notes }
 func (r GetShowFromIDRow) GetSetName() sql.NullString  { return r.SetName }
 func (r GetShowFromIDRow) GetRawEntry() sql.NullString { return r.RawEntry }
@@ -37,7 +37,7 @@ func (r GetShowFromDateRow) GetShowID() int32            { return r.ShowID }
 func (r GetShowFromDateRow) GetShowDate() time.Time      { return r.ShowDate }
 func (r GetShowFromDateRow) GetVenue() string            { return r.Venue }
 func (r GetShowFromDateRow) GetCity() string             { return r.City }
-func (r GetShowFromDateRow) GetState() string            { return r.State }
+func (r GetShowFromDateRow) GetLocation() string         { return r.Location }
 func (r GetShowFromDateRow) GetNotes() sql.NullString    { return r.Notes }
 func (r GetShowFromDateRow) GetSetName() sql.NullString  { return r.SetName }
 func (r GetShowFromDateRow) GetRawEntry() sql.NullString { return r.RawEntry }
@@ -65,7 +65,7 @@ type ShowSummaryRow interface {
 	GetShowDate() time.Time
 	GetVenue() string
 	GetCity() string
-	GetState() string
+	GetLocation() string
 	GetNotes() sql.NullString
 }
 
@@ -73,61 +73,61 @@ func (r ShowsWithShowNotesRow) GetShowID() int32         { return r.ShowID }
 func (r ShowsWithShowNotesRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r ShowsWithShowNotesRow) GetVenue() string         { return r.Venue }
 func (r ShowsWithShowNotesRow) GetCity() string          { return r.City }
-func (r ShowsWithShowNotesRow) GetState() string         { return r.State }
+func (r ShowsWithShowNotesRow) GetLocation() string      { return r.Location }
 func (r ShowsWithShowNotesRow) GetNotes() sql.NullString { return r.Notes }
 
 func (r ShowsWithoutNotesRow) GetShowID() int32         { return r.ShowID }
 func (r ShowsWithoutNotesRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r ShowsWithoutNotesRow) GetVenue() string         { return r.Venue }
 func (r ShowsWithoutNotesRow) GetCity() string          { return r.City }
-func (r ShowsWithoutNotesRow) GetState() string         { return r.State }
+func (r ShowsWithoutNotesRow) GetLocation() string      { return r.Location }
 func (r ShowsWithoutNotesRow) GetNotes() sql.NullString { return sql.NullString{} }
 
 func (r SearchByVenueRow) GetShowID() int32         { return r.ShowID }
 func (r SearchByVenueRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r SearchByVenueRow) GetVenue() string         { return r.Venue }
 func (r SearchByVenueRow) GetCity() string          { return r.City }
-func (r SearchByVenueRow) GetState() string         { return r.State }
+func (r SearchByVenueRow) GetLocation() string      { return r.Location }
 func (r SearchByVenueRow) GetNotes() sql.NullString { return r.Notes }
 
 func (r GetShowsFromSetNameRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsFromSetNameRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsFromSetNameRow) GetVenue() string         { return r.Venue }
 func (r GetShowsFromSetNameRow) GetCity() string          { return r.City }
-func (r GetShowsFromSetNameRow) GetState() string         { return r.State }
+func (r GetShowsFromSetNameRow) GetLocation() string      { return r.Location }
 func (r GetShowsFromSetNameRow) GetNotes() sql.NullString { return r.Notes }
 
 func (r GetShowsFromSongNameRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsFromSongNameRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsFromSongNameRow) GetVenue() string         { return r.Venue }
 func (r GetShowsFromSongNameRow) GetCity() string          { return r.City }
-func (r GetShowsFromSongNameRow) GetState() string         { return r.State }
+func (r GetShowsFromSongNameRow) GetLocation() string      { return r.Location }
 func (r GetShowsFromSongNameRow) GetNotes() sql.NullString { return r.Notes }
 
 func (r GetShowsBetweenDatesRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsBetweenDatesRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsBetweenDatesRow) GetVenue() string         { return r.Venue }
 func (r GetShowsBetweenDatesRow) GetCity() string          { return r.City }
-func (r GetShowsBetweenDatesRow) GetState() string         { return r.State }
+func (r GetShowsBetweenDatesRow) GetLocation() string      { return r.Location }
 func (r GetShowsBetweenDatesRow) GetNotes() sql.NullString { return r.Notes }
 
-func (r GetShowsFromYearAndStateRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsFromYearAndStateRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsFromYearAndStateRow) GetVenue() string         { return r.Venue }
-func (r GetShowsFromYearAndStateRow) GetCity() string          { return r.City }
-func (r GetShowsFromYearAndStateRow) GetState() string         { return r.State }
-func (r GetShowsFromYearAndStateRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetShowsFromYearAndLocationRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromYearAndLocationRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromYearAndLocationRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromYearAndLocationRow) GetCity() string          { return r.City }
+func (r GetShowsFromYearAndLocationRow) GetLocation() string      { return r.Location }
+func (r GetShowsFromYearAndLocationRow) GetNotes() sql.NullString { return r.Notes }
 
 func (r GetShowsFromYearRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsFromYearRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsFromYearRow) GetVenue() string         { return r.Venue }
 func (r GetShowsFromYearRow) GetCity() string          { return r.City }
-func (r GetShowsFromYearRow) GetState() string         { return r.State }
+func (r GetShowsFromYearRow) GetLocation() string      { return r.Location }
 func (r GetShowsFromYearRow) GetNotes() sql.NullString { return r.Notes }
 
-func (r GetShowsFromStateRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsFromStateRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsFromStateRow) GetVenue() string         { return r.Venue }
-func (r GetShowsFromStateRow) GetCity() string          { return r.City }
-func (r GetShowsFromStateRow) GetState() string         { return r.State }
-func (r GetShowsFromStateRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetShowsFromLocationRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromLocationRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromLocationRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromLocationRow) GetCity() string          { return r.City }
+func (r GetShowsFromLocationRow) GetLocation() string      { return r.Location }
+func (r GetShowsFromLocationRow) GetNotes() sql.NullString { return r.Notes }

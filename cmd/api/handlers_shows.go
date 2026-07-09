@@ -364,9 +364,9 @@ func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromYearAndState(r.Context(), database.GetShowsFromYearAndStateParams{
-		Year:           int32(year),
-		StateOrCountry: location,
+	showRows, err := s.queries.GetShowsFromYearAndLocation(r.Context(), database.GetShowsFromYearAndLocationParams{
+		Year:     int32(year),
+		Location: location,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
@@ -420,7 +420,7 @@ func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromState(r.Context(), location)
+	showRows, err := s.queries.GetShowsFromLocation(r.Context(), location)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return

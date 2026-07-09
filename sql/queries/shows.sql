@@ -25,7 +25,7 @@ SELECT
 	shows.show_date,
 	shows.venue,
   shows.city,
-  shows.state,
+  shows.state AS location,
   shows.notes,
 	sets.set_name,
 	sets.position AS set_position,
@@ -50,7 +50,7 @@ SELECT
 	s.show_date,
 	s.venue,
   s.city,
-  s.state,
+  s.state AS location,
   s.notes,
 	st.set_name,
 	se.raw_entry
@@ -74,7 +74,7 @@ SELECT
 	shows.show_date,
 	shows.venue,
   shows.city,
-  shows.state,
+  shows.state AS location,
   shows.notes
 FROM
 	shows
@@ -93,7 +93,7 @@ SELECT
 	s.show_date,
 	s.venue,
 	s.city,
-	s.state,
+	s.state AS location,
   s.notes
 FROM
 	shows s
@@ -114,7 +114,7 @@ SELECT
   s.show_date,
   s.venue,
   s.city,
-  s.state,
+  s.state AS location,
   s.notes
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
@@ -138,7 +138,7 @@ SELECT
 	sh.show_date,
 	sh.venue,
 	sh.city,
-	sh.state,
+	sh.state AS location,
   sh.notes
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
@@ -150,7 +150,7 @@ SELECT
 	sh.show_date,
 	sh.venue,
 	sh.city,
-	sh.state,
+	sh.state AS location,
 	sh.notes
 FROM shows sh
 WHERE sh.notes IS NOT NULL AND sh.notes != '';
@@ -161,21 +161,21 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state
+  sh.state AS location
 FROM shows sh
 WHERE sh.notes IS NULL OR sh.notes = '';
 
--- name: GetShowsFromYearAndState :many
+-- name: GetShowsFromYearAndLocation :many
 SELECT
   sh.show_id,
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state,
+  sh.state AS location,
   sh.notes
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
-AND sh.state = @state_or_country
+AND sh.state = @location
 ORDER BY sh.show_date;
 
 -- name: GetShowsFromYear :many
@@ -184,22 +184,22 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state,
+  sh.state AS location,
   sh.notes
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
 ORDER BY sh.show_date;
 
--- name: GetShowsFromState :many
+-- name: GetShowsFromLocation :many
 SELECT
   sh.show_id,
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state,
+  sh.state AS location,
   sh.notes
 FROM shows sh
-WHERE sh.state = @state_or_country
+WHERE sh.state = @location
 ORDER BY sh.show_date;
 
 -- name: GetValidLocations :many

@@ -12,30 +12,30 @@ import (
 // tests don't require a connection to the real database
 type fakeQuerier struct {
 	// Shows
-	allShowIDs                []int32
-	allShowIDsErr             error
-	showFromIDRows            []database.GetShowFromIDRow
-	showFromIDErr             error
-	showFromDateRows          []database.GetShowFromDateRow
-	showFromDateErr           error
-	showsBetweenDatesRows     []database.GetShowsBetweenDatesRow
-	showsBetweenDatesErr      error
-	showsFromSongNameRows     []database.GetShowsFromSongNameRow
-	showsFromSongNameErr      error
-	showsFromSetNameRows      []database.GetShowsFromSetNameRow
-	showsFromSetNameErr       error
-	showsFromVenueNameRows    []database.SearchByVenueRow
-	showsFromVenueNameErr     error
-	showsFromStateRows        []database.GetShowsFromStateRow
-	showsFromStateErr         error
-	showsFromYearRows         []database.GetShowsFromYearRow
-	showsFromYearErr          error
-	showsFromYearAndStateRows []database.GetShowsFromYearAndStateRow
-	showsFromYearAndStateErr  error
-	showsWithNotesRows        []database.ShowsWithShowNotesRow
-	showsWithNotesErr         error
-	showsWithoutNotesRows     []database.ShowsWithoutNotesRow
-	showsWithoutNotesErr      error
+	allShowIDs                   []int32
+	allShowIDsErr                error
+	showFromIDRows               []database.GetShowFromIDRow
+	showFromIDErr                error
+	showFromDateRows             []database.GetShowFromDateRow
+	showFromDateErr              error
+	showsBetweenDatesRows        []database.GetShowsBetweenDatesRow
+	showsBetweenDatesErr         error
+	showsFromSongNameRows        []database.GetShowsFromSongNameRow
+	showsFromSongNameErr         error
+	showsFromSetNameRows         []database.GetShowsFromSetNameRow
+	showsFromSetNameErr          error
+	showsFromVenueNameRows       []database.SearchByVenueRow
+	showsFromVenueNameErr        error
+	showsFromLocationRows        []database.GetShowsFromLocationRow
+	showsFromLocationErr         error
+	showsFromYearRows            []database.GetShowsFromYearRow
+	showsFromYearErr             error
+	showsFromYearAndLocationRows []database.GetShowsFromYearAndLocationRow
+	showsFromYearAndLocationErr  error
+	showsWithNotesRows           []database.ShowsWithShowNotesRow
+	showsWithNotesErr            error
+	showsWithoutNotesRows        []database.ShowsWithoutNotesRow
+	showsWithoutNotesErr         error
 	// Songs
 	songStatsRow            database.SongStatsRow
 	songStatsErr            error
@@ -80,16 +80,16 @@ func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, rawEntry string)
 	return f.showsFromSongNameRows, f.showsFromSongNameErr
 }
 
-func (f *fakeQuerier) GetShowsFromState(ctx context.Context, stateOrCountry string) ([]database.GetShowsFromStateRow, error) {
-	return f.showsFromStateRows, f.showsFromStateErr
+func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, stateOrCountry string) ([]database.GetShowsFromLocationRow, error) {
+	return f.showsFromLocationRows, f.showsFromLocationErr
 }
 
 func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error) {
 	return f.showsFromYearRows, f.showsFromYearErr
 }
 
-func (f *fakeQuerier) GetShowsFromYearAndState(ctx context.Context, arg database.GetShowsFromYearAndStateParams) ([]database.GetShowsFromYearAndStateRow, error) {
-	return f.showsFromYearAndStateRows, f.showsFromYearAndStateErr
+func (f *fakeQuerier) GetShowsFromYearAndLocation(ctx context.Context, arg database.GetShowsFromYearAndLocationParams) ([]database.GetShowsFromYearAndLocationRow, error) {
+	return f.showsFromYearAndLocationRows, f.showsFromYearAndLocationErr
 }
 
 func (f *fakeQuerier) SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error) {

@@ -14,7 +14,7 @@ func RowToShowSortInput(r database.ShowRow) ShowSortInput {
 		Date:     r.GetShowDate(),
 		Venue:    r.GetVenue(),
 		City:     r.GetCity(),
-		Location: r.GetState(),
+		Location: r.GetLocation(),
 		Notes:    r.GetNotes().String,
 		SetName:  r.GetSetName().String,
 		RawEntry: r.GetRawEntry().String,
@@ -34,7 +34,7 @@ func RowToShowMeta(r database.ShowSummaryRow) ShowMeta {
 		Date:     r.GetShowDate().Format(time.DateOnly),
 		Venue:    r.GetVenue(),
 		City:     r.GetCity(),
-		Location: r.GetState(),
+		Location: r.GetLocation(),
 		Notes:    r.GetNotes().String,
 	}
 }

@@ -89,7 +89,7 @@ SELECT
 	shows.show_date,
 	shows.venue,
   shows.city,
-  shows.state,
+  shows.state AS location,
   shows.notes,
 	sets.set_name,
 	sets.position AS set_position,
@@ -114,7 +114,7 @@ type GetShowFromDateRow struct {
 	ShowDate     time.Time
 	Venue        string
 	City         string
-	State        string
+	Location     string
 	Notes        sql.NullString
 	SetName      sql.NullString
 	SetPosition  sql.NullInt32
@@ -136,7 +136,7 @@ func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]Ge
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 			&i.SetName,
 			&i.SetPosition,
@@ -162,7 +162,7 @@ SELECT
 	s.show_date,
 	s.venue,
   s.city,
-  s.state,
+  s.state AS location,
   s.notes,
 	st.set_name,
 	se.raw_entry
@@ -186,7 +186,7 @@ type GetShowFromIDRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 	SetName  sql.NullString
 	RawEntry sql.NullString
@@ -206,7 +206,7 @@ func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFro
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 			&i.SetName,
 			&i.RawEntry,
@@ -230,7 +230,7 @@ SELECT
 	s.show_date,
 	s.venue,
 	s.city,
-	s.state,
+	s.state AS location,
   s.notes
 FROM
 	shows s
@@ -256,7 +256,7 @@ type GetShowsBetweenDatesRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
@@ -274,7 +274,59 @@ func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenD
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
+			&i.Notes,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getShowsFromLocation = `-- name: GetShowsFromLocation :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes
+FROM shows sh
+WHERE sh.state = $1
+ORDER BY sh.show_date
+`
+
+type GetShowsFromLocationRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+}
+
+func (q *Queries) GetShowsFromLocation(ctx context.Context, location string) ([]GetShowsFromLocationRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromLocation, location)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromLocationRow
+	for rows.Next() {
+		var i GetShowsFromLocationRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -296,7 +348,7 @@ SELECT
 	sh.show_date,
 	sh.venue,
 	sh.city,
-	sh.state,
+	sh.state AS location,
   sh.notes
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
@@ -308,7 +360,7 @@ type GetShowsFromSetNameRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
@@ -326,7 +378,7 @@ func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]Ge
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -348,7 +400,7 @@ SELECT
   s.show_date,
   s.venue,
   s.city,
-  s.state,
+  s.state AS location,
   s.notes
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
@@ -362,7 +414,7 @@ type GetShowsFromSongNameRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
@@ -380,59 +432,7 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
-			&i.Notes,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const getShowsFromState = `-- name: GetShowsFromState :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state,
-  sh.notes
-FROM shows sh
-WHERE sh.state = $1
-ORDER BY sh.show_date
-`
-
-type GetShowsFromStateRow struct {
-	ShowID   int32
-	ShowDate time.Time
-	Venue    string
-	City     string
-	State    string
-	Notes    sql.NullString
-}
-
-func (q *Queries) GetShowsFromState(ctx context.Context, stateOrCountry string) ([]GetShowsFromStateRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromState, stateOrCountry)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetShowsFromStateRow
-	for rows.Next() {
-		var i GetShowsFromStateRow
-		if err := rows.Scan(
-			&i.ShowID,
-			&i.ShowDate,
-			&i.Venue,
-			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -454,7 +454,7 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state,
+  sh.state AS location,
   sh.notes
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
@@ -466,7 +466,7 @@ type GetShowsFromYearRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
@@ -484,7 +484,7 @@ func (q *Queries) GetShowsFromYear(ctx context.Context, year int32) ([]GetShowsF
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -500,13 +500,13 @@ func (q *Queries) GetShowsFromYear(ctx context.Context, year int32) ([]GetShowsF
 	return items, nil
 }
 
-const getShowsFromYearAndState = `-- name: GetShowsFromYearAndState :many
+const getShowsFromYearAndLocation = `-- name: GetShowsFromYearAndLocation :many
 SELECT
   sh.show_id,
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state,
+  sh.state AS location,
   sh.notes
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
@@ -514,35 +514,35 @@ AND sh.state = $2
 ORDER BY sh.show_date
 `
 
-type GetShowsFromYearAndStateParams struct {
-	Year           int32
-	StateOrCountry string
+type GetShowsFromYearAndLocationParams struct {
+	Year     int32
+	Location string
 }
 
-type GetShowsFromYearAndStateRow struct {
+type GetShowsFromYearAndLocationRow struct {
 	ShowID   int32
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
-func (q *Queries) GetShowsFromYearAndState(ctx context.Context, arg GetShowsFromYearAndStateParams) ([]GetShowsFromYearAndStateRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromYearAndState, arg.Year, arg.StateOrCountry)
+func (q *Queries) GetShowsFromYearAndLocation(ctx context.Context, arg GetShowsFromYearAndLocationParams) ([]GetShowsFromYearAndLocationRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromYearAndLocation, arg.Year, arg.Location)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetShowsFromYearAndStateRow
+	var items []GetShowsFromYearAndLocationRow
 	for rows.Next() {
-		var i GetShowsFromYearAndStateRow
+		var i GetShowsFromYearAndLocationRow
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -591,7 +591,7 @@ SELECT
 	shows.show_date,
 	shows.venue,
   shows.city,
-  shows.state,
+  shows.state AS location,
   shows.notes
 FROM
 	shows
@@ -607,7 +607,7 @@ type SearchByVenueRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
@@ -625,7 +625,7 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -647,7 +647,7 @@ SELECT
 	sh.show_date,
 	sh.venue,
 	sh.city,
-	sh.state,
+	sh.state AS location,
 	sh.notes
 FROM shows sh
 WHERE sh.notes IS NOT NULL AND sh.notes != ''
@@ -658,7 +658,7 @@ type ShowsWithShowNotesRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 	Notes    sql.NullString
 }
 
@@ -676,7 +676,7 @@ func (q *Queries) ShowsWithShowNotes(ctx context.Context) ([]ShowsWithShowNotesR
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 			&i.Notes,
 		); err != nil {
 			return nil, err
@@ -698,7 +698,7 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state
+  sh.state AS location
 FROM shows sh
 WHERE sh.notes IS NULL OR sh.notes = ''
 `
@@ -708,7 +708,7 @@ type ShowsWithoutNotesRow struct {
 	ShowDate time.Time
 	Venue    string
 	City     string
-	State    string
+	Location string
 }
 
 func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow, error) {
@@ -725,7 +725,7 @@ func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow
 			&i.ShowDate,
 			&i.Venue,
 			&i.City,
-			&i.State,
+			&i.Location,
 		); err != nil {
 			return nil, err
 		}

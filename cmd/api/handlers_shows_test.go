@@ -27,7 +27,7 @@ func TestHandleShowsFromPathVal_ByID(t *testing.T) {
 				ShowDate: date,
 				Venue:    "Fillmore West",
 				City:     "San Francisco",
-				State:    "CA",
+				Location: "CA",
 				Notes:    sql.NullString{},
 				SetName:  sql.NullString{String: "set_1", Valid: true},
 				RawEntry: sql.NullString{String: "Dark Star", Valid: true},
@@ -73,7 +73,7 @@ func TestHandleShowsFromPathVal_ByID_EmptySetlist(t *testing.T) {
 				ShowDate: date,
 				Venue:    "Fillmore West",
 				City:     "San Francisco",
-				State:    "CA",
+				Location: "CA",
 				Notes:    sql.NullString{},
 				SetName:  sql.NullString{},
 				RawEntry: sql.NullString{},
@@ -119,7 +119,7 @@ func TestHandleShowsFromPathVal_ByDate(t *testing.T) {
 				ShowDate: date,
 				Venue:    "Cafe Au Go Go",
 				City:     "New York",
-				State:    "NY",
+				Location: "NY",
 				Notes:    sql.NullString{},
 				SetName:  sql.NullString{String: "set_1", Valid: true},
 				RawEntry: sql.NullString{String: "China Cat Sunflower > I Know You Rider", Valid: true},
@@ -161,11 +161,11 @@ func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
 	fake := &fakeQuerier{
 		showFromDateRows: []database.GetShowFromDateRow{
 			{
-				ShowID: 1949, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", State: "NY",
+				ShowID: 1949, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", Location: "NY",
 				SetName: sql.NullString{String: "set_1", Valid: true}, RawEntry: sql.NullString{String: "Early show song", Valid: true},
 			},
 			{
-				ShowID: 1950, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", State: "NY",
+				ShowID: 1950, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", Location: "NY",
 				SetName: sql.NullString{String: "set_1", Valid: true}, RawEntry: sql.NullString{String: "Late show song", Valid: true},
 			},
 		},
@@ -211,7 +211,7 @@ func TestHandleShowsFromPathVal_ServerErr(t *testing.T) {
 					ShowDate: date,
 					Venue:    "Soldier Field",
 					City:     "Chicago",
-					State:    "IL",
+					Location: "IL",
 					SetName:  sql.NullString{String: "set_1", Valid: true},
 					RawEntry: sql.NullString{String: "Dark Star", Valid: true},
 				},
@@ -230,7 +230,7 @@ func TestHandleShowsFromPathVal_ServerErr(t *testing.T) {
 					ShowDate: date,
 					Venue:    "Soldier Field",
 					City:     "Chicago",
-					State:    "IL",
+					Location: "IL",
 					Notes:    sql.NullString{},
 					SetName:  sql.NullString{String: "set_1", Valid: true},
 					RawEntry: sql.NullString{String: "Dark Star", Valid: true},
@@ -293,8 +293,8 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromSongNameRows: []database.GetShowsFromSongNameRow{
-			{ShowID: 1, ShowDate: date, Venue: "test venue", City: "test city", State: "test state", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 48), Venue: "test venue 2", City: "test city 2", State: "test state 2", Notes: sql.NullString{}},
+			{ShowID: 1, ShowDate: date, Venue: "test venue", City: "test city", Location: "test state", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 48), Venue: "test venue 2", City: "test city 2", Location: "test state 2", Notes: sql.NullString{}},
 		},
 	}
 
@@ -359,7 +359,7 @@ func TestHandleGetShowsFromSetName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromSetNameRows: []database.GetShowsFromSetNameRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "test state", Notes: sql.NullString{}},
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "test state", Notes: sql.NullString{}},
 		},
 	}
 
@@ -414,8 +414,8 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 	date2, _ := time.Parse(time.DateOnly, "1995-01-02")
 	fake := &fakeQuerier{
 		showsFromVenueNameRows: []database.SearchByVenueRow{
-			{ShowID: 1, ShowDate: date1, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date2, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+			{ShowID: 1, ShowDate: date1, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date2, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 		},
 	}
 
@@ -476,9 +476,9 @@ func TestHandleGetShowsFromVenueName_Errors(t *testing.T) {
 func TestHandleGetShowsFromState(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
-		showsFromStateRows: []database.GetShowsFromStateRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date.Add(24 * time.Hour), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+		showsFromLocationRows: []database.GetShowsFromLocationRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(24 * time.Hour), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 		},
 		validLocationRows: []string{"IL", "England"},
 	}
@@ -515,8 +515,8 @@ func TestHandleGetShowsFromState(t *testing.T) {
 func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
-		showsFromStateRows: []database.GetShowsFromStateRow{
-			{ShowID: 1, ShowDate: date, Venue: "Wembly Empire Pool", City: "London", State: "England", Notes: sql.NullString{}},
+		showsFromLocationRows: []database.GetShowsFromLocationRow{
+			{ShowID: 1, ShowDate: date, Venue: "Wembly Empire Pool", City: "London", Location: "England", Notes: sql.NullString{}},
 		},
 		validLocationRows: []string{"England", "IL"},
 	}
@@ -555,7 +555,7 @@ func TestHandleGetShowsFromState_Errors(t *testing.T) {
 	}{
 		{"empty param", "/shows?location=", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
 		{"invalid param", "/shows?location=hello", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
-		{"server error", "/shows?location=IL", http.StatusInternalServerError, &fakeQuerier{showsFromStateErr: errors.New("db exploded")}},
+		{"server error", "/shows?location=IL", http.StatusInternalServerError, &fakeQuerier{showsFromLocationErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
@@ -575,8 +575,8 @@ func TestHandleGetShowsFromYear(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromYearRows: []database.GetShowsFromYearRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 		},
 	}
 
@@ -638,9 +638,9 @@ func TestHandleGetShowsFromYear_Errors(t *testing.T) {
 func TestHandleGetShowsFromYearAndState(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
-		showsFromYearAndStateRows: []database.GetShowsFromYearAndStateRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{}},
+		showsFromYearAndLocationRows: []database.GetShowsFromYearAndLocationRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 		},
 		validLocationRows: []string{"England", "IL"},
 	}
@@ -678,8 +678,8 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
-		showsFromYearAndStateRows: []database.GetShowsFromYearAndStateRow{
-			{ShowID: 1, ShowDate: date, Venue: "Wembly Stadium", City: "London", State: "England", Notes: sql.NullString{}},
+		showsFromYearAndLocationRows: []database.GetShowsFromYearAndLocationRow{
+			{ShowID: 1, ShowDate: date, Venue: "Wembly Stadium", City: "London", Location: "England", Notes: sql.NullString{}},
 		},
 		validLocationRows: []string{"England", "IL"},
 	}
@@ -723,7 +723,7 @@ func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
 	}{
 		{"empty year param", "/shows?year=&location=IL", http.StatusBadRequest, &fakeQuerier{}},
 		{"empty state param", "/shows?year=1995&location=", http.StatusBadRequest, &fakeQuerier{}},
-		{"server error", "/shows?year=1965&location=CA", http.StatusInternalServerError, &fakeQuerier{showsFromYearAndStateErr: errors.New("db exploded")}},
+		{"server error", "/shows?year=1965&location=CA", http.StatusInternalServerError, &fakeQuerier{showsFromYearAndLocationErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
@@ -743,7 +743,7 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-07-09")
 	fake := &fakeQuerier{
 		showsWithNotesRows: []database.ShowsWithShowNotesRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL", Notes: sql.NullString{String: "Final show", Valid: true}},
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{String: "Final show", Valid: true}},
 		},
 	}
 
@@ -776,8 +776,8 @@ func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-07-09")
 	fake := &fakeQuerier{
 		showsWithoutNotesRows: []database.ShowsWithoutNotesRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", State: "IL"},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Wembly", City: "London", State: "England"},
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL"},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Wembly", City: "London", Location: "England"},
 		},
 	}
 
