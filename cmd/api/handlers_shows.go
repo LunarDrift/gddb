@@ -19,13 +19,13 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	query := r.URL.Query()
 
 	switch {
-	case query.Has("year") && query.Has("state"):
+	case query.Has("year") && query.Has("location"):
 		s.handleGetShowsFromYearAndState(w, r)
 
 	case query.Has("year"):
 		s.handleGetShowsFromYear(w, r)
 
-	case query.Has("state"):
+	case query.Has("location"):
 		s.handleGetShowsFromState(w, r)
 
 	case query.Has("song"):
@@ -335,9 +335,9 @@ func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.R
 		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
 		return
 	}
-	state := r.URL.Query().Get("state")
+	state := r.URL.Query().Get("location")
 	if state == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing state parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
 		return
 	}
 
@@ -397,13 +397,13 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request) {
-	state := r.URL.Query().Get("state")
-	if state == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing state parameter", nil)
+	location := r.URL.Query().Get("location")
+	if location == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromState(r.Context(), state)
+	showRows, err := s.queries.GetShowsFromState(r.Context(), location)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
@@ -419,7 +419,7 @@ func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if !slices.Contains(validLocations, state) {
+	if !slices.Contains(validLocations, location) {
 		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
 		return
 	}

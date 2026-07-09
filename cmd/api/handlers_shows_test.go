@@ -484,7 +484,7 @@ func TestHandleGetShowsFromState(t *testing.T) {
 	}
 
 	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?state=IL", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows?location=IL", nil)
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromState(w, req)
@@ -522,7 +522,7 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 	}
 
 	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?state=England", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows?location=England", nil)
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromState(w, req)
@@ -553,9 +553,9 @@ func TestHandleGetShowsFromState_Errors(t *testing.T) {
 		wantStatus int
 		fake       *fakeQuerier
 	}{
-		{"empty param", "/shows?state=", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
-		{"invalid param", "/shows?state=hello", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
-		{"server error", "/shows?state=IL", http.StatusInternalServerError, &fakeQuerier{showsFromStateErr: errors.New("db exploded")}},
+		{"empty param", "/shows?location=", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
+		{"invalid param", "/shows?location=hello", http.StatusBadRequest, &fakeQuerier{validLocationRows: []string{"IL", "England"}}},
+		{"server error", "/shows?location=IL", http.StatusInternalServerError, &fakeQuerier{showsFromStateErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
@@ -646,7 +646,7 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 
 	s := &server{queries: fake}
 
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&state=IL", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&location=IL", nil)
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromYearAndState(w, req)
@@ -684,7 +684,7 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 
 	s := &server{queries: fake}
 
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&state=london", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&location=london", nil)
 	w := httptest.NewRecorder()
 
 	s.handleGetShowsFromYearAndState(w, req)
@@ -719,9 +719,9 @@ func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
 		wantStatus int
 		fake       *fakeQuerier
 	}{
-		{"empty year param", "/shows?year=&state=IL", http.StatusBadRequest, &fakeQuerier{}},
-		{"empty state param", "/shows?year=1995&state=", http.StatusBadRequest, &fakeQuerier{}},
-		{"server error", "/shows?year=1965&state=CA", http.StatusInternalServerError, &fakeQuerier{showsFromYearAndStateErr: errors.New("db exploded")}},
+		{"empty year param", "/shows?year=&location=IL", http.StatusBadRequest, &fakeQuerier{}},
+		{"empty state param", "/shows?year=1995&location=", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?year=1965&location=CA", http.StatusInternalServerError, &fakeQuerier{showsFromYearAndStateErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
