@@ -23,7 +23,8 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **sqlc:** type-safe SQL query generation
 - **Docker:** package dependencies together and make setup a simple command
 
-## Setup
+**Live:** https://deadabase.onrender.com
+## Local Setup
 ```bash
 git clone https://github.com/LunarDrift/gddb
 cd gddb
