@@ -17,6 +17,10 @@ func main() {
 		log.Fatal(err)
 	}
 	connectionString := os.Getenv("DB_URL")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
@@ -29,6 +33,6 @@ func main() {
 	limiter := middleware.NewIPRateLimiter(2, 10) // 2 req/sec sustained, burst of 10
 	handler := limiter.Middleware(srv.mux)
 
-	fmt.Println("Listening on 8080...")
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	fmt.Printf("Listening on %s...\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
