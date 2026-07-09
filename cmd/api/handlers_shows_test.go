@@ -293,8 +293,8 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromSongNameRows: []database.GetShowsFromSongNameRow{
-			{ShowID: 1, ShowDate: date, Venue: "test venue", City: "test city", Location: "test state", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 48), Venue: "test venue 2", City: "test city 2", Location: "test state 2", Notes: sql.NullString{}},
+			{ShowID: 1, ShowDate: date, Venue: "test venue", City: "test city", Location: "test location", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(time.Hour * 48), Venue: "test venue 2", City: "test city 2", Location: "test location 2", Notes: sql.NullString{}},
 		},
 	}
 
@@ -359,7 +359,7 @@ func TestHandleGetShowsFromSetName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromSetNameRows: []database.GetShowsFromSetNameRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "test state", Notes: sql.NullString{}},
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "test location", Notes: sql.NullString{}},
 		},
 	}
 
@@ -473,14 +473,14 @@ func TestHandleGetShowsFromVenueName_Errors(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromState(t *testing.T) {
+func TestHandleGetShowsFromLocation(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromLocationRows: []database.GetShowsFromLocationRow{
 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 			{ShowID: 2, ShowDate: date.Add(24 * time.Hour), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 		},
-		validLocationRows: []string{"IL", "England"},
+		validLocationRows: []string{"il", "england"},
 	}
 
 	s := &server{queries: fake}
@@ -504,21 +504,21 @@ func TestHandleGetShowsFromState(t *testing.T) {
 	}
 
 	if got[0].Location != "IL" {
-		t.Errorf("got[0].State = %q; want 'IL'", got[0].Location)
+		t.Errorf("got[0].Location = %q; want 'IL'", got[0].Location)
 	}
 
 	if got[0].Location != got[1].Location {
-		t.Errorf("different states: got[0].State = %q, got[1].State = %q", got[0].Location, got[1].Location)
+		t.Errorf("different locations: got[0].Location = %q, got[1].Location = %q", got[0].Location, got[1].Location)
 	}
 }
 
-func TestHandleGetShowsFromState_CountryName(t *testing.T) {
+func TestHandleGetShowsFromLocation_CountryName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromLocationRows: []database.GetShowsFromLocationRow{
 			{ShowID: 1, ShowDate: date, Venue: "Wembly Empire Pool", City: "London", Location: "England", Notes: sql.NullString{}},
 		},
-		validLocationRows: []string{"England", "IL"},
+		validLocationRows: []string{"england", "il"},
 	}
 
 	s := &server{queries: fake}
@@ -542,11 +542,11 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 	}
 
 	if got[0].Location != "England" {
-		t.Errorf("got[0].State = %q; want 'England'", got[0].Location)
+		t.Errorf("got[0].Location = %q; want 'England'", got[0].Location)
 	}
 }
 
-func TestHandleGetShowsFromState_Errors(t *testing.T) {
+func TestHandleGetShowsFromLocation_Errors(t *testing.T) {
 	tests := []struct {
 		name       string
 		url        string
@@ -635,14 +635,14 @@ func TestHandleGetShowsFromYear_Errors(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromYearAndState(t *testing.T) {
+func TestHandleGetShowsFromYearAndLocation(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromYearAndLocationRows: []database.GetShowsFromYearAndLocationRow{
 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
 		},
-		validLocationRows: []string{"England", "IL"},
+		validLocationRows: []string{"england", "il"},
 	}
 
 	s := &server{queries: fake}
@@ -667,7 +667,7 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 	}
 
 	if got[0].Location != "IL" {
-		t.Errorf("got[0].State = %q; want 'IL'", got[0].Location)
+		t.Errorf("got[0].Location = %q; want 'IL'", got[0].Location)
 	}
 
 	if got[0].Date[:4] != "1995" {
@@ -675,13 +675,13 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
+func TestHandleGetShowsFromYearAndLocation_CountryName(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
 		showsFromYearAndLocationRows: []database.GetShowsFromYearAndLocationRow{
 			{ShowID: 1, ShowDate: date, Venue: "Wembly Stadium", City: "London", Location: "England", Notes: sql.NullString{}},
 		},
-		validLocationRows: []string{"England", "IL"},
+		validLocationRows: []string{"england", "il"},
 	}
 
 	s := &server{queries: fake}
@@ -706,7 +706,7 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 	}
 
 	if got[0].Location != "England" {
-		t.Errorf("got[0].State = %q; want 'England'", got[0].Location)
+		t.Errorf("got[0].Location = %q; want 'England'", got[0].Location)
 	}
 
 	if got[0].Date[:4] != "1995" {
@@ -714,7 +714,7 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
+func TestHandleGetShowsFromYearAndLocation_Errors(t *testing.T) {
 	tests := []struct {
 		name       string
 		url        string
@@ -722,7 +722,7 @@ func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
 		fake       *fakeQuerier
 	}{
 		{"empty year param", "/shows?year=&location=IL", http.StatusBadRequest, &fakeQuerier{}},
-		{"empty state param", "/shows?year=1995&location=", http.StatusBadRequest, &fakeQuerier{}},
+		{"empty location param", "/shows?year=1995&location=", http.StatusBadRequest, &fakeQuerier{}},
 		{"server error", "/shows?year=1965&location=CA", http.StatusInternalServerError, &fakeQuerier{showsFromYearAndLocationErr: errors.New("db exploded")}},
 	}
 
