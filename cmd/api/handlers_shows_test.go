@@ -487,7 +487,7 @@ func TestHandleGetShowsFromState(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/shows?location=IL", nil)
 	w := httptest.NewRecorder()
 
-	s.handleGetShowsFromState(w, req)
+	s.handleGetShowsFromLocation(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
@@ -525,7 +525,7 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/shows?location=England", nil)
 	w := httptest.NewRecorder()
 
-	s.handleGetShowsFromState(w, req)
+	s.handleGetShowsFromLocation(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
@@ -563,7 +563,7 @@ func TestHandleGetShowsFromState_Errors(t *testing.T) {
 			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
-			s.handleGetShowsFromState(w, req)
+			s.handleGetShowsFromLocation(w, req)
 			if got := w.Result().StatusCode; got != tt.wantStatus {
 				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
 			}
@@ -650,7 +650,7 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&location=IL", nil)
 	w := httptest.NewRecorder()
 
-	s.handleGetShowsFromYearAndState(w, req)
+	s.handleGetShowsFromYearAndLocation(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
@@ -689,7 +689,7 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995&location=England", nil)
 	w := httptest.NewRecorder()
 
-	s.handleGetShowsFromYearAndState(w, req)
+	s.handleGetShowsFromYearAndLocation(w, req)
 
 	res := w.Result()
 	if res.StatusCode != http.StatusOK {
@@ -731,7 +731,7 @@ func TestHandleGetShowsFromYearAndState_Errors(t *testing.T) {
 			s := &server{queries: tt.fake}
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
 			w := httptest.NewRecorder()
-			s.handleGetShowsFromYearAndState(w, req)
+			s.handleGetShowsFromYearAndLocation(w, req)
 			if got := w.Result().StatusCode; got != tt.wantStatus {
 				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
 			}

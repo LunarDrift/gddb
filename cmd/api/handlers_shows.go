@@ -20,13 +20,13 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 
 	switch {
 	case query.Has("year") && query.Has("location"):
-		s.handleGetShowsFromYearAndState(w, r)
+		s.handleGetShowsFromYearAndLocation(w, r)
 
 	case query.Has("year"):
 		s.handleGetShowsFromYear(w, r)
 
 	case query.Has("location"):
-		s.handleGetShowsFromState(w, r)
+		s.handleGetShowsFromLocation(w, r)
 
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
@@ -329,7 +329,7 @@ func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) 
 	return results, nil
 }
 
-func (s *server) handleGetShowsFromYearAndState(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *http.Request) {
 	yearStr := r.URL.Query().Get("year")
 	if yearStr == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
@@ -413,7 +413,7 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleGetShowsFromState(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Request) {
 	location := r.URL.Query().Get("location")
 	if location == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
