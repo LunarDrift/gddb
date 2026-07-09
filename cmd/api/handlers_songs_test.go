@@ -271,8 +271,8 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 		t.Errorf("got[0].City = %q; want 'Chicago'", got[0].City)
 	}
 
-	if got[1].StateOrCountry != "England" {
-		t.Errorf("got[1].StateOrCountry = %q; want 'England'", got[1].StateOrCountry)
+	if got[1].Location != "England" {
+		t.Errorf("got[1].StateOrCountry = %q; want 'England'", got[1].Location)
 	}
 	if got[1].UniqueSongCount != 24 {
 		t.Errorf("got[1].UniqueSongCount = %d; want 24", got[1].UniqueSongCount)

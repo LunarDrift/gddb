@@ -63,12 +63,12 @@ func SortSetPositions(rawEntries []ShowSortInput) (ShowResponse, error) {
 	}
 	return ShowResponse{
 		ShowMeta: ShowMeta{
-			ShowID: rawEntries[0].ShowID,
-			Date:   date.Format(time.DateOnly),
-			Venue:  venue,
-			City:   rawEntries[0].City,
-			State:  rawEntries[0].State,
-			Notes:  rawEntries[0].Notes,
+			ShowID:   rawEntries[0].ShowID,
+			Date:     date.Format(time.DateOnly),
+			Venue:    venue,
+			City:     rawEntries[0].City,
+			Location: rawEntries[0].Location,
+			Notes:    rawEntries[0].Notes,
 		},
 		Sets: sets,
 	}, nil

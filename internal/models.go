@@ -36,12 +36,12 @@ type Dataset map[string][]Show
 // ShowMeta holds the shared elements that multiple show responses use
 // Also used in responses where a list of shows is returned
 type ShowMeta struct {
-	ShowID int32  `json:"show_id"`
-	Date   string `json:"date"`
-	Venue  string `json:"venue"`
-	City   string `json:"city"`
-	State  string `json:"state"`
-	Notes  string `json:"notes"`
+	ShowID   int32  `json:"show_id"`
+	Date     string `json:"date"`
+	Venue    string `json:"venue"`
+	City     string `json:"city"`
+	Location string `json:"location"`
+	Notes    string `json:"notes"`
 }
 
 // ShowResponse will be used as the payload sent in the server response for a single show
@@ -69,7 +69,7 @@ type ShowSortInput struct {
 	Date     time.Time `json:"date"`
 	Venue    string    `json:"venue"`
 	City     string    `json:"city"`
-	State    string    `json:"state"`
+	Location string    `json:"location"`
 	Notes    string    `json:"notes"`
 	SetName  string    `json:"set_name"`
 	RawEntry string    `json:"raw_entry"`
@@ -90,12 +90,12 @@ type SongsFromVenue struct {
 	SongName string `json:"song"`
 	Venue    string `json:"venue"`
 	City     string `json:"city"`
-	State    string `json:"state"`
+	Location string `json:"location"`
 }
 
 type UniqueSongsPerCity struct {
 	City            string `json:"city"`
-	StateOrCountry  string `json:"state_or_country"`
+	Location        string `json:"location"`
 	UniqueSongCount int    `json:"unique_song_count"`
 }
 

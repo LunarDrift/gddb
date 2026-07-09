@@ -45,12 +45,12 @@ func (s *server) buildShowResponse(r *http.Request, parsedShowRows []internal.Sh
 		row := parsedShowRows[0]
 		return internal.ShowWithNoSetlist{
 			ShowMeta: internal.ShowMeta{
-				ShowID: row.ShowID,
-				Date:   row.Date.Format(time.DateOnly),
-				Venue:  row.Venue,
-				City:   row.City,
-				State:  row.State,
-				Notes:  row.Notes,
+				ShowID:   row.ShowID,
+				Date:     row.Date.Format(time.DateOnly),
+				Venue:    row.Venue,
+				City:     row.City,
+				Location: row.Location,
+				Notes:    row.Notes,
 			},
 			Message: "No setlist available for this show",
 		}, nil

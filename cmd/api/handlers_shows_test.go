@@ -503,12 +503,12 @@ func TestHandleGetShowsFromState(t *testing.T) {
 		t.Errorf("len(got) = %d; want 2", len(got))
 	}
 
-	if got[0].State != "IL" {
-		t.Errorf("got[0].State = %q; want 'IL'", got[0].State)
+	if got[0].Location != "IL" {
+		t.Errorf("got[0].State = %q; want 'IL'", got[0].Location)
 	}
 
-	if got[0].State != got[1].State {
-		t.Errorf("different states: got[0].State = %q, got[1].State = %q", got[0].State, got[1].State)
+	if got[0].Location != got[1].Location {
+		t.Errorf("different states: got[0].State = %q, got[1].State = %q", got[0].Location, got[1].Location)
 	}
 }
 
@@ -541,8 +541,8 @@ func TestHandleGetShowsFromState_CountryName(t *testing.T) {
 		t.Errorf("len(got) = %d; want 1", len(got))
 	}
 
-	if got[0].State != "England" {
-		t.Errorf("got[0].State = %q; want 'England'", got[0].State)
+	if got[0].Location != "England" {
+		t.Errorf("got[0].State = %q; want 'England'", got[0].Location)
 	}
 }
 
@@ -665,8 +665,8 @@ func TestHandleGetShowsFromYearAndState(t *testing.T) {
 		t.Errorf("len(got) = %d; want 2", len(got))
 	}
 
-	if got[0].State != "IL" {
-		t.Errorf("got[0].State = %q; want 'IL'", got[0].State)
+	if got[0].Location != "IL" {
+		t.Errorf("got[0].State = %q; want 'IL'", got[0].Location)
 	}
 
 	if got[0].Date[:4] != "1995" {
@@ -703,8 +703,8 @@ func TestHandleGetShowsFromYearAndState_CountryName(t *testing.T) {
 		t.Errorf("len(got) = %d; want 1", len(got))
 	}
 
-	if got[0].State != "England" {
-		t.Errorf("got[0].State = %q; want 'England'", got[0].State)
+	if got[0].Location != "England" {
+		t.Errorf("got[0].State = %q; want 'England'", got[0].Location)
 	}
 
 	if got[0].Date[:4] != "1995" {

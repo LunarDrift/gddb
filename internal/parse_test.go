@@ -35,10 +35,10 @@ func TestSortSetPositions(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1977-05-08")
 
 	input := []ShowSortInput{
-		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", State: "NY", SetName: "set_2", RawEntry: "Scarlet Begonias"},
-		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", State: "NY", SetName: "set_1", RawEntry: "Bertha"},
-		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", State: "NY", SetName: "encore", RawEntry: "One More Saturday Night"},
-		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", State: "NY", SetName: "set_1", RawEntry: "Me and My Uncle"},
+		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", Location: "NY", SetName: "set_2", RawEntry: "Scarlet Begonias"},
+		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", Location: "NY", SetName: "set_1", RawEntry: "Bertha"},
+		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", Location: "NY", SetName: "encore", RawEntry: "One More Saturday Night"},
+		{ShowID: 1, Date: date, Venue: "Barton Hall", City: "Ithaca", Location: "NY", SetName: "set_1", RawEntry: "Me and My Uncle"},
 	}
 
 	got, err := SortSetPositions(input)
