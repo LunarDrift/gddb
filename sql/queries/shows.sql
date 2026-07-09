@@ -175,7 +175,7 @@ SELECT
   sh.notes
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
-AND sh.state = @location
+AND LOWER(sh.state) = LOWER(@location)
 ORDER BY sh.show_date;
 
 -- name: GetShowsFromYear :many
@@ -199,8 +199,8 @@ SELECT
   sh.state AS location,
   sh.notes
 FROM shows sh
-WHERE sh.state = @location
+WHERE LOWER(sh.state) = LOWER(@location)
 ORDER BY sh.show_date;
 
 -- name: GetValidLocations :many
-SELECT DISTINCT state AS location FROM shows;
+SELECT DISTINCT LOWER(state) AS location FROM shows;

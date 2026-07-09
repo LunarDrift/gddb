@@ -299,7 +299,7 @@ SELECT
   sh.state AS location,
   sh.notes
 FROM shows sh
-WHERE sh.state = $1
+WHERE LOWER(sh.state) = LOWER($1)
 ORDER BY sh.show_date
 `
 
@@ -510,7 +510,7 @@ SELECT
   sh.notes
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
-AND sh.state = $2
+AND LOWER(sh.state) = LOWER($2)
 ORDER BY sh.show_date
 `
 
@@ -559,7 +559,7 @@ func (q *Queries) GetShowsFromYearAndLocation(ctx context.Context, arg GetShowsF
 }
 
 const getValidLocations = `-- name: GetValidLocations :many
-SELECT DISTINCT state AS location FROM shows
+SELECT DISTINCT LOWER(state) AS location FROM shows
 `
 
 func (q *Queries) GetValidLocations(ctx context.Context) ([]string, error) {

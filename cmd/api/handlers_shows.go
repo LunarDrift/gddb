@@ -340,9 +340,8 @@ func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
 		return
 	}
+	location = strings.ToLower(location)
 
-	// TODO: Update these validLocation checks so that lowercase locations are valid.
-	//       At the moment, these are case-sensitive
 	validLocations, err := s.queries.GetValidLocations(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
@@ -419,15 +418,8 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
 		return
 	}
+	location = strings.ToLower(location)
 
-	showRows, err := s.queries.GetShowsFromLocation(r.Context(), location)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	// TODO: Update these validLocation checks so that lowercase locations are valid.
-	//       At the moment, these are case-sensitive
 	validLocations, err := s.queries.GetValidLocations(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
@@ -440,6 +432,12 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 
 	if !slices.Contains(validLocations, location) {
 		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromLocation(r.Context(), location)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
