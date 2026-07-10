@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>Deadabase</title>
+  <link href="css/style.css" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+
+  <div class="sidenav">
+    <a href="#top">Top</a>
+    <a href="#shows">Shows</a>
+      <ul class="no-bullets">
+        <li><a href="#-get-shows-id-">/shows/{id}</a></li>
+        <li><a href="#-get-shows-date-">/shows/{date}</a></li>
+        <li><a href="#-get-shows-random-">/shows/random</a></li>
+        <li><a href="#-get-shows-">/shows</a></li>
+        <li><a href="#-get-shows-start_date-end_date-">/shows?start_date=&end_date=</a></li>
+        <li><a href="#-get-shows-song-">/shows?song=</a></li>
+        <li><a href="#-get-shows-set_name-">/shows?set_name=</a></li>
+        <li><a href="#-get-shows-venue-">/shows?venue=</a></li>
+        <li><a href="#-get-shows-has_notes-">/shows?has_notes=</a></li>
+        <li><a href="#-get-shows-location-">/shows?location=</a></li>
+        <li><a href="#-get-shows-year-location-">/shows?year=&location=</a></li>
+      </ul>
+    <a href="#songs">Songs</a>
+      <ul class="no-bullets">
+        <li><a href="#-get-songs-name-">/songs/{name}</a></li>
+        <li><a href="#-get-songs-">/songs</a></li>
+        <li><a href="#-get-songs-sort-most_played-">/songs?sort=most_played</a></li>
+        <li><a href="#-get-songs-sort-most_played-set_name-">/songs?sort=most_played&set_name=</a></li>
+        <li><a href="#-get-songs-venue-">/songs?venue=</a></li>
+        <li><a href="#-get-songs-played_lt-">/songs?played_lt=</a></li>
+      </ul>
+    <a href="#stats">Stats</a>
+  </div>
+
+  <header>
+    <h1 id="top">Deadabase API Reference</h1>
+  </header>
+
+  <div class="content">
+    <p>Deadabase is a REST API for browsing and exploring Grateful Dead concert history. Search through thousands of shows by date, venue, song, or set name - with full setlists and show footnotes.</p>
+    <p><strong>Base URL: </strong><a href="https://deadabase.onrender.com">https://deadabase.onrender.com</a></p>
+    <p>Replace the example <code>localhost:8080</code> with the base URL above unless you clone the <a href="https://github.com/LunarDrift/gddb">repo</a> and are running the API locally.</p>
+    <p>All endpoints return JSON and respond to <code>GET</code> requests only.<br>Songs that segue into each other
+      within
+      a set are represented as a single string joined with <code>&gt;</code>.
+      <code>footnotes</code> is keyed by marker when present, empty object otherwise.
+    </p>
+
+    <hr>
+    <h1 id="shows">Shows</h1>
+    <h2 id="-get-shows-id-"><code class="header-code">GET /shows/{id}</code></h2>
+    <p>Returns a single show.
+    <table>
+      <thead>
+        <tr>
+          <th>Example</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code class="lang-bash">curl http://localhost:8080/shows/756</code></td>
+          <td>Search by show ID.</td>
+        </tr>
+      </tbody>
+    </table>
+    </p>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">{
+  <span class="json-key">"show_id"</span><span class="json-punctuation">:</span> <span class="json-number">756</span><span class="json-punctuation">,</span>
+  <span class="json-key">"date"</span><span class="json-punctuation">:</span> <span class="json-string">"1985-07-01"</span><span class="json-punctuation">,</span>
+  <span class="json-key">"venue"</span><span class="json-punctuation">:</span> <span class="json-string">"Merriweather Post Pavilion"</span><span class="json-punctuation">,</span>
+  <span class="json-key">"city"</span><span class="json-punctuation">:</span> <span class="json-string">"Columbia"</span><span class="json-punctuation">,</span>
+  <span class="json-key">"location"</span><span class="json-punctuation">:</span> <span class="json-string">"MD"</span><span class="json-punctuation">,</span>
+  <span class="json-key">"notes"</span><span class="json-punctuation">:</span> <span class="json-string">""</span><span class="json-punctuation">,</span>
+  <span class="json-key">"sets"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
+    <span class="json-punctuation">{</span>
+      <span class="json-key">"set_name"</span><span class="json-punctuation">:</span> <span class="json-string">"set_1"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"songs"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
+        <span class="json-string">"Dancing In The Street"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"Dupree's Diamond Blues"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"Walkin' Blues"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"Jack-a-Roe"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"My Brother Esau"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"Stagger Lee"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"Let It Grow &gt; Keep Your Day Job"</span>
+      <span class="json-punctuation">]</span>
+    <span class="json-punctuation">}</span><span class="json-punctuation">,</span>
+    <span class="json-punctuation">{</span>
+      <span class="json-key">"set_name"</span><span class="json-punctuation">:</span> <span class="json-string">"set_2"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"songs"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
+        <span class="json-string">"Scarlet Begonias &gt; Fire On The Mountain"</span><span class="json-punctuation">,</span>
+        <span class="json-string">"Playing In The Band &gt; Uncle John's Band &gt; drums &gt; space &gt; Dear Mr. Fantasy &gt; Going Down The Road Feeling Bad &gt; Good Lovin'"</span>
+      <span class="json-punctuation">]</span>
+    <span class="json-punctuation">}</span><span class="json-punctuation">,</span>
+    <span class="json-punctuation">{</span>
+      <span class="json-key">"set_name"</span><span class="json-punctuation">:</span> <span class="json-string">"encore"</span><span class="json-punctuation">,</span>
+      <span class="json-key">"songs"</span><span class="json-punctuation">:</span> <span class="json-punctuation">[</span>
+        <span class="json-string">"(I Can't Get No) Satisfaction &gt; It's All Over Now, Baby Blue"</span>
+      <span class="json-punctuation">]</span>
+    <span class="json-punctuation">}</span>
+  <span class="json-punctuation">]</span><span class="json-punctuation">,</span>
+  <span class="json-key">"footnotes"</span><span class="json-punctuation">:</span> <span class="json-punctuation">{}</span>
+<span class="json-punctuation">}</span>
+</code></pre>
+
+
+    <hr>
+    <h2 id="-get-shows-date-"><code class="header-code">GET /shows/{date}</code></h2>
+    <p>Returns a list of show results. Some dates have multiple shows (Early/Late shows).</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Example</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code class="lang-bash">curl http://localhost:8080/shows/1968-06-14</code></td>
+          <td>Search by date. YYYY-MM-DD</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2051</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1968-06-14"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore East"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"New York"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"NY"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>,
+    <span class="json-key">"sets"</span>: [
+      {
+        <span class="json-key">"set_name"</span>: <span class="json-string">"set_1"</span>,
+        <span class="json-key">"songs"</span>: [
+          <span class="json-string">"Morning Dew"</span>,
+          <span class="json-string">"Cryptical Envelopment &gt; The Other One &gt; Cryptical Envelopment &gt; New Potato Caboose"</span>
+        ]
+      }
+    ],
+    <span class="json-key">"footnotes"</span>: {}
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2244</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1968-06-14"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore East"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"New York"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"NY"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>,
+    <span class="json-key">"sets"</span>: [
+      {
+        <span class="json-key">"set_name"</span>: <span class="json-string">"set_1"</span>,
+        <span class="json-key">"songs"</span>: [
+          <span class="json-string">"Feedback &gt; The Eleven &gt; Saint Stephen"</span>,
+          <span class="json-string">"Alligator &gt; Turn On Your Lovelight &gt; Caution (Do Not Stop On Tracks) &gt; drums &gt; Caution (Do Not Stop On Tracks) &gt; Feedback"</span>
+        ]
+      }
+    ],
+    <span class="json-key">"footnotes"</span>: {}
+  }
+]
+      </code></pre>
+
+
+    <hr>
+    <h2 id="-get-shows-random-"><code class="header-code">GET /shows/random</code></h2>
+    <p>Returns a random single show object.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Example</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code class="lang-bash">curl http://localhost:8080/shows/random</code></td>
+          <td>Returns a random show.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">{
+  <span class="json-key">"show_id"</span>: <span class="json-number">957</span>,
+  <span class="json-key">"date"</span>: <span class="json-string">"1982-11-26"</span>,
+  <span class="json-key">"venue"</span>: <span class="json-string">"Bob Marley Performing Arts Center"</span>,
+  <span class="json-key">"city"</span>: <span class="json-string">"Montego Bay"</span>,
+  <span class="json-key">"location"</span>: <span class="json-string">"Jamaica"</span>,
+  <span class="json-key">"notes"</span>: <span class="json-string">"Jamaica World Music Festival - 4:30 to 7:00 AM - often labeled as 11/25"</span>,
+  <span class="json-key">"sets"</span>: [
+    {
+      <span class="json-key">"set_name"</span>: <span class="json-string">"set_1"</span>,
+      <span class="json-key">"songs"</span>: [
+        <span class="json-string">"Sugaree &gt; New Minglewood Blues"</span>,
+        <span class="json-string">"Loser"</span>,
+        <span class="json-string">"Man Smart (Woman Smarter)"</span>,
+        <span class="json-string">"Althea &gt; Let It Grow"</span>
+      ]
+    },
+    {
+      <span class="json-key">"set_name"</span>: <span class="json-string">"set_2"</span>,
+      <span class="json-key">"songs"</span>: [
+        <span class="json-string">"Samson And Delilah"</span>,
+        <span class="json-string">"Scarlet Begonias &gt; Fire On The Mountain &gt; drums &gt; space &gt; Throwing Stones &gt; Not Fade Away &gt; Black Peter &gt; Good Lovin'"</span>
+      ]
+    }
+  ],
+  <span class="json-key">"footnotes"</span>: {}
+}
+      </code></pre>
+    <hr>
+
+
+    <h2 id="-get-shows-"><code class="header-code">GET /shows</code></h2>
+    <p>Returns a filtered list of shows.
+      Note: this is a summary shape - no <code>sets</code> included. Fetch the individual show by its ID (<code>GET
+        /shows/{id}</code>) for the full setlist.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>start_date</code> / <code>end_date</code></td>
+          <td>string</td>
+          <td>Shows within a date range</td>
+          <td><code>start_date=1970-01-01&amp;end_date=1970-01-31</code></td>
+        </tr>
+        <tr>
+          <td><code>song</code></td>
+          <td>string</td>
+          <td>Shows where this song was played</td>
+          <td><code>song=althea</code></td>
+        </tr>
+        <tr>
+          <td><code>set_name</code></td>
+          <td>string</td>
+          <td>Shows containing a given set (e.g. acoustic, encore)</td>
+          <td><code>set_name=acoustic</code></td>
+        </tr>
+        <tr>
+          <td><code>venue</code></td>
+          <td>string</td>
+          <td>Shows at a venue matching this name</td>
+          <td><code>venue=fillmore</code></td>
+        </tr>
+        <tr>
+          <td><code>has_notes</code></td>
+          <td>bool</td>
+          <td>Shows that have notes attached</td>
+          <td><code>has_notes=true</code> <code>has_notes=false</code></td>
+        </tr>
+        <tr>
+          <td><code>year</code></td>
+          <td>int</td>
+          <td>Shows from a given year</td>
+          <td><code>year=1973</code></td>
+        </tr>
+        <tr>
+          <td><code>location</code></td>
+          <td>string</td>
+          <td>Shows in a given state or country. States should be standard 2 letter abbreviations.
+            <strong>Case-insensitive</strong>
+          </td>
+          <td><code>location=NY</code> <code>location=england</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+
+    <hr>
+    <h2 id="-get-shows-start_date-end_date-"><code class="header-code">GET /shows?start_date=&amp;end_date=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?start_date=1970-01-01&amp;end_date=1970-01-31'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1704</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1970-01-02"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore East"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"New York"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"NY"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Dave's Picks Volume 30"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2252</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1970-01-02"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore East"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"New York"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"NY"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Dave's Picks Volume 30"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2253</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1970-01-03"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore East"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"New York"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"NY"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Dave's Picks Volume 30 bonus tracks"</span>
+  },
+  ...
+]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-song-"><code class="header-code">GET /shows?song=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?song=werewolves'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1255</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1978-04-19"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Veterans Memorial Auditorium"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Columbus"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"OH"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1254</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1978-04-21"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Rupp Arena"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Lexington"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"KY"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1252</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1978-04-24"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Horton Field House, Illinois State University"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Normal"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"IL"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Dave's Picks Volume 7"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1251</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1978-05-05"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Thompson Arena, Dartmouth College"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Hanover"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"NH"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+  },
+  ...
+]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-set_name-"><code class="header-code">GET /shows?set_name=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?set_name=acoustic'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1961</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1969-12-26"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"McFarlin Auditorium, Southern Methodist University"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Dallas"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"TX"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Dave's Picks Volume 43"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1011</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1981-05-22"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Warfield Theatre"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"San Francisco"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"A benefit supporting Nuclear Disarmament. John Kahn on Upright Bass. Phil was absent."</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1055</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1981-10-16"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Melkweg"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Amsterdam"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"Netherlands"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1044</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1981-12-12"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fiesta Hall, County Fairgrounds"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"San Mateo"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Dance for Disarmament. Acoustic set with Joan Baez. Brent was absent."</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1039</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1981-12-31"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Oakland Civic Auditorium"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Oakland"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"The acoustic set started with Joan Baez solo. The songs listed here included the full band."</span>
+  },
+  ...
+]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-venue-"><code class="header-code">GET /shows?venue=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?venue=dream'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1868</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1969-02-22"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1869</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1969-02-21"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"This may be the second of two sets"</span>
+  }
+]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-has_notes-"><code class="header-code">GET /shows?has_notes=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?has_notes=true'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1869</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1969-02-21"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"This may be the second of two sets"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1867</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1969-02-27"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore West"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"San Francisco"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Fillmore West 1969: Complete Recordings"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">1866</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1969-02-28"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore West"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"San Francisco"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Fillmore West 1969: Complete Recordings"</span>
+  },
+  ...
+]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-year-"><code class="header-code">/GET /shows?year=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?year=1965'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2274</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1965-12-04"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Big Nig's House"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"San Jose"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"First appearance as The Grateful Dead. San Jose Acid Test."</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2273</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1965-12-10"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Fillmore Auditorium"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"San Francisco"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"First show as The Grateful Dead. Mime Troupe Benefit."</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2275</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1965-12-11"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"The Big Beat"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Palo Alto"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Big Beat Acid Test"</span>
+  },
+  {
+    <span class="json-key">"show_id"</span>: <span class="json-number">2276</span>,
+    <span class="json-key">"date"</span>: <span class="json-string">"1965-12-18"</span>,
+    <span class="json-key">"venue"</span>: <span class="json-string">"Muir Beach Lodge"</span>,
+    <span class="json-key">"city"</span>: <span class="json-string">"Muir Beach"</span>,
+    <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+    <span class="json-key">"notes"</span>: <span class="json-string">"Muir Beach Acid Test"</span>
+  }
+]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-location-"><code class="header-code">GET /shows?location=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?location=NM'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">1680</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1971-11-17"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Albuquerque Civic Auditorium"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Albuquerque"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"NM"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">"Pigpen was absent. Dave's Picks Volume
+          26."</span>
+        },
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">1360</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1977-10-07"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"University Arena, University Of New
+          Mexico"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Albuquerque"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"NM"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+        },
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">958</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1982-10-17"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Downs at Santa Fe"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Santa Fe"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"NM"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+        },
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">871</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1983-09-10"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Downs at Santa Fe"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Santa Fe"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"NM"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+        },
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">870</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1983-09-11"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Downs at Santa Fe"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Santa Fe"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"NM"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">"Dave's Picks Volume 52"</span>
+        }
+        ]
+      </code></pre>
+    <hr>
+    <h2 id="-get-shows-year-location-"><code class="header-code">GET /shows?year=&amp;location=</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/shows?year=1972&amp;location=denmark'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">1539</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1972-04-14"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Tivoli Concert Hall"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Copenhagen"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"Denmark"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+        },
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">1538</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1972-04-16"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Aarhus University"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Aarhus"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"Denmark"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+        },
+        {
+        <span class="json-key">"show_id"</span>: <span class="json-number">1537</span>,
+        <span class="json-key">"date"</span>: <span class="json-string">"1972-04-17"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Tivoli Concert Hall"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Copenhagen"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"Denmark"</span>,
+        <span class="json-key">"notes"</span>: <span class="json-string">""</span>
+        }
+        ]
+      </code></pre>
+    <hr>
+    <h2 id="songs">Songs</h2>
+    <h2 id="-get-songs-name-"><code class="header-code">GET /songs/{name}</code></h2>
+    <p>Returns stats for a single song.</p>
+    <p><strong>Example</strong></p>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/songs/althea'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">{
+        <span class="json-key">"times_played"</span>: <span class="json-number">271</span>,
+        <span class="json-key">"first_played"</span>: <span class="json-string">"1979-08-04"</span>,
+        <span class="json-key">"last_played"</span>: <span class="json-string">"1995-07-08"</span>
+        }
+      </code></pre>
+    <hr>
+    <h2 id="-get-songs-"><code class="header-code">GET /songs</code></h2>
+    <p>Returns a filtered/sorted list of songs. Query parameters split into <strong>filters</strong> (narrow the result
+      set) and <strong>directives</strong> (change how results are sorted).</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Parameter</th>
+          <th>Kind</th>
+          <th>Description</th>
+          <th>Example</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>sort</code></td>
+          <td>directive</td>
+          <td>Sort order for results (e.g. <code>most_played</code>)</td>
+          <td><code>sort=most_played</code></td>
+        </tr>
+        <tr>
+          <td><code>set_name</code></td>
+          <td>filter</td>
+          <td>Restrict to songs played within a given set (set_1, set_2, set_3, encore, acoustic, electric)</td>
+          <td><code>set_name=encore</code></td>
+        </tr>
+        <tr>
+          <td><code>venue</code></td>
+          <td>filter</td>
+          <td>Songs played at a given venue</td>
+          <td><code>venue=dream</code></td>
+        </tr>
+        <tr>
+          <td><code>played_lt</code></td>
+          <td>filter</td>
+          <td>Songs played fewer than N times</td>
+          <td><code>played_lt=30</code></td>
+        </tr>
+      </tbody>
+    </table>
+    <hr>
+    <h2 id="-get-songs-sort-most_played-"><code class="header-code">GET /songs?sort=most_played</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/songs?sort=most_played'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"China Cat Sunflower &gt; I Know You
+          Rider"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">420</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Jack Straw"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">410</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Tennessee Jed"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">398</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"New Minglewood Blues"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">377</span>
+        },
+        ...
+        ]
+      </code></pre>
+    <hr>
+    <h2 id="-get-songs-sort-most_played-set_name-"><code class="header-code">GET /songs?sort=most_played&amp;set_name=encore</code>
+    </h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/songs?sort=most_played&amp;set_name=encore'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"U.S. Blues"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">288</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Johnny B. Goode"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">133</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Brokedown Palace"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">132</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"One More Saturday Night"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">124</span>
+        },
+        ...
+        ]
+      </code></pre>
+    <hr>
+    <h2 id="-get-songs-venue-"><code class="header-code">GET /songs?venue=dream</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/songs?venue=dream'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Dark Star &gt; Saint Stephen &gt; The Eleven
+          &gt; Turn On Your Lovelight"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Doin' That Rag"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Doin' That Rag &gt; Saint Stephen &gt; The
+          Eleven &gt; Turn On Your Lovelight"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Dupree's Diamond Blues &gt; Mountains Of The
+          Moon &gt; Dark Star &gt; Cryptical Envelopment &gt; The Other One &gt; Cryptical Envelopment &gt; Death Don't
+          Have No Mercy"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Good Morning Little Schoolgirl"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Morning Dew"</span>,
+        <span class="json-key">"venue"</span>: <span class="json-string">"Dream Bowl"</span>,
+        <span class="json-key">"city"</span>: <span class="json-string">"Vallejo"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>
+        }
+        ]
+      </code></pre>
+    <hr>
+    <h2 id="-get-songs-played_lt-"><code class="header-code">GET /songs?played_lt=30</code></h2>
+    <pre class="lang-bash"><code>curl 'http://localhost:8080/songs?played_lt=30'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"New Speedway Boogie"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">28</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Dark Star &gt; Saint Stephen &gt; The Eleven
+          &gt; Turn On Your Lovelight"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">28</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Sunrise"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">28</span>
+        },
+        {
+        <span class="json-key">"song"</span>: <span class="json-string">"Chinatown Shuffle"</span>,
+        <span class="json-key">"times_played"</span>: <span class="json-number">28</span>
+        },
+        ...
+        ]
+      </code></pre>
+    <hr>
+    <h2 id="stats">Stats</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>GET /stats/songs-per-city</code></td>
+          <td>Returns unique song counts grouped by city</td>
+        </tr>
+      </tbody>
+    </table>
+    <p><strong>Example</strong></p>
+    <pre class="lang-bash"><code> curl 'http://localhost:8080/stats/songs-per-city'
+      </code></pre>
+    <p><strong>Response</strong></p>
+    <pre class="json-viewer"><code class="lang-json">[
+        {
+        <span class="json-key">"city"</span>: <span class="json-string">"San Francisco"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+        <span class="json-key">"unique_song_count"</span>: <span class="json-number">531</span>
+        },
+        {
+        <span class="json-key">"city"</span>: <span class="json-string">"Oakland"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"CA"</span>,
+        <span class="json-key">"unique_song_count"</span>: <span class="json-number">438</span>
+        },
+        {
+        <span class="json-key">"city"</span>: <span class="json-string">"New York"</span>,
+        <span class="json-key">"location"</span>: <span class="json-string">"NY"</span>,
+        <span class="json-key">"unique_song_count"</span>: <span class="json-number">435</span>
+        },
+        ...
+        ]
+      </code></pre>
+  </div>
+
+</body>
+
+</html>

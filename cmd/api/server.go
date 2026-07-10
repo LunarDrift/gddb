@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"net/http"
 
+	_ "embed"
+
 	"github.com/LunarDrift/deadabase/internal"
 	_ "github.com/lib/pq"
 )
@@ -25,6 +27,8 @@ func NewServer(db *sql.DB, queries internal.ShowQuerier) *server {
 }
 
 func (s *server) registerRoutes() {
+	s.mux.Handle("/", http.FileServer(http.Dir("./static")))
+
 	s.mux.HandleFunc("GET /health", s.handleHealth)
 
 	s.mux.HandleFunc("GET /shows", s.handleShowsFromQueryParam)
