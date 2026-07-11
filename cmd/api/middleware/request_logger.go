@@ -23,7 +23,10 @@ func RequestLogger(logger *log.Logger) func(http.Handler) http.Handler {
 
 			next.ServeHTTP(rec, r)
 
-			logger.Printf("Wake up babe, new %s just dropped on %s -> %d", r.Method, r.URL.RequestURI(), rec.status)
+			if r.URL.Path == "/health" {
+				return
+			}
+			logger.Printf("%s %s %d", r.Method, r.URL.RequestURI(), rec.status)
 		})
 	}
 }

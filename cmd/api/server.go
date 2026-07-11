@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"net/http"
 
 	_ "embed"
@@ -14,13 +15,15 @@ type server struct {
 	mux     *http.ServeMux
 	db      *sql.DB
 	queries internal.ShowQuerier
+	logger  *log.Logger
 }
 
-func NewServer(db *sql.DB, queries internal.ShowQuerier) *server {
+func NewServer(db *sql.DB, queries internal.ShowQuerier, logger *log.Logger) *server {
 	srv := &server{
 		mux:     http.NewServeMux(),
 		db:      db,
 		queries: queries,
+		logger:  logger,
 	}
 	srv.registerRoutes()
 	return srv

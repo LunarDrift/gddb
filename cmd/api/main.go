@@ -11,8 +11,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var logger = log.New(os.Stdout, "DEBUG: ", log.LstdFlags)
-
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal(err)
@@ -29,12 +27,13 @@ func main() {
 	}
 
 	queries := database.New(db)
-	srv := NewServer(db, queries)
+	logger := log.New(os.Stderr, "LOG: ", log.LstdFlags)
+	srv := NewServer(db, queries, logger)
 
 	requestLogger := middleware.RequestLogger(logger)
 	limiter := middleware.NewIPRateLimiter(2, 10) // 2 req/sec sustained, burst of 10
 	handler := requestLogger(limiter.Middleware(srv.mux))
 
-	logger.Printf("Listening on %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, handler))
+	srv.logger.Printf("Listening on %s...\n", port)
+	srv.logger.Fatal(http.ListenAndServe(":"+port, handler))
 }
