@@ -122,14 +122,13 @@ pre.json-viewer.wrap code {
   z-index: 1;
   top: 0;
   left: 0;
-  background-color: #111;
+  background-color: var(--side-nav-bg);
   overflow-x: hidden;
 }
 
-
 /* Side navigation links */
 .sidenav a {
-  color: white;
+  color: var(--content-text);
   padding: 6px;
   padding-bottom: 8px;
   text-decoration: none;
@@ -174,8 +173,9 @@ pre.lang-bash {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 0.9rem;
   background-color: var(--bg-color2);
-  padding: 0.2rem 0.4rem;
-  border-radius: 0.25rem;
+  padding: 0.1rem 0.3rem 0.2rem;
+  border-radius: 0.2rem;
+  max-width: fit-content;
 }
 
 :root {
@@ -190,7 +190,8 @@ pre.lang-bash {
 
   --bg-color: #f8fafc;
   --bg-color2: #e5e7eb;
-  --content-text: #1e293b;
+  --content-text: #141518;
+  --side-nav-bg: #d8d5d5;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -207,6 +208,7 @@ pre.lang-bash {
     --bg-color: #23272e;
     --bg-color2: #2c3036;
     --content-text: #c5c5c5;
+    --side-nav-bg: #111;
   }
 }
 

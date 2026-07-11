@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +10,8 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 	"github.com/joho/godotenv"
 )
+
+var logger = log.New(os.Stdout, "DEBUG: ", log.LstdFlags)
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -30,9 +31,10 @@ func main() {
 	queries := database.New(db)
 	srv := NewServer(db, queries)
 
+	requestLogger := middleware.RequestLogger(logger)
 	limiter := middleware.NewIPRateLimiter(2, 10) // 2 req/sec sustained, burst of 10
-	handler := limiter.Middleware(srv.mux)
+	handler := requestLogger(limiter.Middleware(srv.mux))
 
-	fmt.Printf("Listening on %s...\n", port)
+	logger.Printf("Listening on %s...\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
