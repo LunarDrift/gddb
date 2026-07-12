@@ -23,16 +23,32 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **sqlc:** type-safe SQL query generation
 - **Docker:** package dependencies together and make setup a simple command
 
-**Live:** https://deadabase.onrender.com
+## Live
+https://deadabase.onrender.com
+
 ## Local Setup
+1. Clone the repo
 ```bash
 git clone https://github.com/LunarDrift/gddb
 cd gddb
+```
+
+2. Edit the `.env.example` file with your own details and rename it to `.env`
+```
+# Database Credentials
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_DB=your_db_name
+
+# Internal Docker Connection URL
+DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable
+```
+
+3. Run the docker command
+```bash
 docker compose up --build
 ```
 Use `--build` on first run or after any change to the Go source or Dockerfile, so `docker-compose` rebuilds the `deadabase:local` app image before starting the containers.
-
-*The Postgres credentials are hardcoded in `docker-compose.yml` for local/demo purposes*.
 
 ## API Endpoints (GET only)
 For further details about each endpoint and their response shapes, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
