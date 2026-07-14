@@ -49,14 +49,21 @@ func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request
 
 func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.Request) {
 	val := r.URL.Query().Get("played_lt")
+	if val == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing parameter", nil)
+		return
+	}
+
 	num, err := strconv.Atoi(val)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid value. Expecting number", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid value. Expecting integer number", err)
+		return
 	}
 
 	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), int32(num))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+		return
 	}
 
 	var results []internal.SongsTimesPlayed
@@ -70,18 +77,19 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *http.Request) {
 	setName := r.URL.Query().Get("set_name")
 	if setName == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing set_name query parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'set_name' parameter", nil)
+		return
+	}
+
+	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
+	if !slices.Contains(validSetNames, setName) {
+		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name '%v'. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return
 	}
 
 	songRows, err := s.queries.MostCommonSongsBySetName(r.Context(), setName)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
-	}
-
-	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
-	if !slices.Contains(validSetNames, setName) {
-		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return
 	}
 
@@ -115,7 +123,7 @@ func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Requ
 func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Request) {
 	venue := r.URL.Query().Get("venue")
 	if venue == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing venue parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'venue' parameter", nil)
 		return
 	}
 
@@ -148,7 +156,7 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 	song := r.PathValue("song")
 
-	// This can never actually happen client-side; `/songs/` without a parameter will always 404.
+	// NOTE: This can never actually happen client-side; `/songs/` without a parameter will 404.
 	// But I'll keep it just in case I make changes in the future to /songs
 	// And I'm asserting the 400 status code in the test. Otherwise I'd have to connect to the real server mux for a single test case
 	if song == "" {

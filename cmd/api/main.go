@@ -27,7 +27,7 @@ func main() {
 	}
 
 	queries := database.New(db)
-	logger := log.New(os.Stderr, "LOG: ", log.LstdFlags)
+	logger := log.New(os.Stderr, "INFO: ", log.LstdFlags)
 	srv := NewServer(db, queries, logger)
 
 	requestLogger := middleware.RequestLogger(logger)

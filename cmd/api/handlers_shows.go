@@ -332,12 +332,12 @@ func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) 
 func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *http.Request) {
 	yearStr := r.URL.Query().Get("year")
 	if yearStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'year' parameter", nil)
 		return
 	}
 	location := r.URL.Query().Get("location")
 	if location == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'location' parameter", nil)
 		return
 	}
 	location = strings.ToLower(location)
@@ -383,7 +383,7 @@ func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *htt
 func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) {
 	yearStr := r.URL.Query().Get("year")
 	if yearStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing year parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'year' parameter", nil)
 		return
 	}
 
@@ -415,7 +415,7 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Request) {
 	location := r.URL.Query().Get("location")
 	if location == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing location parameter", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing 'location' parameter", nil)
 		return
 	}
 	location = strings.ToLower(location)

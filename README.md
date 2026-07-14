@@ -81,6 +81,7 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 
 ```json
 {
+  "show_id": 147,
   "date": "1993-03-14",
   "venue": "Richfield Coliseum",
   "city": "Richfield",
