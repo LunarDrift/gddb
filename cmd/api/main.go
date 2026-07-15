@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -27,13 +28,15 @@ func main() {
 	}
 
 	queries := database.New(db)
-	logger := log.New(os.Stderr, "INFO: ", log.LstdFlags)
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
 	srv := NewServer(db, queries, logger)
 
 	requestLogger := middleware.RequestLogger(logger)
 	limiter := middleware.NewIPRateLimiter(2, 10) // 2 req/sec sustained, burst of 10
 	handler := requestLogger(limiter.Middleware(srv.mux))
 
-	srv.logger.Printf("Listening on %s...\n", port)
-	srv.logger.Fatal(http.ListenAndServe(":"+port, handler))
+	srv.logger.Info("Listening", "port", port)
+	http.ListenAndServe(":"+port, handler)
 }
