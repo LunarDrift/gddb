@@ -28,7 +28,7 @@ func main() {
 	}
 
 	queries := database.New(db)
-	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 	srv := NewServer(db, queries, logger)
@@ -38,5 +38,5 @@ func main() {
 	handler := requestLogger(limiter.Middleware(srv.mux))
 
 	srv.logger.Info("Listening", "port", port)
-	http.ListenAndServe(":"+port, handler)
+	_ = http.ListenAndServe(":"+port, handler)
 }

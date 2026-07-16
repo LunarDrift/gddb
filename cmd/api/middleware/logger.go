@@ -54,12 +54,16 @@ func LoggerMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 			}
 
 			attrs := []any{
-				slog.String("method", r.Method),
-				slog.String("url", r.URL.RequestURI()),
-				slog.Duration("duration", time.Since(start)),
-				// slog.Int("request_body_bytes", reqRec.bytesRead), // not really useful atm - always 0 since no current endpoint needs a req body
-				slog.Int("response_status", respRec.statusCode),
-				slog.Int("response_body_bytes", respRec.bytesWritten),
+				slog.Duration("duration", time.Duration(time.Since(start).Milliseconds())),
+				slog.Group("request",
+					"method", r.Method,
+					"url", r.URL.RequestURI(),
+					// "request_body_bytes", reqRec.bytesRead, // not really useful atm - always 0 since no current endpoint needs a req body
+				),
+				slog.Group("response",
+					"response_status", respRec.statusCode,
+					"response_body_bytes", respRec.bytesWritten,
+				),
 			}
 			logger.Info("Served request", attrs...)
 		})
