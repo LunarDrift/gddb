@@ -33,7 +33,7 @@ func main() {
 	}))
 	srv := NewServer(db, queries, logger)
 
-	requestLogger := middleware.RequestLogger(logger)
+	requestLogger := middleware.LoggerMiddleware(logger)
 	limiter := middleware.NewIPRateLimiter(2, 10) // 2 req/sec sustained, burst of 10
 	handler := requestLogger(limiter.Middleware(srv.mux))
 

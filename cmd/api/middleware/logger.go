@@ -39,7 +39,7 @@ func (req *requestRecorder) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func RequestLogger(logger *slog.Logger) func(http.Handler) http.Handler {
+func LoggerMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
