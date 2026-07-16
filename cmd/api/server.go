@@ -2,10 +2,8 @@ package main
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
 	"net/http"
-
-	_ "embed"
 
 	"github.com/LunarDrift/deadabase/internal"
 	_ "github.com/lib/pq"
@@ -15,10 +13,10 @@ type server struct {
 	mux     *http.ServeMux
 	db      *sql.DB
 	queries internal.ShowQuerier
-	logger  *log.Logger
+	logger  *slog.Logger
 }
 
-func NewServer(db *sql.DB, queries internal.ShowQuerier, logger *log.Logger) *server {
+func NewServer(db *sql.DB, queries internal.ShowQuerier, logger *slog.Logger) *server {
 	srv := &server{
 		mux:     http.NewServeMux(),
 		db:      db,
