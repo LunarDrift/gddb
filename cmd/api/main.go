@@ -6,10 +6,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/LunarDrift/deadabase/cmd/api/middleware"
 	"github.com/LunarDrift/deadabase/internal/database"
 	"github.com/joho/godotenv"
+	"github.com/lmittmann/tint"
+	"github.com/mattn/go-isatty"
 )
 
 func main() {
@@ -28,9 +31,13 @@ func main() {
 	}
 
 	queries := database.New(db)
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+	logger := slog.New(tint.NewTextHandler(os.Stderr, &tint.Options{
+		Level:      slog.LevelDebug,
+		TimeFormat: time.DateTime,
+		NoColor:    !isatty.IsTerminal(os.Stderr.Fd()) && !isatty.IsCygwinTerminal(os.Stderr.Fd()),
 	}))
+	slog.SetDefault(logger)
+
 	srv := NewServer(db, queries, logger)
 
 	requestLogger := middleware.LoggerMiddleware(logger)
@@ -38,5 +45,5 @@ func main() {
 	handler := requestLogger(limiter.Middleware(srv.mux))
 
 	srv.logger.Info("Listening", "port", port)
-	_ = http.ListenAndServe(":"+port, handler)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
