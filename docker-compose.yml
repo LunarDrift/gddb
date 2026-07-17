@@ -8,6 +8,8 @@ x-app: &app
 services:
   db:
     image: postgres:16-alpine
+    ports:
+      - "5433:5432"
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -37,6 +39,7 @@ services:
 
   api:
     <<: *app
+    tty: true
     depends_on:
       import:
         condition: service_completed_successfully
