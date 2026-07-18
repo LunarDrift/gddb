@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -23,12 +24,14 @@ func respondWithJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
+		slog.SetLogLoggerLevel(slog.LevelError)
 		log.Println("respondWithJSON - could not encode payload:", err)
 	}
 }
 
 func respondWithError(w http.ResponseWriter, status int, message string, err error) {
 	if err != nil {
+		slog.SetLogLoggerLevel(slog.LevelError)
 		log.Println(err)
 	}
 	type errorResponse struct {
