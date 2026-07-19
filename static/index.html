@@ -25,6 +25,7 @@
         <li><a href="#-get-shows-set_name-">/shows?set_name=</a></li>
         <li><a href="#-get-shows-venue-">/shows?venue=</a></li>
         <li><a href="#-get-shows-has_notes-">/shows?has_notes=</a></li>
+        <li><a href="#-get-shows-year-">/shows?year=</a></li>
         <li><a href="#-get-shows-location-">/shows?location=</a></li>
         <li><a href="#-get-shows-year-location-">/shows?year=&location=</a></li>
       </ul>
@@ -47,7 +48,7 @@
   <div class="content">
     <p>Deadabase is a REST API for browsing and exploring Grateful Dead concert history. Search through thousands of shows by date, venue, song, or set name - with full setlists and show footnotes.</p>
     <p><strong>Base URL: </strong><code>https://deadabase.onrender.com</code></p>
-    <p>Replace the example <code>localhost:8080</code> with the base URL above unless you clone the <a href="https://github.com/LunarDrift/gddb">GitHub repo</a> and are running the API locally.</p>
+    <p>Replace the example <code>localhost:8080</code> with the base URL above unless you clone the <a href="https://github.com/LunarDrift/gddb">GitHub repo</a> and are running the API server locally.</p>
     <p>All endpoints return JSON and respond to <code>GET</code> requests only.<br>Songs that segue into each other
       within a set are represented as a single string joined with <code>&gt;</code>.
       <code>footnotes</code> is keyed by marker when present, empty object otherwise.
@@ -624,6 +625,43 @@
     ...
 ]</code></pre>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const sidebarLinks = Array.from(document.querySelectorAll('.sidenav a[href^="#"]'));
+
+    const sectionLinks = sidebarLinks
+      .map(link => {
+        const id = link.getAttribute('href').slice(1);
+        const target = document.getElementById(id);
+        return target ? { link, target } : null;
+      })
+      .filter(Boolean);
+
+    const updateActiveLink = () => {
+      let closest = null;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      sectionLinks.forEach(({ link, target }) => {
+        const rect = target.getBoundingClientRect();
+        const distance = Math.abs(rect.top - 120);
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closest = link;
+        }
+      });
+
+      sidebarLinks.forEach(link => link.classList.remove('active'));
+      if (closest) {
+        closest.classList.add('active');
+      }
+    };
+
+    updateActiveLink();
+    window.addEventListener('scroll', updateActiveLink, { passive: true });
+    window.addEventListener('resize', updateActiveLink);
+  });
+</script>
 
 </body>
 

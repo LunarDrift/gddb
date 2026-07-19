@@ -132,6 +132,16 @@ pre.json-viewer code {
   color: black;
 }
 
+/* Side navigation scroll spy */
+.sidenav a.active {
+  background-color: #9e9e9e;
+  color: black;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 /* Remove bullets from the side navigation */
 ul.no-bullets {
   list-style-type: none;
