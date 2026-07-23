@@ -109,6 +109,7 @@ type ShowQuerier interface {
 	GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error)
 	GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error)
 	GetShowsFromLocation(ctx context.Context, location string) ([]database.GetShowsFromLocationRow, error)
+	GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error)
 	GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error)
 	GetShowsFromYearAndLocation(ctx context.Context, arg database.GetShowsFromYearAndLocationParams) ([]database.GetShowsFromYearAndLocationRow, error)
 	SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error)

@@ -131,3 +131,10 @@ func (r GetShowsFromLocationRow) GetVenue() string         { return r.Venue }
 func (r GetShowsFromLocationRow) GetCity() string          { return r.City }
 func (r GetShowsFromLocationRow) GetLocation() string      { return r.Location }
 func (r GetShowsFromLocationRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r GetShowsFromCityRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromCityRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromCityRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromCityRow) GetCity() string          { return r.City }
+func (r GetShowsFromCityRow) GetLocation() string      { return r.Location }
+func (r GetShowsFromCityRow) GetNotes() sql.NullString { return r.Notes }

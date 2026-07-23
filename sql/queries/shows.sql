@@ -202,5 +202,17 @@ FROM shows sh
 WHERE LOWER(sh.state) = LOWER(@location)
 ORDER BY sh.show_date;
 
+-- name: GetShowsFromCity :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes
+FROM shows sh
+WHERE sh.city ILIKE $1
+ORDER BY sh.show_date;
+
 -- name: GetValidLocations :many
 SELECT DISTINCT LOWER(state) AS location FROM shows;

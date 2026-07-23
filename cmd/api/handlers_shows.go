@@ -28,6 +28,9 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	case query.Has("location"):
 		s.handleGetShowsFromLocation(w, r)
 
+	case query.Has("city"):
+		s.handleGetShowsFromCity(w, r)
+
 	case query.Has("song"):
 		s.handleGetShowsFromSongName(w, r)
 
@@ -438,6 +441,31 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 	showRows, err := s.queries.GetShowsFromLocation(r.Context(), location)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	var results []internal.ShowMeta
+	for _, row := range showRows {
+		results = append(results, internal.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) {
+	city := r.URL.Query().Get("city")
+	if city == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing 'city' parameter", nil)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromCity(r.Context(), city)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "City not found", nil)
 		return
 	}
 

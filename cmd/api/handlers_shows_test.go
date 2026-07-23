@@ -571,6 +571,68 @@ func TestHandleGetShowsFromLocation_Errors(t *testing.T) {
 	}
 }
 
+func TestHandleGetShowsFromCity(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	fake := &fakeQuerier{
+		showsFromCityRows: []database.GetShowsFromCityRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date.Add(24 * time.Hour), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?city=chicago", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsFromCity(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got []internal.ShowMeta
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got))
+	}
+
+	if got[0].City != "Chicago" {
+		t.Errorf("got[0].City = %q; want %q", got[0].City, "Chicago")
+	}
+	if got[1].City != "Chicago" {
+		t.Errorf("got[1].City = %q; want %q", got[1].City, "Chicago")
+	}
+}
+
+func TestHandleGetShowsFromCity_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+		fake       *fakeQuerier
+	}{
+		{"empty param", "/shows?city=", http.StatusBadRequest, &fakeQuerier{}},
+		{"city not found", "/shows?city=abc", http.StatusNotFound, &fakeQuerier{}},
+		{"server error", "/shows?city=reno", http.StatusInternalServerError, &fakeQuerier{showsFromCityErr: errors.New("db exploded")}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsFromCity(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
+	}
+}
+
 func TestHandleGetShowsFromYear(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
 	fake := &fakeQuerier{
