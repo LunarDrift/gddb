@@ -65,6 +65,7 @@ For further details about each endpoint and their response shapes, take a look a
 | `/shows?year=` | List of shows filtered by year |
 | `/shows?location=` | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations) |
 | `/shows?year=&location=` | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
+| `/shows?city=` | List of shows filtered by city |
 | `/shows/random` | Get details for a random show |
 | `/songs?sort=most_played` | Returns a list of all songs and the amount of times they were played |
 | `/songs?venue=` | All songs played at a specific venue |
