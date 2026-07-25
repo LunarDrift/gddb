@@ -97,10 +97,6 @@ SELECT
   s.notes
 FROM
 	shows s
-JOIN "sets" st ON 
-	s.show_id = st.show_id 
-JOIN set_entries se ON
-	st.id = se.set_id 
 WHERE
 	s.show_date BETWEEN $1 AND $2
 GROUP BY
@@ -128,8 +124,8 @@ SELECT
   min(sh.show_date)::date AS first_played,
   max(sh.show_date)::date AS last_played
 FROM shows sh 
-JOIN "sets" s ON s.show_id = sh.show_id 
-JOIN set_entries se ON se.set_id = s.id 
+JOIN "sets" s ON s.show_id = sh.show_id
+JOIN set_entries se ON se.set_id = s.id
 WHERE se.song_name ILIKE $1;
 
 -- name: GetShowsFromSetName :many
