@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -151,6 +152,11 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
+		return
+	}
+
 	var parsedShow []internal.ShowSortInput
 	for _, row := range showRows {
 		parsedShow = append(parsedShow, internal.RowToShowSortInput(row))
@@ -197,6 +203,12 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
 		return
 	}
+
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "No shows between those dates", nil)
+		return
+	}
+
 	showResults := []internal.ShowMeta{}
 	for _, row := range showRows {
 		showResults = append(showResults, internal.RowToShowMeta(row))
@@ -245,6 +257,11 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
+		return
+	}
+
 	var showResults []internal.ShowMeta
 	for _, row := range showRows {
 		showResults = append(showResults, internal.RowToShowMeta(row))
@@ -268,8 +285,7 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 	}
 
 	if len(venueRows) == 0 {
-		msg := fmt.Sprintf("Venue '%s' not found", venue)
-		respondWithError(w, http.StatusNotFound, msg, nil)
+		respondWithError(w, http.StatusNotFound, "Venue not found", nil)
 		return
 	}
 
@@ -312,6 +328,10 @@ func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error
 		return nil, fmt.Errorf("showsWithNotes: %w", err)
 	}
 
+	if len(showRows) == 0 {
+		return nil, errors.New("malformed show data: len(showRows) = 0")
+	}
+
 	var results []internal.ShowMeta
 	for _, row := range showRows {
 		results = append(results, internal.RowToShowMeta(row))
@@ -323,6 +343,10 @@ func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) 
 	showRows, err := s.queries.ShowsWithoutNotes(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("showsNoNotes: %w", err)
+	}
+
+	if len(showRows) == 0 {
+		return nil, errors.New("malformed show data: len(showRows) = 0")
 	}
 
 	var results []internal.ShowMeta
@@ -375,6 +399,11 @@ func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *htt
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusNotFound, "No shows found from that year and location", nil)
+		return
+	}
+
 	var results []internal.ShowMeta
 	for _, row := range showRows {
 		results = append(results, internal.RowToShowMeta(row))
@@ -404,6 +433,11 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 	showRows, err := s.queries.GetShowsFromYear(r.Context(), int32(year))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
 		return
 	}
 
@@ -444,6 +478,11 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if len(showRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
+		return
+	}
+
 	var results []internal.ShowMeta
 	for _, row := range showRows {
 		results = append(results, internal.RowToShowMeta(row))
@@ -464,6 +503,7 @@ func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
+
 	if len(showRows) == 0 {
 		respondWithError(w, http.StatusNotFound, "City not found", nil)
 		return
