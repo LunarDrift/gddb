@@ -29,7 +29,8 @@ func (s *server) handleSongsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		s.handleGetSongsPlayedAtVenue(w, r)
 
 	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: played_lt, venue, sort=most_played, sort=most_played&set_name=", nil)
+		msg := "Must provide a valid query parameter: played_lt, venue, sort=most_played, sort=most_played&set_name="
+		respondWithError(w, http.StatusBadRequest, msg, nil)
 		return
 	}
 }
@@ -40,10 +41,17 @@ func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request
 		respondWithError(w, http.StatusInternalServerError, "Could not get most played songs", err)
 		return
 	}
+
+	if len(songRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
+		return
+	}
+
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
 		results = append(results, internal.RowToSongsTimesPlayed(row))
 	}
+
 	respondWithJSON(w, http.StatusOK, results)
 }
 
@@ -60,9 +68,19 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 		return
 	}
 
+	if num < 2 {
+		respondWithError(w, http.StatusBadRequest, "Number should be at least 2", nil)
+		return
+	}
+
 	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), int32(num))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+		return
+	}
+
+	if len(songRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
 		return
 	}
 
@@ -93,6 +111,11 @@ func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *htt
 		return
 	}
 
+	if len(songRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
+		return
+	}
+
 	var results []internal.SongsTimesPlayed
 	for _, row := range songRows {
 		results = append(results, internal.RowToSongsTimesPlayed(row))
@@ -105,6 +128,11 @@ func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Requ
 	songRows, err := s.queries.UniqueSongsPerCity(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get data", err)
+		return
+	}
+
+	if len(songRows) == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
 		return
 	}
 
@@ -165,11 +193,11 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Split the song and add % for sql search pattern
-	// So that searching for e.g. "Help on the way > Slipknot! > Franklin's Tower" becomes "Help%On%The%Way%>..."
+	// So that searching for e.g. "Help on the way > Slipknot! > Franklin's Tower" becomes "%Help%On%The%Way%>..."
 	searchPattern := fuzzyPattern(song)
 	songStatRow, err := s.queries.SongStats(r.Context(), sql.NullString{String: searchPattern, Valid: true})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get song stats", err)
+		respondWithError(w, http.StatusNotFound, "Song not found", err)
 		return
 	}
 
