@@ -41,6 +41,20 @@ func (req *requestRecorder) Read(p []byte) (int, error) {
 	return n, err
 }
 
+func redactIPv6(ip net.IP) string {
+	ip = ip.To16()
+	if ip == nil {
+		return ""
+	}
+	return fmt.Sprintf(
+		"%x:%x:%x:%x:x:x:x:x",
+		uint16(ip[0])<<8|uint16(ip[1]),
+		uint16(ip[2])<<8|uint16(ip[3]),
+		uint16(ip[4])<<8|uint16(ip[5]),
+		uint16(ip[6])<<8|uint16(ip[7]),
+	)
+}
+
 func redactIP(addr string) string {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
@@ -53,7 +67,7 @@ func redactIP(addr string) string {
 	if ip4 := ip.To4(); ip4 != nil {
 		return fmt.Sprintf("%d.%d.%d.x", ip4[0], ip4[1], ip4[2])
 	}
-	return ip.String()
+	return redactIPv6(ip)
 }
 
 func LoggerMiddleware(logger *slog.Logger) func(http.Handler) http.Handler {

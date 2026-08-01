@@ -26,10 +26,10 @@ ORDER BY times_played DESC;
 
 -- name: MostCommonSongsBySetName :many
 SELECT se.song_name AS song, count(*) AS times_played
-FROM set_entries se 
+FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
 WHERE s.set_name = $1
-GROUP BY se.song_name 
+GROUP BY se.song_name
 ORDER BY times_played  DESC;
 
 -- name: UniqueSongsPerCity :many
