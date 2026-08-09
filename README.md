@@ -23,8 +23,9 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **sqlc:** type-safe SQL query generation
 - **Docker:** package dependencies together and make setup a simple command
 
-## Live
-https://deadabase.onrender.com
+## ~~Live~~
+~~https://deadabase.onrender.com~~
+No longer being hosted publicly, sorry. Local-hosting only via Docker.
 
 ## Local Setup
 1. Clone the repo
