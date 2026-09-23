@@ -51,6 +51,13 @@ type ShowResponse struct {
 	Footnotes map[string]string `json:"footnotes"`
 }
 
+type PaginatedShowResponse struct {
+	Count    int64      `json:"count"`
+	Next     string     `json:"next"`
+	Previous string     `json:"previous"`
+	Results  []ShowMeta `json:"results"`
+}
+
 // SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {
 	SetName string   `json:"set_name"`

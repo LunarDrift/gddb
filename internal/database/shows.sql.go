@@ -449,7 +449,8 @@ SELECT
   s.venue,
   s.city,
   s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id
@@ -464,6 +465,7 @@ type GetShowsFromSongNameRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
 func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]GetShowsFromSongNameRow, error) {
@@ -482,6 +484,7 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

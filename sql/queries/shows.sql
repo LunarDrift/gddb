@@ -111,7 +111,8 @@ SELECT
   s.venue,
   s.city,
   s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id

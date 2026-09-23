@@ -48,7 +48,7 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		s.handleGetShowsBetweenDates(w, r)
 
 	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&state", nil)
+		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&location", nil)
 		return
 	}
 }
@@ -217,6 +217,8 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Request) {
+	// TODO: Still need to implement LIMIT and OFFSET in db query
+	// Also need to figure out the correct way to include Next and Previous URLs
 	songName := r.URL.Query().Get("song")
 	if songName == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing 'song' query parameter", nil)
@@ -235,11 +237,19 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	showResults := []internal.ShowMeta{}
-	for _, row := range showRows {
-		showResults = append(showResults, internal.RowToShowMeta(row))
+	results := internal.PaginatedShowResponse{
+		Count: showRows[0].Count,
+		Next:  r.URL.String(), // TODO: Not sure this is right. Need to figure out the Next and Previous URLs in response
 	}
-	respondWithJSON(w, http.StatusOK, showResults)
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+	respondWithJSON(w, http.StatusOK, results)
+	// showResults := []internal.ShowMeta{}
+	// for _, row := range showRows {
+	// 	showResults = append(showResults, internal.RowToShowMeta(row))
+	// }
+	// respondWithJSON(w, http.StatusOK, showResults)
 }
 
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {

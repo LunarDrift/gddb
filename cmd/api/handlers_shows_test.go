@@ -309,24 +309,24 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.PaginatedShowResponse
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != len(fake.showsFromSongNameRows) {
-		t.Errorf("len(got) = %d; want %d", len(got), len(fake.showsFromSongNameRows))
+	if len(got.Results) != len(fake.showsFromSongNameRows) {
+		t.Errorf("len(got) = %d; want %d", len(got.Results), len(fake.showsFromSongNameRows))
 	}
 
-	if got[0].Date != "1995-01-01" {
-		t.Errorf("got[0].Date = %q; want %q", got[0].Date, "1995-01-01")
+	if got.Results[0].Date != "1995-01-01" {
+		t.Errorf("got[0].Date = %q; want %q", got.Results[0].Date, "1995-01-01")
 	}
 
-	if got[0].Venue != "test venue" {
-		t.Errorf("got[0].Venue = %q; want 'test venue'", got[0].Venue)
+	if got.Results[0].Venue != "test venue" {
+		t.Errorf("got[0].Venue = %q; want 'test venue'", got.Results[0].Venue)
 	}
-	if got[1].Venue != "test venue 2" {
-		t.Errorf("got[1].Venue = %q; want 'test venue 2'", got[1].Venue)
+	if got.Results[1].Venue != "test venue 2" {
+		t.Errorf("got[1].Venue = %q; want 'test venue 2'", got.Results[1].Venue)
 	}
 }
 
