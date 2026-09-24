@@ -15,6 +15,43 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
+// pageURL, buildLinks, and parsePagination are helpers for pagination process
+func pageURL(r *http.Request, offset, limit int) *string {
+	q := r.URL.Query()
+	q.Set("offset", strconv.Itoa(offset))
+	q.Set("limit", strconv.Itoa(limit))
+	s := r.URL.Path + "?" + q.Encode()
+	return &s
+}
+
+func buildLinks(r *http.Request, count, offset, limit int) (next, prev *string) {
+	if offset+limit < count {
+		next = pageURL(r, offset+limit, limit)
+	}
+	if offset > 0 {
+		prev = pageURL(r, max(offset-limit, 0), limit)
+	}
+	return next, prev
+}
+
+func parsePagination(r *http.Request) (limit, offset int, err error) {
+	limit, offset = 20, 0
+	q := r.URL.Query()
+
+	if v := q.Get("limit"); v != "" {
+		if limit, err = strconv.Atoi(v); err != nil || limit < 1 {
+			return 0, 0, errors.New("invalid 'limit' parameter")
+		}
+		limit = min(limit, 100) // cap so server doesn't send everything at once
+	}
+	if v := q.Get("offset"); v != "" {
+		if offset, err = strconv.Atoi(v); err != nil || offset < 0 {
+			return 0, 0, errors.New("invalid 'offset' parameter")
+		}
+	}
+	return limit, offset, nil
+}
+
 // handlerShows parses the query parameter and chooses the appropriate endpoint
 func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -217,39 +254,48 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Request) {
-	// TODO: Still need to implement LIMIT and OFFSET in db query
-	// Also need to figure out the correct way to include Next and Previous URLs
 	songName := r.URL.Query().Get("song")
 	if songName == "" {
 		respondWithError(w, http.StatusBadRequest, "Missing 'song' query parameter", nil)
 		return
 	}
 
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
 	searchPattern := fuzzyPattern(songName)
-	showRows, err := s.queries.GetShowsFromSongName(r.Context(), searchPattern)
+	showRows, err := s.queries.GetShowsFromSongName(r.Context(), database.GetShowsFromSongNameParams{
+		RawEntry:   searchPattern,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "Song not found", nil)
 		return
 	}
 
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
 	results := internal.PaginatedShowResponse{
-		Count: showRows[0].Count,
-		Next:  r.URL.String(), // TODO: Not sure this is right. Need to figure out the Next and Previous URLs in response
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
 	}
 	for _, row := range showRows {
 		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, results)
-	// showResults := []internal.ShowMeta{}
-	// for _, row := range showRows {
-	// 	showResults = append(showResults, internal.RowToShowMeta(row))
-	// }
-	// respondWithJSON(w, http.StatusOK, showResults)
 }
 
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {

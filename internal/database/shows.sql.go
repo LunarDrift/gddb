@@ -455,8 +455,15 @@ FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.raw_entry ILIKE $1
-ORDER BY show_date
+ORDER BY s.show_date, s.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromSongNameParams struct {
+	RawEntry   string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromSongNameRow struct {
 	ShowID   int32
@@ -468,8 +475,8 @@ type GetShowsFromSongNameRow struct {
 	Count    int64
 }
 
-func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]GetShowsFromSongNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, rawEntry)
+func (q *Queries) GetShowsFromSongName(ctx context.Context, arg GetShowsFromSongNameParams) ([]GetShowsFromSongNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, arg.RawEntry, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}

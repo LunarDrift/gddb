@@ -78,7 +78,7 @@ func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, setName string) (
 	return f.showsFromSetNameRows, f.showsFromSetNameErr
 }
 
-func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error) {
+func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error) {
 	return f.showsFromSongNameRows, f.showsFromSongNameErr
 }
 

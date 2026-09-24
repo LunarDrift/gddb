@@ -117,7 +117,8 @@ FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.raw_entry ILIKE $1
-ORDER BY show_date;
+ORDER BY s.show_date, s.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: SongStats :one
 SELECT

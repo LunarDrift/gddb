@@ -53,8 +53,8 @@ type ShowResponse struct {
 
 type PaginatedShowResponse struct {
 	Count    int64      `json:"count"`
-	Next     string     `json:"next"`
-	Previous string     `json:"previous"`
+	Next     *string    `json:"next"`
+	Previous *string    `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
 	Results  []ShowMeta `json:"results"`
 }
 
@@ -114,7 +114,7 @@ type ShowQuerier interface {
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
 	GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error)
-	GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error)
+	GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error)
 	GetShowsFromLocation(ctx context.Context, location string) ([]database.GetShowsFromLocationRow, error)
 	GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error)
 	GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error)
