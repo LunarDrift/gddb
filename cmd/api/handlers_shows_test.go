@@ -374,13 +374,13 @@ func TestHandleGetShowsFromSetName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if got[0].ShowID != 1 {
-		t.Errorf("got[0].ShowID = %q; want 1", got[0].ShowID)
+	if got.Results[0].ShowID != 1 {
+		t.Errorf("got[0].ShowID = %q; want 1", got.Results[0].ShowID)
 	}
 }
 

@@ -397,11 +397,20 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
 WHERE s.set_name = $1
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromSetNameParams struct {
+	SetName    string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromSetNameRow struct {
 	ShowID   int32
@@ -410,10 +419,11 @@ type GetShowsFromSetNameRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]GetShowsFromSetNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromSetName, setName)
+func (q *Queries) GetShowsFromSetName(ctx context.Context, arg GetShowsFromSetNameParams) ([]GetShowsFromSetNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromSetName, arg.SetName, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -428,6 +438,7 @@ func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]Ge
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

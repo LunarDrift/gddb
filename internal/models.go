@@ -51,6 +51,13 @@ type ShowResponse struct {
 	Footnotes map[string]string `json:"footnotes"`
 }
 
+type Paginated[T any] struct {
+	Count    int64   `json:"count"`
+	Next     *string `json:"next"`
+	Previous *string `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
+	Results  []T     `json:"results"`
+}
+
 type PaginatedShowResponse struct {
 	Count    int64      `json:"count"`
 	Next     *string    `json:"next"`
@@ -113,7 +120,7 @@ type ShowQuerier interface {
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
-	GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error)
+	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
 	GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error)
 	GetShowsFromLocation(ctx context.Context, location string) ([]database.GetShowsFromLocationRow, error)
 	GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error)

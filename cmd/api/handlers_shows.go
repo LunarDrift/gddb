@@ -15,43 +15,6 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
-// pageURL, buildLinks, and parsePagination are helpers for pagination process
-func pageURL(r *http.Request, offset, limit int) *string {
-	q := r.URL.Query()
-	q.Set("offset", strconv.Itoa(offset))
-	q.Set("limit", strconv.Itoa(limit))
-	s := r.URL.Path + "?" + q.Encode()
-	return &s
-}
-
-func buildLinks(r *http.Request, count, offset, limit int) (next, prev *string) {
-	if offset+limit < count {
-		next = pageURL(r, offset+limit, limit)
-	}
-	if offset > 0 {
-		prev = pageURL(r, max(offset-limit, 0), limit)
-	}
-	return next, prev
-}
-
-func parsePagination(r *http.Request) (limit, offset int, err error) {
-	limit, offset = 20, 0
-	q := r.URL.Query()
-
-	if v := q.Get("limit"); v != "" {
-		if limit, err = strconv.Atoi(v); err != nil || limit < 1 {
-			return 0, 0, errors.New("invalid 'limit' parameter")
-		}
-		limit = min(limit, 100) // cap so server doesn't send everything at once
-	}
-	if v := q.Get("offset"); v != "" {
-		if offset, err = strconv.Atoi(v); err != nil || offset < 0 {
-			return 0, 0, errors.New("invalid 'offset' parameter")
-		}
-	}
-	return limit, offset, nil
-}
-
 // handlerShows parses the query parameter and chooses the appropriate endpoint
 func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -286,7 +249,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 	}
 
 	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.PaginatedShowResponse{
+	results := internal.Paginated[internal.ShowMeta]{
 		Count:    showRows[0].Count,
 		Next:     next,
 		Previous: prev,
@@ -299,31 +262,49 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 }
 
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
-	setName := r.URL.Query().Get("set_name")
-
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
+	setName := r.URL.Query().Get("set_name")
 	if !slices.Contains(validSetNames, setName) {
 		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromSetName(r.Context(), setName)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
+	showRows, err := s.queries.GetShowsFromSetName(r.Context(), database.GetShowsFromSetNameParams{
+		SetName:    setName,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
 		return
 	}
 
-	var showResults []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		showResults = append(showResults, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
-	respondWithJSON(w, http.StatusOK, showResults)
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Request) {

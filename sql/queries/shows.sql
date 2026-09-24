@@ -137,10 +137,13 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
-WHERE s.set_name = $1;
+WHERE s.set_name = $1
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: ShowsWithShowNotes :many
 SELECT 

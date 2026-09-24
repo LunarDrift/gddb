@@ -74,7 +74,7 @@ func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.Get
 	return f.showsBetweenDatesRows, f.showsBetweenDatesErr
 }
 
-func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error) {
+func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error) {
 	return f.showsFromSetNameRows, f.showsFromSetNameErr
 }
 
