@@ -231,7 +231,8 @@ SELECT
 	s.venue,
 	s.city,
 	s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM
 	shows s
 WHERE
@@ -239,12 +240,15 @@ WHERE
 GROUP BY
 	s.show_date, s.venue, s.show_id 
 ORDER BY
-	s.show_date
+	s.show_date, s.show_id
+LIMIT $4 OFFSET $3
 `
 
 type GetShowsBetweenDatesParams struct {
 	ShowDate   time.Time
 	ShowDate_2 time.Time
+	PageOffset int32
+	PageLimit  int32
 }
 
 type GetShowsBetweenDatesRow struct {
@@ -254,10 +258,16 @@ type GetShowsBetweenDatesRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
 func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenDatesParams) ([]GetShowsBetweenDatesRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates, arg.ShowDate, arg.ShowDate_2)
+	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates,
+		arg.ShowDate,
+		arg.ShowDate_2,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -272,6 +282,7 @@ func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenD
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -293,11 +304,19 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.city ILIKE $1
-ORDER BY sh.show_date
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromCityParams struct {
+	City       string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromCityRow struct {
 	ShowID   int32
@@ -306,10 +325,11 @@ type GetShowsFromCityRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromCity(ctx context.Context, city string) ([]GetShowsFromCityRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromCity, city)
+func (q *Queries) GetShowsFromCity(ctx context.Context, arg GetShowsFromCityParams) ([]GetShowsFromCityRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromCity, arg.City, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -324,6 +344,7 @@ func (q *Queries) GetShowsFromCity(ctx context.Context, city string) ([]GetShows
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -345,11 +366,19 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE LOWER(sh.state) = LOWER($1)
-ORDER BY sh.show_date
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromLocationParams struct {
+	Location   string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromLocationRow struct {
 	ShowID   int32
@@ -358,10 +387,11 @@ type GetShowsFromLocationRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromLocation(ctx context.Context, location string) ([]GetShowsFromLocationRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromLocation, location)
+func (q *Queries) GetShowsFromLocation(ctx context.Context, arg GetShowsFromLocationParams) ([]GetShowsFromLocationRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromLocation, arg.Location, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -376,6 +406,7 @@ func (q *Queries) GetShowsFromLocation(ctx context.Context, location string) ([]
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -397,11 +428,20 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
 WHERE s.set_name = $1
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromSetNameParams struct {
+	SetName    string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromSetNameRow struct {
 	ShowID   int32
@@ -410,10 +450,11 @@ type GetShowsFromSetNameRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]GetShowsFromSetNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromSetName, setName)
+func (q *Queries) GetShowsFromSetName(ctx context.Context, arg GetShowsFromSetNameParams) ([]GetShowsFromSetNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromSetName, arg.SetName, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -428,6 +469,7 @@ func (q *Queries) GetShowsFromSetName(ctx context.Context, setName string) ([]Ge
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -449,13 +491,21 @@ SELECT
   s.venue,
   s.city,
   s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.raw_entry ILIKE $1
-ORDER BY show_date
+ORDER BY s.show_date, s.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromSongNameParams struct {
+	RawEntry   string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromSongNameRow struct {
 	ShowID   int32
@@ -464,10 +514,11 @@ type GetShowsFromSongNameRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]GetShowsFromSongNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, rawEntry)
+func (q *Queries) GetShowsFromSongName(ctx context.Context, arg GetShowsFromSongNameParams) ([]GetShowsFromSongNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, arg.RawEntry, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -482,6 +533,7 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -503,11 +555,19 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
-ORDER BY sh.show_date
+ORDER BY sh.show_date, show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromYearParams struct {
+	Year       int32
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromYearRow struct {
 	ShowID   int32
@@ -516,10 +576,11 @@ type GetShowsFromYearRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromYear(ctx context.Context, year int32) ([]GetShowsFromYearRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromYear, year)
+func (q *Queries) GetShowsFromYear(ctx context.Context, arg GetShowsFromYearParams) ([]GetShowsFromYearRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromYear, arg.Year, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -534,6 +595,7 @@ func (q *Queries) GetShowsFromYear(ctx context.Context, year int32) ([]GetShowsF
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -640,7 +702,8 @@ SELECT
 	shows.venue,
   shows.city,
   shows.state AS location,
-  shows.notes
+  shows.notes,
+  COUNT(*) OVER ()
 FROM
 	shows
 WHERE venue ILIKE $1
@@ -648,7 +711,14 @@ ORDER BY
   shows.show_id,
 	shows.venue,
 	shows.show_date
+LIMIT $3 OFFSET $2
 `
+
+type SearchByVenueParams struct {
+	Venue      string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type SearchByVenueRow struct {
 	ShowID   int32
@@ -657,10 +727,11 @@ type SearchByVenueRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVenueRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchByVenue, venue)
+func (q *Queries) SearchByVenue(ctx context.Context, arg SearchByVenueParams) ([]SearchByVenueRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchByVenue, arg.Venue, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -675,6 +746,7 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -696,10 +768,18 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-	sh.notes
+	sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.notes IS NOT NULL AND sh.notes != ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
 `
+
+type ShowsWithShowNotesParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
 
 type ShowsWithShowNotesRow struct {
 	ShowID   int32
@@ -708,10 +788,11 @@ type ShowsWithShowNotesRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) ShowsWithShowNotes(ctx context.Context) ([]ShowsWithShowNotesRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsWithShowNotes)
+func (q *Queries) ShowsWithShowNotes(ctx context.Context, arg ShowsWithShowNotesParams) ([]ShowsWithShowNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsWithShowNotes, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -726,6 +807,7 @@ func (q *Queries) ShowsWithShowNotes(ctx context.Context) ([]ShowsWithShowNotesR
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -746,10 +828,18 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state AS location
+  sh.state AS location,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.notes IS NULL OR sh.notes = ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
 `
+
+type ShowsWithoutNotesParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
 
 type ShowsWithoutNotesRow struct {
 	ShowID   int32
@@ -757,10 +847,11 @@ type ShowsWithoutNotesRow struct {
 	Venue    string
 	City     string
 	Location string
+	Count    int64
 }
 
-func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsWithoutNotes)
+func (q *Queries) ShowsWithoutNotes(ctx context.Context, arg ShowsWithoutNotesParams) ([]ShowsWithoutNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsWithoutNotes, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -774,6 +865,7 @@ func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow
 			&i.Venue,
 			&i.City,
 			&i.Location,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

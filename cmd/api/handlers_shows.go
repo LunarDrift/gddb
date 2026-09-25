@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -48,7 +47,7 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		s.handleGetShowsBetweenDates(w, r)
 
 	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&state", nil)
+		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&location", nil)
 		return
 	}
 }
@@ -179,6 +178,12 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
 	startDate, err := time.Parse(time.DateOnly, startDateStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
@@ -198,20 +203,32 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	showRows, err := s.queries.GetShowsBetweenDates(r.Context(), database.GetShowsBetweenDatesParams{
 		ShowDate:   startDate,
 		ShowDate_2: endDate,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "No shows between those dates", nil)
 		return
 	}
 
-	showResults := []internal.ShowMeta{}
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	showResults := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		showResults = append(showResults, internal.RowToShowMeta(row))
+		showResults.Results = append(showResults.Results, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }
@@ -223,51 +240,89 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
 	searchPattern := fuzzyPattern(songName)
-	showRows, err := s.queries.GetShowsFromSongName(r.Context(), searchPattern)
+	showRows, err := s.queries.GetShowsFromSongName(r.Context(), database.GetShowsFromSongNameParams{
+		RawEntry:   searchPattern,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "Song not found", nil)
 		return
 	}
 
-	showResults := []internal.ShowMeta{}
-	for _, row := range showRows {
-		showResults = append(showResults, internal.RowToShowMeta(row))
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
 	}
-	respondWithJSON(w, http.StatusOK, showResults)
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
-	setName := r.URL.Query().Get("set_name")
-
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
+	setName := r.URL.Query().Get("set_name")
 	if !slices.Contains(validSetNames, setName) {
 		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromSetName(r.Context(), setName)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
+	showRows, err := s.queries.GetShowsFromSetName(r.Context(), database.GetShowsFromSetNameParams{
+		SetName:    setName,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
 		return
 	}
 
-	var showResults []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		showResults = append(showResults, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
-	respondWithJSON(w, http.StatusOK, showResults)
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Request) {
@@ -277,23 +332,43 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	searchPattern := fuzzyPattern(venue)
-	venueRows, err := s.queries.SearchByVenue(r.Context(), searchPattern)
+	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get venues", err)
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
+	searchPattern := fuzzyPattern(venue)
+	showRows, err := s.queries.SearchByVenue(r.Context(), database.SearchByVenueParams{
+		Venue:      searchPattern,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(venueRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "Venue not found", nil)
 		return
 	}
 
-	var venueResults []internal.ShowMeta
-	for _, row := range venueRows {
-		venueResults = append(venueResults, internal.RowToShowMeta(row))
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
 	}
-	respondWithJSON(w, http.StatusOK, venueResults)
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request) {
@@ -306,14 +381,14 @@ func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request)
 	}
 
 	if b {
-		results, err := s.showsWithNotes(r.Context())
+		results, err := s.showsWithNotes(r)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 			return
 		}
 		respondWithJSON(w, http.StatusOK, results)
 	} else {
-		results, err := s.showsNoNotes(r.Context())
+		results, err := s.showsNoNotes(r)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 			return
@@ -322,36 +397,63 @@ func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error) {
-	showRows, err := s.queries.ShowsWithShowNotes(ctx)
+func (s *server) showsWithNotes(r *http.Request) (internal.Paginated[internal.ShowMeta], error) {
+	limit, offset, err := parsePagination(r)
 	if err != nil {
-		return nil, fmt.Errorf("showsWithNotes: %w", err)
+		return internal.Paginated[internal.ShowMeta]{}, err
+	}
+	showRows, err := s.queries.ShowsWithShowNotes(r.Context(), database.ShowsWithShowNotesParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("showsWithNotes: %w", err)
 	}
 
 	if len(showRows) == 0 {
-		return nil, errors.New("malformed show data: len(showRows) = 0")
+		return internal.Paginated[internal.ShowMeta]{}, errors.New("malformed show data: len(showRows) = 0")
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 	return results, nil
 }
 
-func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) {
-	showRows, err := s.queries.ShowsWithoutNotes(ctx)
+func (s *server) showsNoNotes(r *http.Request) (internal.Paginated[internal.ShowMeta], error) {
+	limit, offset, err := parsePagination(r)
 	if err != nil {
-		return nil, fmt.Errorf("showsNoNotes: %w", err)
+		return internal.Paginated[internal.ShowMeta]{}, err
+	}
+	showRows, err := s.queries.ShowsWithoutNotes(r.Context(), database.ShowsWithoutNotesParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("showsNoNotes: %w", err)
 	}
 
 	if len(showRows) == 0 {
-		return nil, errors.New("malformed show data: len(showRows) = 0")
+		return internal.Paginated[internal.ShowMeta]{}, errors.New("malformed show data: len(showRows) = 0")
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 	return results, nil
 }
@@ -418,32 +520,49 @@ func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) 
 		respondWithError(w, http.StatusBadRequest, "Missing 'year' parameter", nil)
 		return
 	}
-
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid year value", err)
 		return
 	}
-
 	if year < 1965 || year > 1995 {
 		respondWithError(w, http.StatusBadRequest, "Year must be between 1965-1995", nil)
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromYear(r.Context(), int32(year))
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
+	showRows, err := s.queries.GetShowsFromYear(r.Context(), database.GetShowsFromYearParams{
+		Year:       int32(year),
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
 		return
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
@@ -472,20 +591,41 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromLocation(r.Context(), location)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromLocation(r.Context(), database.GetShowsFromLocationParams{
+		Location:   location,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
 		return
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
@@ -498,20 +638,40 @@ func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromCity(r.Context(), city)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromCity(r.Context(), database.GetShowsFromCityParams{
+		City:       city,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "City not found", nil)
 		return
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)

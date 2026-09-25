@@ -2,14 +2,53 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
 )
+
+// pageURL, buildLinks, and parsePagination are helpers for pagination process
+func pageURL(r *http.Request, offset, limit int) *string {
+	q := r.URL.Query()
+	q.Set("offset", strconv.Itoa(offset))
+	q.Set("limit", strconv.Itoa(limit))
+	s := r.URL.Path + "?" + q.Encode()
+	return &s
+}
+
+func buildLinks(r *http.Request, count, offset, limit int) (next, prev *string) {
+	if offset+limit < count {
+		next = pageURL(r, offset+limit, limit)
+	}
+	if offset > 0 {
+		prev = pageURL(r, max(offset-limit, 0), limit)
+	}
+	return next, prev
+}
+
+func parsePagination(r *http.Request) (limit, offset int, err error) {
+	limit, offset = 20, 0
+	q := r.URL.Query()
+
+	if v := q.Get("limit"); v != "" {
+		if limit, err = strconv.Atoi(v); err != nil || limit < 1 {
+			return 0, 0, errors.New("invalid 'limit' parameter")
+		}
+		limit = min(limit, 100) // cap so server doesn't send everything at once
+	}
+	if v := q.Get("offset"); v != "" {
+		if offset, err = strconv.Atoi(v); err != nil || offset < 0 {
+			return 0, 0, errors.New("invalid 'offset' parameter")
+		}
+	}
+	return limit, offset, nil
+}
 
 // fuzzyPattern wraps and inserts a '%' between every character of `input` to be used during SQL query searches
 func fuzzyPattern(input string) string {

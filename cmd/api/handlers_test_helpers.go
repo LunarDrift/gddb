@@ -74,19 +74,19 @@ func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.Get
 	return f.showsBetweenDatesRows, f.showsBetweenDatesErr
 }
 
-func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error) {
+func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error) {
 	return f.showsFromSetNameRows, f.showsFromSetNameErr
 }
 
-func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error) {
+func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error) {
 	return f.showsFromSongNameRows, f.showsFromSongNameErr
 }
 
-func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, stateOrCountry string) ([]database.GetShowsFromLocationRow, error) {
+func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, arg database.GetShowsFromLocationParams) ([]database.GetShowsFromLocationRow, error) {
 	return f.showsFromLocationRows, f.showsFromLocationErr
 }
 
-func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error) {
+func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, arg database.GetShowsFromYearParams) ([]database.GetShowsFromYearRow, error) {
 	return f.showsFromYearRows, f.showsFromYearErr
 }
 
@@ -94,15 +94,15 @@ func (f *fakeQuerier) GetShowsFromYearAndLocation(ctx context.Context, arg datab
 	return f.showsFromYearAndLocationRows, f.showsFromYearAndLocationErr
 }
 
-func (f *fakeQuerier) SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error) {
+func (f *fakeQuerier) SearchByVenue(ctx context.Context, arg database.SearchByVenueParams) ([]database.SearchByVenueRow, error) {
 	return f.showsFromVenueNameRows, f.showsFromVenueNameErr
 }
 
-func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context) ([]database.ShowsWithShowNotesRow, error) {
+func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context, arg database.ShowsWithShowNotesParams) ([]database.ShowsWithShowNotesRow, error) {
 	return f.showsWithNotesRows, f.showsWithNotesErr
 }
 
-func (f *fakeQuerier) ShowsWithoutNotes(ctx context.Context) ([]database.ShowsWithoutNotesRow, error) {
+func (f *fakeQuerier) ShowsWithoutNotes(ctx context.Context, arg database.ShowsWithoutNotesParams) ([]database.ShowsWithoutNotesRow, error) {
 	return f.showsWithoutNotesRows, f.showsWithoutNotesErr
 }
 
@@ -138,6 +138,6 @@ func (f *fakeQuerier) GetValidLocations(ctx context.Context) ([]string, error) {
 	return f.validLocationRows, f.validLocationErr
 }
 
-func (f *fakeQuerier) GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error) {
+func (f *fakeQuerier) GetShowsFromCity(ctx context.Context, arg database.GetShowsFromCityParams) ([]database.GetShowsFromCityRow, error) {
 	return f.showsFromCityRows, f.showsFromCityErr
 }

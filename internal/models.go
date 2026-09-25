@@ -51,6 +51,20 @@ type ShowResponse struct {
 	Footnotes map[string]string `json:"footnotes"`
 }
 
+type Paginated[T any] struct {
+	Count    int64   `json:"count"`
+	Next     *string `json:"next"`
+	Previous *string `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
+	Results  []T     `json:"results"`
+}
+
+// type PaginatedShowResponse struct {
+// 	Count    int64      `json:"count"`
+// 	Next     *string    `json:"next"`
+// 	Previous *string    `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
+// 	Results  []ShowMeta `json:"results"`
+// }
+
 // SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {
 	SetName string   `json:"set_name"`
@@ -106,15 +120,15 @@ type ShowQuerier interface {
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
-	GetShowsFromSetName(ctx context.Context, setName string) ([]database.GetShowsFromSetNameRow, error)
-	GetShowsFromSongName(ctx context.Context, rawEntry string) ([]database.GetShowsFromSongNameRow, error)
-	GetShowsFromLocation(ctx context.Context, location string) ([]database.GetShowsFromLocationRow, error)
-	GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error)
-	GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error)
+	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
+	GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error)
+	GetShowsFromLocation(ctx context.Context, arg database.GetShowsFromLocationParams) ([]database.GetShowsFromLocationRow, error)
+	GetShowsFromCity(ctx context.Context, arg database.GetShowsFromCityParams) ([]database.GetShowsFromCityRow, error)
+	GetShowsFromYear(ctx context.Context, arg database.GetShowsFromYearParams) ([]database.GetShowsFromYearRow, error)
 	GetShowsFromYearAndLocation(ctx context.Context, arg database.GetShowsFromYearAndLocationParams) ([]database.GetShowsFromYearAndLocationRow, error)
-	SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error)
-	ShowsWithShowNotes(ctx context.Context) ([]database.ShowsWithShowNotesRow, error)
-	ShowsWithoutNotes(ctx context.Context) ([]database.ShowsWithoutNotesRow, error)
+	SearchByVenue(ctx context.Context, arg database.SearchByVenueParams) ([]database.SearchByVenueRow, error)
+	ShowsWithShowNotes(ctx context.Context, arg database.ShowsWithShowNotesParams) ([]database.ShowsWithShowNotesRow, error)
+	ShowsWithoutNotes(ctx context.Context, arg database.ShowsWithoutNotesParams) ([]database.ShowsWithoutNotesRow, error)
 	SongStats(ctx context.Context, songName sql.NullString) (database.SongStatsRow, error)
 	AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]database.AllSongsPlayedAtVenueRow, error)
 	MostCommonSongsBySetName(ctx context.Context, setName string) ([]database.MostCommonSongsBySetNameRow, error)

@@ -75,14 +75,16 @@ SELECT
 	shows.venue,
   shows.city,
   shows.state AS location,
-  shows.notes
+  shows.notes,
+  COUNT(*) OVER ()
 FROM
 	shows
 WHERE venue ILIKE $1
 ORDER BY
   shows.show_id,
 	shows.venue,
-	shows.show_date;
+	shows.show_date
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id;
@@ -94,7 +96,8 @@ SELECT
 	s.venue,
 	s.city,
 	s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM
 	shows s
 WHERE
@@ -102,7 +105,8 @@ WHERE
 GROUP BY
 	s.show_date, s.venue, s.show_id 
 ORDER BY
-	s.show_date;
+	s.show_date, s.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromSongName :many
 SELECT
@@ -111,12 +115,14 @@ SELECT
   s.venue,
   s.city,
   s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM shows s
 JOIN "sets" st ON st.show_id = s.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.raw_entry ILIKE $1
-ORDER BY show_date;
+ORDER BY s.show_date, s.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: SongStats :one
 SELECT
@@ -135,10 +141,13 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 JOIN "sets" s ON s.show_id = sh.show_id 
-WHERE s.set_name = $1;
+WHERE s.set_name = $1
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: ShowsWithShowNotes :many
 SELECT 
@@ -147,9 +156,12 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-	sh.notes
+	sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
-WHERE sh.notes IS NOT NULL AND sh.notes != '';
+WHERE sh.notes IS NOT NULL AND sh.notes != ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: ShowsWithoutNotes :many
 SELECT
@@ -157,9 +169,12 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state AS location
+  sh.state AS location,
+  COUNT(*) OVER ()
 FROM shows sh
-WHERE sh.notes IS NULL OR sh.notes = '';
+WHERE sh.notes IS NULL OR sh.notes = ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromYearAndLocation :many
 SELECT
@@ -181,10 +196,12 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
-ORDER BY sh.show_date;
+ORDER BY sh.show_date, show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromLocation :many
 SELECT
@@ -193,10 +210,12 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE LOWER(sh.state) = LOWER(@location)
-ORDER BY sh.show_date;
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromCity :many
 SELECT
@@ -205,10 +224,12 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.city ILIKE $1
-ORDER BY sh.show_date;
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetValidLocations :many
 SELECT DISTINCT LOWER(state) AS location FROM shows;

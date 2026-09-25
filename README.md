@@ -1,9 +1,14 @@
 # Deadabase
+
 [![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](https://go.dev/)[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Deadabase is a REST API for browsing and exploring Grateful Dead concert history. Search through thousands of shows by date, venue, song, or set name - with full setlists and show footnotes. A data importer script populates the database from a JSON source. The API server then provides read-only access to the data.
+Deadabase is a REST API for browsing and exploring Grateful Dead concert history.
+Search through thousands of shows by date, venue, song, or set name - with full
+setlists and show footnotes. A data importer script populates the database from
+a JSON source. The API server then provides read-only access to the data.
 
-Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many thanks to them for this wonderful data!
+Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/).
+Many thanks to them for this wonderful data!
 
 ## Features
 
@@ -24,17 +29,21 @@ Show data was sourced from [Grateful Sets](https://www.gratefulsets.net/). Many 
 - **Docker:** package dependencies together and make setup a simple command
 
 ## ~~Live~~
-~~https://deadabase.onrender.com~~
+
+~~<https://deadabase.onrender.com>~~
 No longer being hosted publicly, sorry. Local-hosting only via Docker.
 
 ## Local Setup
+
 1. Clone the repo
+
 ```bash
 git clone https://github.com/LunarDrift/gddb
 cd gddb
 ```
 
-2. Edit the `.env.example` file with your own details and rename it to `.env`
+1. Edit the `.env.example` file with your own details and rename it to `.env`
+
 ```
 # Database Credentials
 POSTGRES_USER=your_user
@@ -45,39 +54,46 @@ POSTGRES_DB=your_db_name
 DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable
 ```
 
-3. Run the docker command
+1. Run the docker command
+
 ```bash
 docker compose up --build
 ```
-Use `--build` on first run or after any change to the Go source or Dockerfile, so `docker-compose` rebuilds the `deadabase:local` app image before starting the containers.
+
+Use `--build` on first run or after any change to the Go source or
+Dockerfile, so `docker-compose` rebuilds the `deadabase:local` app
+image before starting the containers.
 
 ## API Endpoints (GET only)
-For further details about each endpoint and their response shapes, take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
-| ENDPOINT | DESCRIPTION|
-| ------------------- | --------------------------------------------------------------------|
-| `/shows/{id}` | Search for a specific show by its ID |
-| `/shows/{date}` | Search for a show by date (YYYY-MM-DD format) |
-| `/shows?song=` | Search for shows where a specific song was played. Returns a list of shows |
-| `/shows?set_name=` | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric) |
-| `/shows?venue=` | Search for shows by venue. Returns a list of shows with their IDs |
-| `/shows?has_notes=true/false` | Search for shows with/without notes attached |
-| `/shows?start_date=&end_date=` | List of shows between two dates (YYYY-MM-DD format) |
-| `/shows?year=` | List of shows filtered by year |
-| `/shows?location=` | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations) |
-| `/shows?year=&location=` | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
-| `/shows?city=` | List of shows filtered by city |
-| `/shows/random` | Get details for a random show |
-| `/songs?sort=most_played` | Returns a list of all songs and the amount of times they were played |
-| `/songs?venue=` | All songs played at a specific venue |
-| `/songs?played_lt=n` | Songs played less than `n` times |
-| `/songs?sort=most_played&set_name=` | Most played songs by set name (set_1, set_2, set_3, encore, acoustic, electric) |
-| `/songs/{name}` | Stats for a song (times played, first/last time played) |
-| `/stats/songs-per-city` | Unique song count per city |
+For further details about each endpoint and their response shapes,
+take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
+| ENDPOINT                            | DESCRIPTION                                                                                                                 |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `/shows/{id}`                       | Search for a specific show by its ID                                                                                        |
+| `/shows/{date}`                     | Search for a show by date (YYYY-MM-DD format)                                                                               |
+| `/shows?song=`                      | Search for shows where a specific song was played. Returns a list of shows                                                  |
+| `/shows?set_name=`                  | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric)                                              |
+| `/shows?venue=`                     | Search for shows by venue. Returns a list of shows with their IDs                                                           |
+| `/shows?has_notes=true/false`       | Search for shows with/without notes attached                                                                                |
+| `/shows?start_date=&end_date=`      | List of shows between two dates (YYYY-MM-DD format)                                                                         |
+| `/shows?year=`                      | List of shows filtered by year                                                                                              |
+| `/shows?location=`                  | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations)          |
+| `/shows?year=&location=`            | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
+| `/shows?city=`                      | List of shows filtered by city                                                                                              |
+| `/shows/random`                     | Get details for a random show                                                                                               |
+| `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                        |
+| `/songs?venue=`                     | All songs played at a specific venue                                                                                        |
+| `/songs?played_lt=n`                | Songs played less than `n` times                                                                                            |
+| `/songs?sort=most_played&set_name=` | Most played songs by set name (set_1, set_2, set_3, encore, acoustic, electric)                                             |
+| `/songs/{name}`                     | Stats for a song (times played, first/last time played)                                                                     |
+| `/stats/songs-per-city`             | Unique song count per city                                                                                                  |
 
 ## Rate Limiting
-Requests are limited per IP address to **2 requests/second** (burst up to 10). Exceeding this returns a `429 Too Many Requests`
+
+Requests are limited per IP address to **2 requests/second** (burst up to 10).
+Exceeding this returns a `429 Too Many Requests`
 
 ## Example Show Response
 
@@ -112,9 +128,7 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
     },
     {
       "set_name": "encore",
-      "songs": [
-        "I Fought The Law *"
-      ]
+      "songs": ["I Fought The Law *"]
     }
   ],
   "footnotes": {
@@ -124,21 +138,30 @@ Requests are limited per IP address to **2 requests/second** (burst up to 10). E
 ```
 
 ## Notes
+
 - Venue and song name searches use fuzzy matching - partial names work
 - Shows without a recorded setlist return a custom `message` field instead of `sets`
 - `footnotes` in show responses are keyed by marker symbol (e.g. `"*": "First time played"`)
 - `location` can either be a state abbreviation (NY, CA, etc) or a country name (England, Spain, etc). Case-insensitive
 
 ## TODO
+
 - Continue adding/improving unit tests
 - Server logging
 - Keep learning
 
 ## A Note on AI Usage
-This project's code and queries were written by me. I used LLMs sparingly as a study aid - discussing concepts and query decisions, and occasionally help debugging. No AI generated code was used - with the exception of the `docker-compose` file which I had a lot of help with from Claude.
+
+This project's code and queries were written by me. I used LLMs sparingly as a
+study aid - discussing concepts and query decisions, and occasionally help
+debugging. No AI generated code was used - with the exception of the
+`docker-compose` file which I had a lot of help with from Claude.
 
 ## Credits
+
 Show and setlist data sourced from [Grateful Sets](https://www.gratefulsets.net/)
 
 ## License
-This project is licensed under the MIT license - see the [LICENSE](LICENSE) file for details.
+
+This project is licensed under the MIT license - see the [LICENSE](LICENSE) file
+for details.
