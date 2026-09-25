@@ -85,28 +85,28 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 
 const getShowFromDate = `-- name: GetShowFromDate :many
 SELECT 
-  shows.show_id,
-	shows.show_date,
-	shows.venue,
-  shows.city,
-  shows.state AS location,
-  shows.notes,
-	sets.set_name,
-	sets.position AS set_position,
-	set_entries.raw_entry,
-	set_entries.position AS song_position
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+	st.set_name,
+	st.position AS set_position,
+	se.raw_entry,
+	se.position AS song_position
 FROM
-	shows
-LEFT JOIN SETS ON
-	sets.show_id = shows.show_id
-LEFT JOIN set_entries ON
-	set_entries.set_id = sets.id
+	shows sh
+LEFT JOIN "sets" st ON
+	st.show_id = sh.show_id
+LEFT JOIN set_entries se ON
+	se.set_id = st.id
 WHERE
-	shows.show_date = $1
+	sh.show_date = $1
 ORDER BY
-  shows.show_id,
-	sets.position,
-	set_entries."position"
+  sh.show_id,
+	st."position",
+	se."position"
 `
 
 type GetShowFromDateRow struct {
@@ -158,24 +158,24 @@ func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]Ge
 
 const getShowFromID = `-- name: GetShowFromID :many
 SELECT
-  s.show_id,
-	s.show_date,
-	s.venue,
-  s.city,
-  s.state AS location,
-  s.notes,
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
 	st.set_name,
 	se.raw_entry
 FROM
-	shows s
+	shows sh
 LEFT JOIN SETS st
 	ON
-	s.show_id = st.show_id
+	sh.show_id = st.show_id
 LEFT JOIN set_entries se
 	ON
 	st.id = se.set_id
 WHERE
-	s.show_id = $1
+	sh.show_id = $1
 ORDER BY
 	st.position,
 	se.position
@@ -226,27 +226,27 @@ func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFro
 
 const getShowsBetweenDates = `-- name: GetShowsBetweenDates :many
 SELECT
-  s.show_id,
-	s.show_date,
-	s.venue,
-	s.city,
-	s.state AS location,
-  s.notes,
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+	sh.city,
+	sh.state AS location,
+  sh.notes,
   COUNT(*) OVER ()
 FROM
-	shows s
+	shows sh
 WHERE
-	s.show_date BETWEEN $1 AND $2
+sh.show_date BETWEEN $1 AND $2
 GROUP BY
-	s.show_date, s.venue, s.show_id 
+	sh.show_date, sh.venue, sh.show_id 
 ORDER BY
-	s.show_date, s.show_id
+	sh.show_date, sh.show_id
 LIMIT $4 OFFSET $3
 `
 
 type GetShowsBetweenDatesParams struct {
-	ShowDate   time.Time
-	ShowDate_2 time.Time
+	StartDate  time.Time
+	EndDate    time.Time
 	PageOffset int32
 	PageLimit  int32
 }
@@ -263,8 +263,8 @@ type GetShowsBetweenDatesRow struct {
 
 func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenDatesParams) ([]GetShowsBetweenDatesRow, error) {
 	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates,
-		arg.ShowDate,
-		arg.ShowDate_2,
+		arg.StartDate,
+		arg.EndDate,
 		arg.PageOffset,
 		arg.PageLimit,
 	)
@@ -486,23 +486,23 @@ func (q *Queries) GetShowsFromSetName(ctx context.Context, arg GetShowsFromSetNa
 
 const getShowsFromSongName = `-- name: GetShowsFromSongName :many
 SELECT
-  s.show_id,
-  s.show_date,
-  s.venue,
-  s.city,
-  s.state AS location,
-  s.notes,
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
   COUNT(*) OVER ()
-FROM shows s
-JOIN "sets" st ON st.show_id = s.show_id
+FROM shows sh
+JOIN "sets" st ON st.show_id = sh.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.raw_entry ILIKE $1
-ORDER BY s.show_date, s.show_id
+ORDER BY sh.show_date, sh.show_id
 LIMIT $3 OFFSET $2
 `
 
 type GetShowsFromSongNameParams struct {
-	RawEntry   string
+	SongName   string
 	PageOffset int32
 	PageLimit  int32
 }
@@ -518,7 +518,7 @@ type GetShowsFromSongNameRow struct {
 }
 
 func (q *Queries) GetShowsFromSongName(ctx context.Context, arg GetShowsFromSongNameParams) ([]GetShowsFromSongNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, arg.RawEntry, arg.PageOffset, arg.PageLimit)
+	rows, err := q.db.QueryContext(ctx, getShowsFromSongName, arg.SongName, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -697,25 +697,25 @@ func (q *Queries) GetValidLocations(ctx context.Context) ([]string, error) {
 
 const searchByVenue = `-- name: SearchByVenue :many
 SELECT
-  shows.show_id,
-	shows.show_date,
-	shows.venue,
-  shows.city,
-  shows.state AS location,
-  shows.notes,
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
   COUNT(*) OVER ()
 FROM
-	shows
+	shows sh
 WHERE venue ILIKE $1
 ORDER BY
-  shows.show_id,
-	shows.venue,
-	shows.show_date
+  sh.show_id,
+	sh.venue,
+	sh.show_date
 LIMIT $3 OFFSET $2
 `
 
 type SearchByVenueParams struct {
-	Venue      string
+	VenueName  string
 	PageOffset int32
 	PageLimit  int32
 }
@@ -731,7 +731,7 @@ type SearchByVenueRow struct {
 }
 
 func (q *Queries) SearchByVenue(ctx context.Context, arg SearchByVenueParams) ([]SearchByVenueRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchByVenue, arg.Venue, arg.PageOffset, arg.PageLimit)
+	rows, err := q.db.QueryContext(ctx, searchByVenue, arg.VenueName, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -886,7 +886,7 @@ SELECT
   min(sh.show_date)::date AS first_played,
   max(sh.show_date)::date AS last_played
 FROM shows sh 
-JOIN "sets" s ON s.show_id = sh.show_id
+JOIN "sets" st ON st.show_id = sh.show_id
 JOIN set_entries se ON se.set_id = s.id
 WHERE se.song_name ILIKE $1
 `

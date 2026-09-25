@@ -21,69 +21,69 @@ ON CONFLICT (show_id) DO NOTHING;
 
 -- name: GetShowFromDate :many
 SELECT 
-  shows.show_id,
-	shows.show_date,
-	shows.venue,
-  shows.city,
-  shows.state AS location,
-  shows.notes,
-	sets.set_name,
-	sets.position AS set_position,
-	set_entries.raw_entry,
-	set_entries.position AS song_position
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+	st.set_name,
+	st.position AS set_position,
+	se.raw_entry,
+	se.position AS song_position
 FROM
-	shows
-LEFT JOIN SETS ON
-	sets.show_id = shows.show_id
-LEFT JOIN set_entries ON
-	set_entries.set_id = sets.id
+	shows sh
+LEFT JOIN "sets" st ON
+	st.show_id = sh.show_id
+LEFT JOIN set_entries se ON
+	se.set_id = st.id
 WHERE
-	shows.show_date = $1
+	sh.show_date = $1
 ORDER BY
-  shows.show_id,
-	sets.position,
-	set_entries."position";
+  sh.show_id,
+	st."position",
+	se."position";
 
 -- name: GetShowFromID :many
 SELECT
-  s.show_id,
-	s.show_date,
-	s.venue,
-  s.city,
-  s.state AS location,
-  s.notes,
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
 	st.set_name,
 	se.raw_entry
 FROM
-	shows s
+	shows sh
 LEFT JOIN SETS st
 	ON
-	s.show_id = st.show_id
+	sh.show_id = st.show_id
 LEFT JOIN set_entries se
 	ON
 	st.id = se.set_id
 WHERE
-	s.show_id = $1
+	sh.show_id = $1
 ORDER BY
 	st.position,
 	se.position;
 
 -- name: SearchByVenue :many
 SELECT
-  shows.show_id,
-	shows.show_date,
-	shows.venue,
-  shows.city,
-  shows.state AS location,
-  shows.notes,
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
   COUNT(*) OVER ()
 FROM
-	shows
-WHERE venue ILIKE $1
+	shows sh
+WHERE venue ILIKE @venue_name
 ORDER BY
-  shows.show_id,
-	shows.venue,
-	shows.show_date
+  sh.show_id,
+	sh.venue,
+	sh.show_date
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetAllShowIDs :many
@@ -91,37 +91,37 @@ SELECT show_id FROM shows ORDER BY show_id;
 
 -- name: GetShowsBetweenDates :many
 SELECT
-  s.show_id,
-	s.show_date,
-	s.venue,
-	s.city,
-	s.state AS location,
-  s.notes,
+  sh.show_id,
+	sh.show_date,
+	sh.venue,
+	sh.city,
+	sh.state AS location,
+  sh.notes,
   COUNT(*) OVER ()
 FROM
-	shows s
+	shows sh
 WHERE
-	s.show_date BETWEEN $1 AND $2
+sh.show_date BETWEEN @start_date AND @end_date
 GROUP BY
-	s.show_date, s.venue, s.show_id 
+	sh.show_date, sh.venue, sh.show_id 
 ORDER BY
-	s.show_date, s.show_id
+	sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromSongName :many
 SELECT
-  s.show_id,
-  s.show_date,
-  s.venue,
-  s.city,
-  s.state AS location,
-  s.notes,
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
   COUNT(*) OVER ()
-FROM shows s
-JOIN "sets" st ON st.show_id = s.show_id
+FROM shows sh
+JOIN "sets" st ON st.show_id = sh.show_id
 JOIN set_entries se ON se.set_id = st.id
-WHERE se.raw_entry ILIKE $1
-ORDER BY s.show_date, s.show_id
+WHERE se.raw_entry ILIKE @song_name
+ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: SongStats :one
@@ -130,9 +130,9 @@ SELECT
   min(sh.show_date)::date AS first_played,
   max(sh.show_date)::date AS last_played
 FROM shows sh 
-JOIN "sets" s ON s.show_id = sh.show_id
+JOIN "sets" st ON st.show_id = sh.show_id
 JOIN set_entries se ON se.set_id = s.id
-WHERE se.song_name ILIKE $1;
+WHERE se.song_name ILIKE @song_name;
 
 -- name: GetShowsFromSetName :many
 SELECT
@@ -227,7 +227,7 @@ SELECT
   sh.notes,
   COUNT(*) OVER ()
 FROM shows sh
-WHERE sh.city ILIKE $1
+WHERE sh.city ILIKE @city
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 

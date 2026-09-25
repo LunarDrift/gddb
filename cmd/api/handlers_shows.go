@@ -201,8 +201,8 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	}
 
 	showRows, err := s.queries.GetShowsBetweenDates(r.Context(), database.GetShowsBetweenDatesParams{
-		ShowDate:   startDate,
-		ShowDate_2: endDate,
+		StartDate:  startDate,
+		EndDate:    endDate,
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
@@ -247,7 +247,7 @@ func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Reque
 
 	searchPattern := fuzzyPattern(songName)
 	showRows, err := s.queries.GetShowsFromSongName(r.Context(), database.GetShowsFromSongNameParams{
-		RawEntry:   searchPattern,
+		SongName:   searchPattern,
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
@@ -339,7 +339,7 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 
 	searchPattern := fuzzyPattern(venue)
 	showRows, err := s.queries.SearchByVenue(r.Context(), database.SearchByVenueParams{
-		Venue:      searchPattern,
+		VenueName:  searchPattern,
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
