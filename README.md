@@ -14,8 +14,10 @@ Many thanks to them for this wonderful data!
 
 - **Fuzzy search** for shows by venue or song name - partial names work
 - Browse full setlists with **set positions** (Set 1, Set 2, Encore, etc.)
-- **Song footnotes** - annotations for notable moments like song debuts or first-time performances
-- Filter shows by **date range**, **set name**, **year**, **state/country**, or whether they include **show notes**
+- **Song footnotes** - annotations for notable moments like song debuts or
+  first-time performances
+- Filter shows by **date range**, **set name**, **year**, **state/country**, or
+  whether they include **show notes**
 - **Song statistics** - times played, first and last performance dates
 - Most played songs across all shows or filtered by **set name**
 - Unique song counts **per city**
@@ -37,32 +39,32 @@ No longer being hosted publicly, sorry. Local-hosting only via Docker.
 
 1. Clone the repo
 
-```bash
-git clone https://github.com/LunarDrift/gddb
-cd gddb
-```
+   ```bash
+   git clone https://github.com/LunarDrift/gddb
+   cd gddb
+   ```
 
-1. Edit the `.env.example` file with your own details and rename it to `.env`
+2. Edit the `.env.example` file with your own details and rename it to `.env`
 
-```
-# Database Credentials
-POSTGRES_USER=your_user
-POSTGRES_PASSWORD=your_password
-POSTGRES_DB=your_db_name
+   ```text
+   # Database Credentials
+   POSTGRES_USER=your_user
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=your_db_name
 
-# Internal Docker Connection URL
-DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable
-```
+   # Internal Docker Connection URL
+   DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable
+   ```
 
-1. Run the docker command
+3. Run the docker command
 
-```bash
-docker compose up --build
-```
+   ```bash
+   docker compose up --build
+   ```
 
-Use `--build` on first run or after any change to the Go source or
-Dockerfile, so `docker-compose` rebuilds the `deadabase:local` app
-image before starting the containers.
+   Use `--build` on first run or after any change to the Go source or Dockerfile,
+   so `docker-compose` rebuilds the `deadabase:local` app image before starting
+   the containers.
 
 ## API Endpoints (GET only)
 
@@ -95,7 +97,7 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 Requests are limited per IP address to **2 requests/second** (burst up to 10).
 Exceeding this returns a `429 Too Many Requests`
 
-## Example Show Response
+## Example Single Show Response
 
 ```json
 {
@@ -137,6 +139,42 @@ Exceeding this returns a `429 Too Many Requests`
 }
 ```
 
+## Example Paginated Response
+
+```json
+{
+  "count": 271,
+  "next": "/shows?limit=3&offset=6&song=althea",
+  "previous": "/shows?limit=3&offset=0&song=althea",
+  "results": [
+    {
+      "show_id": 1199,
+      "date": "1979-08-13",
+      "venue": "McNichols Sports Arena",
+      "city": "Denver",
+      "location": "CO",
+      "notes": ""
+    },
+    {
+      "show_id": 1197,
+      "date": "1979-08-31",
+      "venue": "Glens Falls Civic Center",
+      "city": "Glens Falls",
+      "location": "NY",
+      "notes": ""
+    },
+    {
+      "show_id": 1192,
+      "date": "1979-09-06",
+      "venue": "Madison Square Garden",
+      "city": "New York",
+      "location": "NY",
+      "notes": ""
+    }
+  ]
+}
+```
+
 ## Notes
 
 - Venue and song name searches use fuzzy matching - partial names work
@@ -147,7 +185,7 @@ Exceeding this returns a `429 Too Many Requests`
 ## TODO
 
 - Continue adding/improving unit tests
-- Server logging
+- ~Server logging~
 - Keep learning
 
 ## A Note on AI Usage
