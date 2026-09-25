@@ -86,7 +86,7 @@ func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, stateOrCountry s
 	return f.showsFromLocationRows, f.showsFromLocationErr
 }
 
-func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, year int32) ([]database.GetShowsFromYearRow, error) {
+func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, arg database.GetShowsFromYearParams) ([]database.GetShowsFromYearRow, error) {
 	return f.showsFromYearRows, f.showsFromYearErr
 }
 

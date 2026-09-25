@@ -256,6 +256,7 @@ func TestHandleShowsFromPathVal_ServerErr(t *testing.T) {
 	}
 }
 
+// TODO: Add 'happy path' test case. Forgot about that one I guess...
 func TestHandleShowsBetweenDates_StartDateAfterEndDate(t *testing.T) {
 	// empty querier - validation should reject the request before ever getting to query step
 	fake := &fakeQuerier{}
@@ -653,21 +654,21 @@ func TestHandleGetShowsFromYear(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Date[:4] != "1995" {
-		t.Errorf("got[0].Date year %q; want '1995'", got[0].Date[:4])
+	if got.Results[0].Date[:4] != "1995" {
+		t.Errorf("got[0].Date year %q; want '1995'", got.Results[0].Date[:4])
 	}
 
-	if got[0].Date != "1995-01-01" {
-		t.Errorf("got[0].Date = %q; want '1995-01-01'", got[0].Date)
+	if got.Results[0].Date != "1995-01-01" {
+		t.Errorf("got[0].Date = %q; want '1995-01-01'", got.Results[0].Date)
 	}
 }
 
