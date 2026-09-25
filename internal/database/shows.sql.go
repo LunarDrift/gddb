@@ -727,10 +727,18 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-	sh.notes
+	sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.notes IS NOT NULL AND sh.notes != ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
 `
+
+type ShowsWithShowNotesParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
 
 type ShowsWithShowNotesRow struct {
 	ShowID   int32
@@ -739,10 +747,11 @@ type ShowsWithShowNotesRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) ShowsWithShowNotes(ctx context.Context) ([]ShowsWithShowNotesRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsWithShowNotes)
+func (q *Queries) ShowsWithShowNotes(ctx context.Context, arg ShowsWithShowNotesParams) ([]ShowsWithShowNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsWithShowNotes, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -757,6 +766,7 @@ func (q *Queries) ShowsWithShowNotes(ctx context.Context) ([]ShowsWithShowNotesR
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
@@ -777,10 +787,18 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state AS location
+  sh.state AS location,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.notes IS NULL OR sh.notes = ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
 `
+
+type ShowsWithoutNotesParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
 
 type ShowsWithoutNotesRow struct {
 	ShowID   int32
@@ -788,10 +806,11 @@ type ShowsWithoutNotesRow struct {
 	Venue    string
 	City     string
 	Location string
+	Count    int64
 }
 
-func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsWithoutNotes)
+func (q *Queries) ShowsWithoutNotes(ctx context.Context, arg ShowsWithoutNotesParams) ([]ShowsWithoutNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, showsWithoutNotes, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -805,6 +824,7 @@ func (q *Queries) ShowsWithoutNotes(ctx context.Context) ([]ShowsWithoutNotesRow
 			&i.Venue,
 			&i.City,
 			&i.Location,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

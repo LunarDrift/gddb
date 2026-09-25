@@ -154,9 +154,12 @@ SELECT
 	sh.venue,
 	sh.city,
 	sh.state AS location,
-	sh.notes
+	sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
-WHERE sh.notes IS NOT NULL AND sh.notes != '';
+WHERE sh.notes IS NOT NULL AND sh.notes != ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: ShowsWithoutNotes :many
 SELECT
@@ -164,9 +167,12 @@ SELECT
   sh.show_date,
   sh.venue,
   sh.city,
-  sh.state AS location
+  sh.state AS location,
+  COUNT(*) OVER ()
 FROM shows sh
-WHERE sh.notes IS NULL OR sh.notes = '';
+WHERE sh.notes IS NULL OR sh.notes = ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromYearAndLocation :many
 SELECT

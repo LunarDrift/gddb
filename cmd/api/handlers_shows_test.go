@@ -820,17 +820,17 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 1 {
-		t.Errorf("len(got) = %d; want 1", len(got))
+	if len(got.Results) != 1 {
+		t.Errorf("len(got) = %d; want 1", len(got.Results))
 	}
 
-	if got[0].Notes != "Final show" {
-		t.Errorf("got[0].Notes = %q; want 'Final show'", got[0].Notes)
+	if got.Results[0].Notes != "Final show" {
+		t.Errorf("got[0].Notes = %q; want 'Final show'", got.Results[0].Notes)
 	}
 }
 
@@ -854,17 +854,17 @@ func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Notes != "" {
-		t.Errorf("got[0].Notes = %q; want ''", got[0].Notes)
+	if got.Results[0].Notes != "" {
+		t.Errorf("got[0].Notes = %q; want ''", got.Results[0].Notes)
 	}
 }
 

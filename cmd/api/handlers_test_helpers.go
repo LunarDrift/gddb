@@ -98,11 +98,11 @@ func (f *fakeQuerier) SearchByVenue(ctx context.Context, arg database.SearchByVe
 	return f.showsFromVenueNameRows, f.showsFromVenueNameErr
 }
 
-func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context) ([]database.ShowsWithShowNotesRow, error) {
+func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context, arg database.ShowsWithShowNotesParams) ([]database.ShowsWithShowNotesRow, error) {
 	return f.showsWithNotesRows, f.showsWithNotesErr
 }
 
-func (f *fakeQuerier) ShowsWithoutNotes(ctx context.Context) ([]database.ShowsWithoutNotesRow, error) {
+func (f *fakeQuerier) ShowsWithoutNotes(ctx context.Context, arg database.ShowsWithoutNotesParams) ([]database.ShowsWithoutNotesRow, error) {
 	return f.showsWithoutNotesRows, f.showsWithoutNotesErr
 }
 

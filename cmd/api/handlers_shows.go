@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -364,14 +363,14 @@ func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request)
 	}
 
 	if b {
-		results, err := s.showsWithNotes(r.Context())
+		results, err := s.showsWithNotes(r)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 			return
 		}
 		respondWithJSON(w, http.StatusOK, results)
 	} else {
-		results, err := s.showsNoNotes(r.Context())
+		results, err := s.showsNoNotes(r)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 			return
@@ -380,36 +379,63 @@ func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (s *server) showsWithNotes(ctx context.Context) ([]internal.ShowMeta, error) {
-	showRows, err := s.queries.ShowsWithShowNotes(ctx)
+func (s *server) showsWithNotes(r *http.Request) (internal.Paginated[internal.ShowMeta], error) {
+	limit, offset, err := parsePagination(r)
 	if err != nil {
-		return nil, fmt.Errorf("showsWithNotes: %w", err)
+		return internal.Paginated[internal.ShowMeta]{}, err
+	}
+	showRows, err := s.queries.ShowsWithShowNotes(r.Context(), database.ShowsWithShowNotesParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("showsWithNotes: %w", err)
 	}
 
 	if len(showRows) == 0 {
-		return nil, errors.New("malformed show data: len(showRows) = 0")
+		return internal.Paginated[internal.ShowMeta]{}, errors.New("malformed show data: len(showRows) = 0")
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 	return results, nil
 }
 
-func (s *server) showsNoNotes(ctx context.Context) ([]internal.ShowMeta, error) {
-	showRows, err := s.queries.ShowsWithoutNotes(ctx)
+func (s *server) showsNoNotes(r *http.Request) (internal.Paginated[internal.ShowMeta], error) {
+	limit, offset, err := parsePagination(r)
 	if err != nil {
-		return nil, fmt.Errorf("showsNoNotes: %w", err)
+		return internal.Paginated[internal.ShowMeta]{}, err
+	}
+	showRows, err := s.queries.ShowsWithoutNotes(r.Context(), database.ShowsWithoutNotesParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("showsNoNotes: %w", err)
 	}
 
 	if len(showRows) == 0 {
-		return nil, errors.New("malformed show data: len(showRows) = 0")
+		return internal.Paginated[internal.ShowMeta]{}, errors.New("malformed show data: len(showRows) = 0")
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 	return results, nil
 }
