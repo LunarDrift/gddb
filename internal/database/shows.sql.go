@@ -231,7 +231,8 @@ SELECT
 	s.venue,
 	s.city,
 	s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM
 	shows s
 WHERE
@@ -239,12 +240,15 @@ WHERE
 GROUP BY
 	s.show_date, s.venue, s.show_id 
 ORDER BY
-	s.show_date
+	s.show_date, s.show_id
+LIMIT $4 OFFSET $3
 `
 
 type GetShowsBetweenDatesParams struct {
 	ShowDate   time.Time
 	ShowDate_2 time.Time
+	PageOffset int32
+	PageLimit  int32
 }
 
 type GetShowsBetweenDatesRow struct {
@@ -254,10 +258,16 @@ type GetShowsBetweenDatesRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
 func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenDatesParams) ([]GetShowsBetweenDatesRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates, arg.ShowDate, arg.ShowDate_2)
+	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates,
+		arg.ShowDate,
+		arg.ShowDate_2,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -272,6 +282,7 @@ func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenD
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

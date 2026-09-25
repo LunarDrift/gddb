@@ -178,6 +178,12 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
 	startDate, err := time.Parse(time.DateOnly, startDateStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
@@ -197,20 +203,32 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	showRows, err := s.queries.GetShowsBetweenDates(r.Context(), database.GetShowsBetweenDatesParams{
 		ShowDate:   startDate,
 		ShowDate_2: endDate,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "No shows between those dates", nil)
 		return
 	}
 
-	showResults := []internal.ShowMeta{}
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	showResults := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		showResults = append(showResults, internal.RowToShowMeta(row))
+		showResults.Results = append(showResults.Results, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, showResults)
 }

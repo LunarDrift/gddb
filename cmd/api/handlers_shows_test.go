@@ -309,7 +309,7 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.PaginatedShowResponse
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}

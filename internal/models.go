@@ -58,12 +58,12 @@ type Paginated[T any] struct {
 	Results  []T     `json:"results"`
 }
 
-type PaginatedShowResponse struct {
-	Count    int64      `json:"count"`
-	Next     *string    `json:"next"`
-	Previous *string    `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
-	Results  []ShowMeta `json:"results"`
-}
+// type PaginatedShowResponse struct {
+// 	Count    int64      `json:"count"`
+// 	Next     *string    `json:"next"`
+// 	Previous *string    `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
+// 	Results  []ShowMeta `json:"results"`
+// }
 
 // SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {

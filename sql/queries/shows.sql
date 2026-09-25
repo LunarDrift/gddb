@@ -96,7 +96,8 @@ SELECT
 	s.venue,
 	s.city,
 	s.state AS location,
-  s.notes
+  s.notes,
+  COUNT(*) OVER ()
 FROM
 	shows s
 WHERE
@@ -104,7 +105,8 @@ WHERE
 GROUP BY
 	s.show_date, s.venue, s.show_id 
 ORDER BY
-	s.show_date;
+	s.show_date, s.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromSongName :many
 SELECT
