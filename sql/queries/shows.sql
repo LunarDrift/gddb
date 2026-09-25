@@ -131,7 +131,7 @@ SELECT
   max(sh.show_date)::date AS last_played
 FROM shows sh 
 JOIN "sets" st ON st.show_id = sh.show_id
-JOIN set_entries se ON se.set_id = s.id
+JOIN set_entries se ON se.set_id = st.id
 WHERE se.song_name ILIKE @song_name;
 
 -- name: GetShowsFromSetName :many
