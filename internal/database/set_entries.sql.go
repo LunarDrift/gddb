@@ -117,19 +117,26 @@ func (q *Queries) MostCommonSongsBySetName(ctx context.Context, setName string) 
 }
 
 const mostPlayedSongs = `-- name: MostPlayedSongs :many
-SELECT se.song_name AS song, count(*) AS times_played
+SELECT se.song_name AS song, COUNT(*) AS times_played, COUNT(*) OVER ()
 FROM set_entries se
 GROUP BY se.song_name
 ORDER BY times_played DESC
+LIMIT $2 OFFSET $1
 `
+
+type MostPlayedSongsParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
 
 type MostPlayedSongsRow struct {
 	Song        sql.NullString
 	TimesPlayed int64
+	Count       int64
 }
 
-func (q *Queries) MostPlayedSongs(ctx context.Context) ([]MostPlayedSongsRow, error) {
-	rows, err := q.db.QueryContext(ctx, mostPlayedSongs)
+func (q *Queries) MostPlayedSongs(ctx context.Context, arg MostPlayedSongsParams) ([]MostPlayedSongsRow, error) {
+	rows, err := q.db.QueryContext(ctx, mostPlayedSongs, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +144,7 @@ func (q *Queries) MostPlayedSongs(ctx context.Context) ([]MostPlayedSongsRow, er
 	var items []MostPlayedSongsRow
 	for rows.Next() {
 		var i MostPlayedSongsRow
-		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
+		if err := rows.Scan(&i.Song, &i.TimesPlayed, &i.Count); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

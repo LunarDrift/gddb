@@ -118,7 +118,7 @@ func (f *fakeQuerier) MostCommonSongsBySetName(ctx context.Context, setName stri
 	return f.songsFromSetNameRows, f.songsFromSetNameErr
 }
 
-func (f *fakeQuerier) MostPlayedSongs(ctx context.Context) ([]database.MostPlayedSongsRow, error) {
+func (f *fakeQuerier) MostPlayedSongs(ctx context.Context, arg database.MostPlayedSongsParams) ([]database.MostPlayedSongsRow, error) {
 	return f.songsMostPlayedRows, f.songsMostplayedErr
 }
 

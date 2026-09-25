@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
+	"github.com/LunarDrift/deadabase/internal/database"
 )
 
 func (s *server) handleSongsFromQueryParam(w http.ResponseWriter, r *http.Request) {
@@ -36,20 +37,38 @@ func (s *server) handleSongsFromQueryParam(w http.ResponseWriter, r *http.Reques
 }
 
 func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request) {
-	songRows, err := s.queries.MostPlayedSongs(r.Context())
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+	songRows, err := s.queries.MostPlayedSongs(r.Context(), database.MostPlayedSongsParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get most played songs", err)
 		return
 	}
 
-	if len(songRows) == 0 {
+	if len(songRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(songRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
 		return
 	}
 
-	var results []internal.SongsTimesPlayed
+	next, prev := buildLinks(r, int(songRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.SongsTimesPlayed]{
+		Count:    songRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.SongsTimesPlayed, 0, len(songRows)),
+	}
 	for _, row := range songRows {
-		results = append(results, internal.RowToSongsTimesPlayed(row))
+		results.Results = append(results.Results, internal.RowToSongsTimesPlayed(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)
