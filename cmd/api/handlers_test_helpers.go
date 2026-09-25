@@ -94,7 +94,7 @@ func (f *fakeQuerier) GetShowsFromYearAndLocation(ctx context.Context, arg datab
 	return f.showsFromYearAndLocationRows, f.showsFromYearAndLocationErr
 }
 
-func (f *fakeQuerier) SearchByVenue(ctx context.Context, venue string) ([]database.SearchByVenueRow, error) {
+func (f *fakeQuerier) SearchByVenue(ctx context.Context, arg database.SearchByVenueParams) ([]database.SearchByVenueRow, error) {
 	return f.showsFromVenueNameRows, f.showsFromVenueNameErr
 }
 

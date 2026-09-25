@@ -661,7 +661,8 @@ SELECT
 	shows.venue,
   shows.city,
   shows.state AS location,
-  shows.notes
+  shows.notes,
+  COUNT(*) OVER ()
 FROM
 	shows
 WHERE venue ILIKE $1
@@ -669,7 +670,14 @@ ORDER BY
   shows.show_id,
 	shows.venue,
 	shows.show_date
+LIMIT $3 OFFSET $2
 `
+
+type SearchByVenueParams struct {
+	Venue      string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type SearchByVenueRow struct {
 	ShowID   int32
@@ -678,10 +686,11 @@ type SearchByVenueRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVenueRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchByVenue, venue)
+func (q *Queries) SearchByVenue(ctx context.Context, arg SearchByVenueParams) ([]SearchByVenueRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchByVenue, arg.Venue, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -696,6 +705,7 @@ func (q *Queries) SearchByVenue(ctx context.Context, venue string) ([]SearchByVe
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

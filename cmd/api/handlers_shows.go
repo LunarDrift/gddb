@@ -286,6 +286,7 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 
 	if len(showRows) == 0 && offset > 0 {
 		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
 	}
 	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
@@ -314,23 +315,43 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	searchPattern := fuzzyPattern(venue)
-	venueRows, err := s.queries.SearchByVenue(r.Context(), searchPattern)
+	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get venues", err)
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	}
+
+	searchPattern := fuzzyPattern(venue)
+	showRows, err := s.queries.SearchByVenue(r.Context(), database.SearchByVenueParams{
+		Venue:      searchPattern,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(venueRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "Venue not found", nil)
 		return
 	}
 
-	var venueResults []internal.ShowMeta
-	for _, row := range venueRows {
-		venueResults = append(venueResults, internal.RowToShowMeta(row))
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
 	}
-	respondWithJSON(w, http.StatusOK, venueResults)
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+	respondWithJSON(w, http.StatusOK, results)
 }
 
 func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request) {

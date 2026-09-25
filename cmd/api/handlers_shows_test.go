@@ -430,21 +430,21 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Venue != "Soldier Field" {
-		t.Errorf("got[0].Venue = %q; want %s", got[0].Venue, "Soldier Field")
+	if got.Results[0].Venue != "Soldier Field" {
+		t.Errorf("got[0].Venue = %q; want %s", got.Results[0].Venue, "Soldier Field")
 	}
 
-	if got[0].Venue != got[1].Venue {
-		t.Errorf("different venues: got[0].Venue = %q, got[1].Venue = %q", got[0].Venue, got[1].Venue)
+	if got.Results[0].Venue != got.Results[1].Venue {
+		t.Errorf("different venues: got[0].Venue = %q, got[1].Venue = %q", got.Results[0].Venue, got.Results[1].Venue)
 	}
 }
 

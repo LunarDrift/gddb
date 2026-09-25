@@ -75,14 +75,16 @@ SELECT
 	shows.venue,
   shows.city,
   shows.state AS location,
-  shows.notes
+  shows.notes,
+  COUNT(*) OVER ()
 FROM
 	shows
 WHERE venue ILIKE $1
 ORDER BY
   shows.show_id,
 	shows.venue,
-	shows.show_date;
+	shows.show_date
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id;
