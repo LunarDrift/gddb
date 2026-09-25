@@ -110,19 +110,19 @@ func (f *fakeQuerier) SongStats(ctx context.Context, songName sql.NullString) (d
 	return f.songStatsRow, f.songStatsErr
 }
 
-func (f *fakeQuerier) AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]database.AllSongsPlayedAtVenueRow, error) {
+func (f *fakeQuerier) AllSongsPlayedAtVenue(ctx context.Context, arg database.AllSongsPlayedAtVenueParams) ([]database.AllSongsPlayedAtVenueRow, error) {
 	return f.songsPlayedAtVenueRows, f.songsPlayedAtVenueErr
 }
 
-func (f *fakeQuerier) MostCommonSongsBySetName(ctx context.Context, setName string) ([]database.MostCommonSongsBySetNameRow, error) {
+func (f *fakeQuerier) MostCommonSongsBySetName(ctx context.Context, arg database.MostCommonSongsBySetNameParams) ([]database.MostCommonSongsBySetNameRow, error) {
 	return f.songsFromSetNameRows, f.songsFromSetNameErr
 }
 
-func (f *fakeQuerier) MostPlayedSongs(ctx context.Context) ([]database.MostPlayedSongsRow, error) {
+func (f *fakeQuerier) MostPlayedSongs(ctx context.Context, arg database.MostPlayedSongsParams) ([]database.MostPlayedSongsRow, error) {
 	return f.songsMostPlayedRows, f.songsMostplayedErr
 }
 
-func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, number int32) ([]database.SongsPlayedLessThanRow, error) {
+func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, arg database.SongsPlayedLessThanParams) ([]database.SongsPlayedLessThanRow, error) {
 	return f.songsPlayedLessThanRows, f.songsPlayedLessThanErr
 }
 

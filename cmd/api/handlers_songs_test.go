@@ -82,25 +82,25 @@ func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.SongsFromVenue
+	var got internal.Paginated[internal.SongsFromVenue]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Venue != "Soldier Field" {
-		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got[0].Venue)
+	if got.Results[0].Venue != "Soldier Field" {
+		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got.Results[0].Venue)
 	}
 
-	if got[1].Venue != "Soldier Field" {
-		t.Errorf("got[1].Venue = %q; want 'Soldier Field'", got[1].Venue)
+	if got.Results[1].Venue != "Soldier Field" {
+		t.Errorf("got[1].Venue = %q; want 'Soldier Field'", got.Results[1].Venue)
 	}
 
-	if got[0].Venue != got[1].Venue {
-		t.Errorf("different venues: got[0].Venue = %q; got[1].Venue = %q", got[0].Venue, got[1].Venue)
+	if got.Results[0].Venue != got.Results[1].Venue {
+		t.Errorf("different venues: got[0].Venue = %q; got[1].Venue = %q", got.Results[0].Venue, got.Results[1].Venue)
 	}
 }
 
@@ -148,20 +148,20 @@ func TestHandleGetMostPlayedSongsBySetName(t *testing.T) {
 		t.Fatalf("status = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.SongsTimesPlayed
+	var got internal.Paginated[internal.SongsTimesPlayed]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].TimesPlayed != 10 {
-		t.Errorf("got[0].TimesPlayed = %d; want 10", got[0].TimesPlayed)
+	if got.Results[0].TimesPlayed != 10 {
+		t.Errorf("got[0].TimesPlayed = %d; want 10", got.Results[0].TimesPlayed)
 	}
-	if got[1].TimesPlayed != 8 {
-		t.Errorf("got[1].TimesPlayed = %d; want 8", got[1].TimesPlayed)
+	if got.Results[1].TimesPlayed != 8 {
+		t.Errorf("got[1].TimesPlayed = %d; want 8", got.Results[1].TimesPlayed)
 	}
 }
 
@@ -209,20 +209,20 @@ func TestHandleGetMostPlayedSongs(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.SongsTimesPlayed
+	var got internal.Paginated[internal.SongsTimesPlayed]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Song != "Althea" {
-		t.Errorf("got[0].Song = %q; want 'Althea'", got[0].Song)
+	if got.Results[0].Song != "Althea" {
+		t.Errorf("got[0].Song = %q; want 'Althea'", got.Results[0].Song)
 	}
-	if got[1].Song != "Dark Star" {
-		t.Errorf("got[1].Song = %q; want 'Dark Star'", got[1].Song)
+	if got.Results[1].Song != "Dark Star" {
+		t.Errorf("got[1].Song = %q; want 'Dark Star'", got.Results[1].Song)
 	}
 }
 
@@ -311,24 +311,24 @@ func TestHandleSongsPlayedLessThanNTimes(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.SongsTimesPlayed
+	var got internal.Paginated[internal.SongsTimesPlayed]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Song != "Althea" {
-		t.Errorf("got[0].Song = %q; want 'Althea'", got[0].Song)
+	if got.Results[0].Song != "Althea" {
+		t.Errorf("got[0].Song = %q; want 'Althea'", got.Results[0].Song)
 	}
-	if got[0].TimesPlayed != 19 {
-		t.Errorf("got[0].TimesPlayed = %d; want 19", got[0].TimesPlayed)
+	if got.Results[0].TimesPlayed != 19 {
+		t.Errorf("got[0].TimesPlayed = %d; want 19", got.Results[0].TimesPlayed)
 	}
 
-	if got[1].Song != "Dark Star" {
-		t.Errorf("got[1].Song = %q; want 'Dark Star'", got[1].Song)
+	if got.Results[1].Song != "Dark Star" {
+		t.Errorf("got[1].Song = %q; want 'Dark Star'", got.Results[1].Song)
 	}
 }
 
