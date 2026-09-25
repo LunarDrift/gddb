@@ -486,6 +486,12 @@ func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *htt
 		return
 	}
 
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
 	year, err := strconv.Atoi(yearStr)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid year parameter", err)
@@ -493,22 +499,34 @@ func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *htt
 	}
 
 	showRows, err := s.queries.GetShowsFromYearAndLocation(r.Context(), database.GetShowsFromYearAndLocationParams{
-		Year:     int32(year),
-		Location: location,
+		Year:       int32(year),
+		Location:   location,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "No shows found from that year and location", nil)
 		return
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)

@@ -617,16 +617,20 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = $1::int
 AND LOWER(sh.state) = LOWER($2)
-ORDER BY sh.show_date
+ORDER BY sh.show_date, sh.show_id
+LIMIT $4 OFFSET $3
 `
 
 type GetShowsFromYearAndLocationParams struct {
-	Year     int32
-	Location string
+	Year       int32
+	Location   string
+	PageOffset int32
+	PageLimit  int32
 }
 
 type GetShowsFromYearAndLocationRow struct {
@@ -636,10 +640,16 @@ type GetShowsFromYearAndLocationRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
 func (q *Queries) GetShowsFromYearAndLocation(ctx context.Context, arg GetShowsFromYearAndLocationParams) ([]GetShowsFromYearAndLocationRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromYearAndLocation, arg.Year, arg.Location)
+	rows, err := q.db.QueryContext(ctx, getShowsFromYearAndLocation,
+		arg.Year,
+		arg.Location,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -654,6 +664,7 @@ func (q *Queries) GetShowsFromYearAndLocation(ctx context.Context, arg GetShowsF
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

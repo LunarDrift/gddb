@@ -183,11 +183,13 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
 AND LOWER(sh.state) = LOWER(@location)
-ORDER BY sh.show_date;
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromYear :many
 SELECT

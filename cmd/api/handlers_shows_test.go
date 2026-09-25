@@ -720,21 +720,21 @@ func TestHandleGetShowsFromYearAndLocation(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Location != "IL" {
-		t.Errorf("got[0].Location = %q; want 'IL'", got[0].Location)
+	if got.Results[0].Location != "IL" {
+		t.Errorf("got[0].Location = %q; want 'IL'", got.Results[0].Location)
 	}
 
-	if got[0].Date[:4] != "1995" {
-		t.Errorf("got[0].Date year = %q; want '1995'", got[0].Date[:4])
+	if got.Results[0].Date[:4] != "1995" {
+		t.Errorf("got[0].Date year = %q; want '1995'", got.Results[0].Date[:4])
 	}
 }
 
@@ -759,21 +759,21 @@ func TestHandleGetShowsFromYearAndLocation_CountryName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 1 {
-		t.Errorf("len(got) = %d; want 1", len(got))
+	if len(got.Results) != 1 {
+		t.Errorf("len(got) = %d; want 1", len(got.Results))
 	}
 
-	if got[0].Location != "England" {
-		t.Errorf("got[0].Location = %q; want 'England'", got[0].Location)
+	if got.Results[0].Location != "England" {
+		t.Errorf("got[0].Location = %q; want 'England'", got.Results[0].Location)
 	}
 
-	if got[0].Date[:4] != "1995" {
-		t.Errorf("got[0].Date year = %q; want '1995'", got[0].Date[:4])
+	if got.Results[0].Date[:4] != "1995" {
+		t.Errorf("got[0].Date year = %q; want '1995'", got.Results[0].Date[:4])
 	}
 }
 
