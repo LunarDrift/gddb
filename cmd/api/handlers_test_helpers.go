@@ -82,7 +82,7 @@ func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, arg database.Get
 	return f.showsFromSongNameRows, f.showsFromSongNameErr
 }
 
-func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, stateOrCountry string) ([]database.GetShowsFromLocationRow, error) {
+func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, arg database.GetShowsFromLocationParams) ([]database.GetShowsFromLocationRow, error) {
 	return f.showsFromLocationRows, f.showsFromLocationErr
 }
 

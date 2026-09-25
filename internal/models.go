@@ -122,7 +122,7 @@ type ShowQuerier interface {
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
 	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
 	GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error)
-	GetShowsFromLocation(ctx context.Context, location string) ([]database.GetShowsFromLocationRow, error)
+	GetShowsFromLocation(ctx context.Context, arg database.GetShowsFromLocationParams) ([]database.GetShowsFromLocationRow, error)
 	GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error)
 	GetShowsFromYear(ctx context.Context, arg database.GetShowsFromYearParams) ([]database.GetShowsFromYearRow, error)
 	GetShowsFromYearAndLocation(ctx context.Context, arg database.GetShowsFromYearAndLocationParams) ([]database.GetShowsFromYearAndLocationRow, error)

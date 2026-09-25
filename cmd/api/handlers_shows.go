@@ -591,20 +591,41 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromLocation(r.Context(), location)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromLocation(r.Context(), database.GetShowsFromLocationParams{
+		Location:   location,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
 	}
 
-	if len(showRows) == 0 {
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
 		return
 	}
 
-	var results []internal.ShowMeta
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
 	for _, row := range showRows {
-		results = append(results, internal.RowToShowMeta(row))
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)

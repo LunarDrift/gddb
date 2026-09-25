@@ -356,11 +356,19 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE LOWER(sh.state) = LOWER($1)
-ORDER BY sh.show_date
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromLocationParams struct {
+	Location   string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromLocationRow struct {
 	ShowID   int32
@@ -369,10 +377,11 @@ type GetShowsFromLocationRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromLocation(ctx context.Context, location string) ([]GetShowsFromLocationRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromLocation, location)
+func (q *Queries) GetShowsFromLocation(ctx context.Context, arg GetShowsFromLocationParams) ([]GetShowsFromLocationRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromLocation, arg.Location, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -387,6 +396,7 @@ func (q *Queries) GetShowsFromLocation(ctx context.Context, location string) ([]
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}
