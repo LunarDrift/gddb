@@ -223,22 +223,29 @@ func (q *Queries) SongsPlayedLessThan(ctx context.Context, arg SongsPlayedLessTh
 }
 
 const uniqueSongsPerCity = `-- name: UniqueSongsPerCity :many
-SELECT sh.city, sh.state AS location, count(DISTINCT se.song_name) AS unique_song_count
+SELECT sh.city, sh.state AS location, COUNT(DISTINCT se.song_name) AS unique_song_count, COUNT(*) OVER ()
 FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
 JOIN shows sh ON s.show_id = sh.show_id
 GROUP BY sh.city, sh.state
 ORDER BY unique_song_count DESC
+LIMIT $2 OFFSET $1
 `
+
+type UniqueSongsPerCityParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
 
 type UniqueSongsPerCityRow struct {
 	City            string
 	Location        string
 	UniqueSongCount int64
+	Count           int64
 }
 
-func (q *Queries) UniqueSongsPerCity(ctx context.Context) ([]UniqueSongsPerCityRow, error) {
-	rows, err := q.db.QueryContext(ctx, uniqueSongsPerCity)
+func (q *Queries) UniqueSongsPerCity(ctx context.Context, arg UniqueSongsPerCityParams) ([]UniqueSongsPerCityRow, error) {
+	rows, err := q.db.QueryContext(ctx, uniqueSongsPerCity, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +253,12 @@ func (q *Queries) UniqueSongsPerCity(ctx context.Context) ([]UniqueSongsPerCityR
 	var items []UniqueSongsPerCityRow
 	for rows.Next() {
 		var i UniqueSongsPerCityRow
-		if err := rows.Scan(&i.City, &i.Location, &i.UniqueSongCount); err != nil {
+		if err := rows.Scan(
+			&i.City,
+			&i.Location,
+			&i.UniqueSongCount,
+			&i.Count,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

@@ -258,24 +258,24 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.UniqueSongsPerCity
+	var got internal.Paginated[internal.UniqueSongsPerCity]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].City != "Chicago" {
-		t.Errorf("got[0].City = %q; want 'Chicago'", got[0].City)
+	if got.Results[0].City != "Chicago" {
+		t.Errorf("got[0].City = %q; want 'Chicago'", got.Results[0].City)
 	}
 
-	if got[1].Location != "England" {
-		t.Errorf("got[1].StateOrCountry = %q; want 'England'", got[1].Location)
+	if got.Results[1].Location != "England" {
+		t.Errorf("got[1].StateOrCountry = %q; want 'England'", got.Results[1].Location)
 	}
-	if got[1].UniqueSongCount != 24 {
-		t.Errorf("got[1].UniqueSongCount = %d; want 24", got[1].UniqueSongCount)
+	if got.Results[1].UniqueSongCount != 24 {
+		t.Errorf("got[1].UniqueSongCount = %d; want 24", got.Results[1].UniqueSongCount)
 	}
 }
 

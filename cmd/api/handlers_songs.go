@@ -181,20 +181,38 @@ func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *htt
 }
 
 func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Request) {
-	songRows, err := s.queries.UniqueSongsPerCity(r.Context())
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+	songRows, err := s.queries.UniqueSongsPerCity(r.Context(), database.UniqueSongsPerCityParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get data", err)
 		return
 	}
 
-	if len(songRows) == 0 {
+	if len(songRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(songRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
 		return
 	}
 
-	var results []internal.UniqueSongsPerCity
+	next, prev := buildLinks(r, int(songRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.UniqueSongsPerCity]{
+		Count:    songRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.UniqueSongsPerCity, 0, len(songRows)),
+	}
 	for _, row := range songRows {
-		results = append(results, internal.UniqueSongsPerCity{
+		results.Results = append(results.Results, internal.UniqueSongsPerCity{
 			City:            row.City,
 			Location:        row.Location,
 			UniqueSongCount: int(row.UniqueSongCount),

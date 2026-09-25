@@ -36,12 +36,13 @@ ORDER BY times_played DESC
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: UniqueSongsPerCity :many
-SELECT sh.city, sh.state AS location, count(DISTINCT se.song_name) AS unique_song_count
+SELECT sh.city, sh.state AS location, COUNT(DISTINCT se.song_name) AS unique_song_count, COUNT(*) OVER ()
 FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
 JOIN shows sh ON s.show_id = sh.show_id
 GROUP BY sh.city, sh.state
-ORDER BY unique_song_count DESC;
+ORDER BY unique_song_count DESC
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: AllSongsPlayedAtVenue :many
 SELECT *, COUNT(*) OVER ()

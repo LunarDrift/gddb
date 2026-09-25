@@ -126,7 +126,7 @@ func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, arg database.Song
 	return f.songsPlayedLessThanRows, f.songsPlayedLessThanErr
 }
 
-func (f *fakeQuerier) UniqueSongsPerCity(ctx context.Context) ([]database.UniqueSongsPerCityRow, error) {
+func (f *fakeQuerier) UniqueSongsPerCity(ctx context.Context, arg database.UniqueSongsPerCityParams) ([]database.UniqueSongsPerCityRow, error) {
 	return f.songsUniquePerCityRows, f.songsUniquePerCityErr
 }
 
