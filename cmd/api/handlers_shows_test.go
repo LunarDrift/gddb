@@ -592,20 +592,20 @@ func TestHandleGetShowsFromCity(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.ShowMeta
+	var got internal.Paginated[internal.ShowMeta]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].City != "Chicago" {
-		t.Errorf("got[0].City = %q; want %q", got[0].City, "Chicago")
+	if got.Results[0].City != "Chicago" {
+		t.Errorf("got[0].City = %q; want %q", got.Results[0].City, "Chicago")
 	}
-	if got[1].City != "Chicago" {
-		t.Errorf("got[1].City = %q; want %q", got[1].City, "Chicago")
+	if got.Results[1].City != "Chicago" {
+		t.Errorf("got[1].City = %q; want %q", got.Results[1].City, "Chicago")
 	}
 }
 

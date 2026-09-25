@@ -304,11 +304,19 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.city ILIKE $1
-ORDER BY sh.show_date
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
 `
+
+type GetShowsFromCityParams struct {
+	City       string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type GetShowsFromCityRow struct {
 	ShowID   int32
@@ -317,10 +325,11 @@ type GetShowsFromCityRow struct {
 	City     string
 	Location string
 	Notes    sql.NullString
+	Count    int64
 }
 
-func (q *Queries) GetShowsFromCity(ctx context.Context, city string) ([]GetShowsFromCityRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowsFromCity, city)
+func (q *Queries) GetShowsFromCity(ctx context.Context, arg GetShowsFromCityParams) ([]GetShowsFromCityRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromCity, arg.City, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -335,6 +344,7 @@ func (q *Queries) GetShowsFromCity(ctx context.Context, city string) ([]GetShows
 			&i.City,
 			&i.Location,
 			&i.Notes,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

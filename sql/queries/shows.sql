@@ -224,10 +224,12 @@ SELECT
   sh.venue,
   sh.city,
   sh.state AS location,
-  sh.notes
+  sh.notes,
+  COUNT(*) OVER ()
 FROM shows sh
 WHERE sh.city ILIKE $1
-ORDER BY sh.show_date;
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetValidLocations :many
 SELECT DISTINCT LOWER(state) AS location FROM shows;

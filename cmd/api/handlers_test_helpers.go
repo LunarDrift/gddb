@@ -138,6 +138,6 @@ func (f *fakeQuerier) GetValidLocations(ctx context.Context) ([]string, error) {
 	return f.validLocationRows, f.validLocationErr
 }
 
-func (f *fakeQuerier) GetShowsFromCity(ctx context.Context, city string) ([]database.GetShowsFromCityRow, error) {
+func (f *fakeQuerier) GetShowsFromCity(ctx context.Context, arg database.GetShowsFromCityParams) ([]database.GetShowsFromCityRow, error) {
 	return f.showsFromCityRows, f.showsFromCityErr
 }
