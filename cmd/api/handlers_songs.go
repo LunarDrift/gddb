@@ -210,23 +210,42 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusBadRequest, "Missing 'venue' parameter", nil)
 		return
 	}
-
 	searchPattern := fuzzyPattern(venue)
 
-	songRows, err := s.queries.AllSongsPlayedAtVenue(r.Context(), searchPattern)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	songRows, err := s.queries.AllSongsPlayedAtVenue(r.Context(), database.AllSongsPlayedAtVenueParams{
+		VenueName:  searchPattern,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
 		return
 	}
 
-	if len(songRows) == 0 {
+	if len(songRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(songRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "Venue not found", nil)
 		return
 	}
 
-	results := []internal.SongsFromVenue{}
+	next, prev := buildLinks(r, int(songRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.SongsFromVenue]{
+		Count:    songRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.SongsFromVenue, 0, len(songRows)),
+	}
 	for _, row := range songRows {
-		results = append(results, internal.SongsFromVenue{
+		results.Results = append(results.Results, internal.SongsFromVenue{
 			SongName: row.SongName.String,
 			Venue:    row.Venue,
 			City:     row.City,

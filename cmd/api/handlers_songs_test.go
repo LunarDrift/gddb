@@ -82,25 +82,25 @@ func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.SongsFromVenue
+	var got internal.Paginated[internal.SongsFromVenue]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].Venue != "Soldier Field" {
-		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got[0].Venue)
+	if got.Results[0].Venue != "Soldier Field" {
+		t.Errorf("got[0].Venue = %q; want 'Soldier Field'", got.Results[0].Venue)
 	}
 
-	if got[1].Venue != "Soldier Field" {
-		t.Errorf("got[1].Venue = %q; want 'Soldier Field'", got[1].Venue)
+	if got.Results[1].Venue != "Soldier Field" {
+		t.Errorf("got[1].Venue = %q; want 'Soldier Field'", got.Results[1].Venue)
 	}
 
-	if got[0].Venue != got[1].Venue {
-		t.Errorf("different venues: got[0].Venue = %q; got[1].Venue = %q", got[0].Venue, got[1].Venue)
+	if got.Results[0].Venue != got.Results[1].Venue {
+		t.Errorf("different venues: got[0].Venue = %q; got[1].Venue = %q", got.Results[0].Venue, got.Results[1].Venue)
 	}
 }
 

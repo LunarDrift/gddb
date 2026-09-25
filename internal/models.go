@@ -130,7 +130,7 @@ type ShowQuerier interface {
 	ShowsWithShowNotes(ctx context.Context, arg database.ShowsWithShowNotesParams) ([]database.ShowsWithShowNotesRow, error)
 	ShowsWithoutNotes(ctx context.Context, arg database.ShowsWithoutNotesParams) ([]database.ShowsWithoutNotesRow, error)
 	SongStats(ctx context.Context, songName sql.NullString) (database.SongStatsRow, error)
-	AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]database.AllSongsPlayedAtVenueRow, error)
+	AllSongsPlayedAtVenue(ctx context.Context, arg database.AllSongsPlayedAtVenueParams) ([]database.AllSongsPlayedAtVenueRow, error)
 	MostCommonSongsBySetName(ctx context.Context, arg database.MostCommonSongsBySetNameParams) ([]database.MostCommonSongsBySetNameRow, error)
 	MostPlayedSongs(ctx context.Context, arg database.MostPlayedSongsParams) ([]database.MostPlayedSongsRow, error)
 	SongsPlayedLessThan(ctx context.Context, arg database.SongsPlayedLessThanParams) ([]database.SongsPlayedLessThanRow, error)

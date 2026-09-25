@@ -11,23 +11,34 @@ import (
 )
 
 const allSongsPlayedAtVenue = `-- name: AllSongsPlayedAtVenue :many
-SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state AS location
-FROM set_entries se
-JOIN "sets" s ON se.set_id = s.id
-JOIN shows sh ON s.show_id = sh.show_id
-WHERE sh.venue ILIKE $1
-ORDER BY sh.venue, se.song_name
+SELECT song_name, venue, city, location, COUNT(*) OVER ()
+FROM (
+  SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state AS location
+  FROM set_entries se
+  JOIN "sets" s ON se.set_id = s.id
+  JOIN shows sh ON s.show_id = sh.show_id
+  WHERE sh.venue ILIKE $1
+) sub
+ORDER BY venue, song_name
+LIMIT $3 OFFSET $2
 `
+
+type AllSongsPlayedAtVenueParams struct {
+	VenueName  string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type AllSongsPlayedAtVenueRow struct {
 	SongName sql.NullString
 	Venue    string
 	City     string
 	Location string
+	Count    int64
 }
 
-func (q *Queries) AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]AllSongsPlayedAtVenueRow, error) {
-	rows, err := q.db.QueryContext(ctx, allSongsPlayedAtVenue, venue)
+func (q *Queries) AllSongsPlayedAtVenue(ctx context.Context, arg AllSongsPlayedAtVenueParams) ([]AllSongsPlayedAtVenueRow, error) {
+	rows, err := q.db.QueryContext(ctx, allSongsPlayedAtVenue, arg.VenueName, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +51,7 @@ func (q *Queries) AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]Al
 			&i.Venue,
 			&i.City,
 			&i.Location,
+			&i.Count,
 		); err != nil {
 			return nil, err
 		}

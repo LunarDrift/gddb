@@ -44,9 +44,13 @@ GROUP BY sh.city, sh.state
 ORDER BY unique_song_count DESC;
 
 -- name: AllSongsPlayedAtVenue :many
-SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state AS location
-FROM set_entries se
-JOIN "sets" s ON se.set_id = s.id
-JOIN shows sh ON s.show_id = sh.show_id
-WHERE sh.venue ILIKE $1
-ORDER BY sh.venue, se.song_name;
+SELECT *, COUNT(*) OVER ()
+FROM (
+  SELECT DISTINCT se.song_name, sh.venue, sh.city, sh.state AS location
+  FROM set_entries se
+  JOIN "sets" s ON se.set_id = s.id
+  JOIN shows sh ON s.show_id = sh.show_id
+  WHERE sh.venue ILIKE @venue_name
+) sub
+ORDER BY venue, song_name
+LIMIT @page_limit OFFSET @page_offset;

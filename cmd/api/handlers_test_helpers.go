@@ -110,7 +110,7 @@ func (f *fakeQuerier) SongStats(ctx context.Context, songName sql.NullString) (d
 	return f.songStatsRow, f.songStatsErr
 }
 
-func (f *fakeQuerier) AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]database.AllSongsPlayedAtVenueRow, error) {
+func (f *fakeQuerier) AllSongsPlayedAtVenue(ctx context.Context, arg database.AllSongsPlayedAtVenueParams) ([]database.AllSongsPlayedAtVenueRow, error) {
 	return f.songsPlayedAtVenueRows, f.songsPlayedAtVenueErr
 }
 
