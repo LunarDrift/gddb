@@ -80,32 +80,50 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 		respondWithError(w, http.StatusBadRequest, "Missing parameter", nil)
 		return
 	}
-
 	num, err := strconv.Atoi(val)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid value. Expecting integer number", err)
 		return
 	}
-
 	if num < 2 {
 		respondWithError(w, http.StatusBadRequest, "Number should be at least 2", nil)
 		return
 	}
 
-	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), int32(num))
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	songRows, err := s.queries.SongsPlayedLessThan(r.Context(), database.SongsPlayedLessThanParams{
+		Column1:    int32(num),
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
 		return
 	}
 
-	if len(songRows) == 0 {
+	if len(songRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(songRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
 		return
 	}
 
-	var results []internal.SongsTimesPlayed
+	next, prev := buildLinks(r, int(songRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.SongsTimesPlayed]{
+		Count:    songRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.SongsTimesPlayed, 0, len(songRows)),
+	}
 	for _, row := range songRows {
-		results = append(results, internal.RowToSongsTimesPlayed(row))
+		results.Results = append(results.Results, internal.RowToSongsTimesPlayed(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)

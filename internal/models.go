@@ -133,7 +133,7 @@ type ShowQuerier interface {
 	AllSongsPlayedAtVenue(ctx context.Context, venue string) ([]database.AllSongsPlayedAtVenueRow, error)
 	MostCommonSongsBySetName(ctx context.Context, setName string) ([]database.MostCommonSongsBySetNameRow, error)
 	MostPlayedSongs(ctx context.Context, arg database.MostPlayedSongsParams) ([]database.MostPlayedSongsRow, error)
-	SongsPlayedLessThan(ctx context.Context, number int32) ([]database.SongsPlayedLessThanRow, error)
+	SongsPlayedLessThan(ctx context.Context, arg database.SongsPlayedLessThanParams) ([]database.SongsPlayedLessThanRow, error)
 	UniqueSongsPerCity(ctx context.Context) ([]database.UniqueSongsPerCityRow, error)
 	GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error)
 	GetValidLocations(ctx context.Context) ([]string, error)

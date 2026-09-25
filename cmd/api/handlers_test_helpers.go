@@ -122,7 +122,7 @@ func (f *fakeQuerier) MostPlayedSongs(ctx context.Context, arg database.MostPlay
 	return f.songsMostPlayedRows, f.songsMostplayedErr
 }
 
-func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, number int32) ([]database.SongsPlayedLessThanRow, error) {
+func (f *fakeQuerier) SongsPlayedLessThan(ctx context.Context, arg database.SongsPlayedLessThanParams) ([]database.SongsPlayedLessThanRow, error) {
 	return f.songsPlayedLessThanRows, f.songsPlayedLessThanErr
 }
 

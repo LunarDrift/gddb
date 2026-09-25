@@ -159,20 +159,28 @@ func (q *Queries) MostPlayedSongs(ctx context.Context, arg MostPlayedSongsParams
 }
 
 const songsPlayedLessThan = `-- name: SongsPlayedLessThan :many
-SELECT se.song_name AS song, count(*) AS times_played
+SELECT se.song_name AS song, count(*) AS times_played, COUNT(*) OVER ()
 FROM set_entries se
 GROUP BY se.song_name
 HAVING count(*) < $1::int
 ORDER BY times_played DESC
+LIMIT $3 OFFSET $2
 `
+
+type SongsPlayedLessThanParams struct {
+	Column1    int32
+	PageOffset int32
+	PageLimit  int32
+}
 
 type SongsPlayedLessThanRow struct {
 	Song        sql.NullString
 	TimesPlayed int64
+	Count       int64
 }
 
-func (q *Queries) SongsPlayedLessThan(ctx context.Context, dollar_1 int32) ([]SongsPlayedLessThanRow, error) {
-	rows, err := q.db.QueryContext(ctx, songsPlayedLessThan, dollar_1)
+func (q *Queries) SongsPlayedLessThan(ctx context.Context, arg SongsPlayedLessThanParams) ([]SongsPlayedLessThanRow, error) {
+	rows, err := q.db.QueryContext(ctx, songsPlayedLessThan, arg.Column1, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +188,7 @@ func (q *Queries) SongsPlayedLessThan(ctx context.Context, dollar_1 int32) ([]So
 	var items []SongsPlayedLessThanRow
 	for rows.Next() {
 		var i SongsPlayedLessThanRow
-		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
+		if err := rows.Scan(&i.Song, &i.TimesPlayed, &i.Count); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
