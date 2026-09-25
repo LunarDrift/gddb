@@ -135,27 +135,46 @@ func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *htt
 		respondWithError(w, http.StatusBadRequest, "Missing 'set_name' parameter", nil)
 		return
 	}
-
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
 	if !slices.Contains(validSetNames, setName) {
 		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name '%v'. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
 		return
 	}
 
-	songRows, err := s.queries.MostCommonSongsBySetName(r.Context(), setName)
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	songRows, err := s.queries.MostCommonSongsBySetName(r.Context(), database.MostCommonSongsBySetNameParams{
+		SetName:    setName,
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
 		return
 	}
 
-	if len(songRows) == 0 {
+	if len(songRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(songRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
 		return
 	}
 
-	var results []internal.SongsTimesPlayed
+	next, prev := buildLinks(r, int(songRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.SongsTimesPlayed]{
+		Count:    songRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.SongsTimesPlayed, 0, len(songRows)),
+	}
 	for _, row := range songRows {
-		results = append(results, internal.RowToSongsTimesPlayed(row))
+		results.Results = append(results.Results, internal.RowToSongsTimesPlayed(row))
 	}
 
 	respondWithJSON(w, http.StatusOK, results)

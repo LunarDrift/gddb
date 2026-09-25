@@ -27,12 +27,13 @@ ORDER BY times_played DESC
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: MostCommonSongsBySetName :many
-SELECT se.song_name AS song, count(*) AS times_played
+SELECT se.song_name AS song, COUNT(*) AS times_played, COUNT(*) OVER ()
 FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
-WHERE s.set_name = $1
+WHERE s.set_name = @set_name
 GROUP BY se.song_name
-ORDER BY times_played  DESC;
+ORDER BY times_played DESC
+LIMIT @page_limit OFFSET @page_offset;
 
 -- name: UniqueSongsPerCity :many
 SELECT sh.city, sh.state AS location, count(DISTINCT se.song_name) AS unique_song_count

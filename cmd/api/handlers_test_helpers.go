@@ -114,7 +114,7 @@ func (f *fakeQuerier) AllSongsPlayedAtVenue(ctx context.Context, venue string) (
 	return f.songsPlayedAtVenueRows, f.songsPlayedAtVenueErr
 }
 
-func (f *fakeQuerier) MostCommonSongsBySetName(ctx context.Context, setName string) ([]database.MostCommonSongsBySetNameRow, error) {
+func (f *fakeQuerier) MostCommonSongsBySetName(ctx context.Context, arg database.MostCommonSongsBySetNameParams) ([]database.MostCommonSongsBySetNameRow, error) {
 	return f.songsFromSetNameRows, f.songsFromSetNameErr
 }
 

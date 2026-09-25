@@ -80,21 +80,29 @@ func (q *Queries) CreateSetEntry(ctx context.Context, arg CreateSetEntryParams) 
 }
 
 const mostCommonSongsBySetName = `-- name: MostCommonSongsBySetName :many
-SELECT se.song_name AS song, count(*) AS times_played
+SELECT se.song_name AS song, COUNT(*) AS times_played, COUNT(*) OVER ()
 FROM set_entries se
 JOIN "sets" s ON se.set_id = s.id
 WHERE s.set_name = $1
 GROUP BY se.song_name
-ORDER BY times_played  DESC
+ORDER BY times_played DESC
+LIMIT $3 OFFSET $2
 `
+
+type MostCommonSongsBySetNameParams struct {
+	SetName    string
+	PageOffset int32
+	PageLimit  int32
+}
 
 type MostCommonSongsBySetNameRow struct {
 	Song        sql.NullString
 	TimesPlayed int64
+	Count       int64
 }
 
-func (q *Queries) MostCommonSongsBySetName(ctx context.Context, setName string) ([]MostCommonSongsBySetNameRow, error) {
-	rows, err := q.db.QueryContext(ctx, mostCommonSongsBySetName, setName)
+func (q *Queries) MostCommonSongsBySetName(ctx context.Context, arg MostCommonSongsBySetNameParams) ([]MostCommonSongsBySetNameRow, error) {
+	rows, err := q.db.QueryContext(ctx, mostCommonSongsBySetName, arg.SetName, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +110,7 @@ func (q *Queries) MostCommonSongsBySetName(ctx context.Context, setName string) 
 	var items []MostCommonSongsBySetNameRow
 	for rows.Next() {
 		var i MostCommonSongsBySetNameRow
-		if err := rows.Scan(&i.Song, &i.TimesPlayed); err != nil {
+		if err := rows.Scan(&i.Song, &i.TimesPlayed, &i.Count); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

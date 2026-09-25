@@ -148,20 +148,20 @@ func TestHandleGetMostPlayedSongsBySetName(t *testing.T) {
 		t.Fatalf("status = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got []internal.SongsTimesPlayed
+	var got internal.Paginated[internal.SongsTimesPlayed]
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
 
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got))
+	if len(got.Results) != 2 {
+		t.Errorf("len(got) = %d; want 2", len(got.Results))
 	}
 
-	if got[0].TimesPlayed != 10 {
-		t.Errorf("got[0].TimesPlayed = %d; want 10", got[0].TimesPlayed)
+	if got.Results[0].TimesPlayed != 10 {
+		t.Errorf("got[0].TimesPlayed = %d; want 10", got.Results[0].TimesPlayed)
 	}
-	if got[1].TimesPlayed != 8 {
-		t.Errorf("got[1].TimesPlayed = %d; want 8", got[1].TimesPlayed)
+	if got.Results[1].TimesPlayed != 8 {
+		t.Errorf("got[1].TimesPlayed = %d; want 8", got.Results[1].TimesPlayed)
 	}
 }
 
