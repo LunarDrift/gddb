@@ -14,6 +14,8 @@ import (
 )
 
 // pageURL, buildLinks, and parsePagination are helpers for pagination process
+
+// pageURL: Add 'offset' and 'limit' query parameters to URL
 func pageURL(r *http.Request, offset, limit int) *string {
 	q := r.URL.Query()
 	q.Set("offset", strconv.Itoa(offset))
@@ -22,6 +24,8 @@ func pageURL(r *http.Request, offset, limit int) *string {
 	return &s
 }
 
+// buildLinks: Builds the Paginated response 'Next' and 'Previous' links
+// based on the total number of results ('count') and current 'offset' and 'limit'
 func buildLinks(r *http.Request, count, offset, limit int) (next, prev *string) {
 	if offset+limit < count {
 		next = pageURL(r, offset+limit, limit)
@@ -32,6 +36,8 @@ func buildLinks(r *http.Request, count, offset, limit int) (next, prev *string) 
 	return next, prev
 }
 
+// parsePagination: Sets default 'limit' and 'offset' query parameters if none are given.
+// Default limit of 20. Max limit of 100.
 func parsePagination(r *http.Request) (limit, offset int, err error) {
 	limit, offset = 20, 0
 	q := r.URL.Query()

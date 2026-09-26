@@ -374,13 +374,13 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request) {
 	val := r.URL.Query().Get("has_notes")
 
-	b, err := strconv.ParseBool(val)
+	hasNotes, err := strconv.ParseBool(val)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "has_notes must be true or false", nil)
 		return
 	}
 
-	if b {
+	if hasNotes {
 		results, err := s.showsWithNotes(r)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
