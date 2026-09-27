@@ -256,7 +256,41 @@ func TestHandleShowsFromPathVal_ServerErr(t *testing.T) {
 	}
 }
 
-// TODO: Add 'happy path' test case. Forgot about that one I guess...
+func TestHandleGetShowsBetweenDates(t *testing.T) {
+	startDate, _ := time.Parse(time.DateOnly, "1970-01-01")
+	endDate, _ := time.Parse(time.DateOnly, "1970-01-31")
+	fake := &fakeQuerier{
+		showsBetweenDatesRows: []database.GetShowsBetweenDatesRow{
+			{ShowID: 1, ShowDate: startDate, Venue: "test venue", City: "test city", Location: "test location", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: endDate, Venue: "test venue", City: "test city", Location: "test location", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?start_date=1970-01-01&end_date=1970-01-31", nil)
+	w := httptest.NewRecorder()
+
+	s.handleGetShowsBetweenDates(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	var got internal.Paginated[internal.ShowMeta]
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got.Results) != len(fake.showsBetweenDatesRows) {
+		t.Errorf("len(got) = %d; want %d", len(got.Results), len(fake.showsBetweenDatesRows))
+	}
+
+	if got.Results[0].Date != "1970-01-01" {
+		t.Errorf("got.Results[0].Date = %q; want '1970-01-01'", got.Results[0].Date)
+	}
+}
+
 func TestHandleShowsBetweenDates_StartDateAfterEndDate(t *testing.T) {
 	// empty querier - validation should reject the request before ever getting to query step
 	fake := &fakeQuerier{}
@@ -320,14 +354,14 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 	}
 
 	if got.Results[0].Date != "1995-01-01" {
-		t.Errorf("got[0].Date = %q; want %q", got.Results[0].Date, "1995-01-01")
+		t.Errorf("got.Results[0].Date = %q; want %q", got.Results[0].Date, "1995-01-01")
 	}
 
 	if got.Results[0].Venue != "test venue" {
-		t.Errorf("got[0].Venue = %q; want 'test venue'", got.Results[0].Venue)
+		t.Errorf("got.Results[0].Venue = %q; want 'test venue'", got.Results[0].Venue)
 	}
 	if got.Results[1].Venue != "test venue 2" {
-		t.Errorf("got[1].Venue = %q; want 'test venue 2'", got.Results[1].Venue)
+		t.Errorf("got.Results[1].Venue = %q; want 'test venue 2'", got.Results[1].Venue)
 	}
 }
 
@@ -381,7 +415,7 @@ func TestHandleGetShowsFromSetName(t *testing.T) {
 	}
 
 	if got.Results[0].ShowID != 1 {
-		t.Errorf("got[0].ShowID = %q; want 1", got.Results[0].ShowID)
+		t.Errorf("got.Results[0].ShowID = %q; want 1", got.Results[0].ShowID)
 	}
 }
 
@@ -441,11 +475,11 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 	}
 
 	if got.Results[0].Venue != "Soldier Field" {
-		t.Errorf("got[0].Venue = %q; want %s", got.Results[0].Venue, "Soldier Field")
+		t.Errorf("got.Results[0].Venue = %q; want %s", got.Results[0].Venue, "Soldier Field")
 	}
 
 	if got.Results[0].Venue != got.Results[1].Venue {
-		t.Errorf("different venues: got[0].Venue = %q, got[1].Venue = %q", got.Results[0].Venue, got.Results[1].Venue)
+		t.Errorf("different venues: got.Results[0].Venue = %q, got.Results[1].Venue = %q", got.Results[0].Venue, got.Results[1].Venue)
 	}
 }
 
@@ -505,11 +539,11 @@ func TestHandleGetShowsFromLocation(t *testing.T) {
 	}
 
 	if got.Results[0].Location != "IL" {
-		t.Errorf("got[0].Location = %q; want 'IL'", got.Results[0].Location)
+		t.Errorf("got.Results[0].Location = %q; want 'IL'", got.Results[0].Location)
 	}
 
 	if got.Results[0].Location != got.Results[1].Location {
-		t.Errorf("different locations: got[0].Location = %q, got[1].Location = %q", got.Results[0].Location, got.Results[1].Location)
+		t.Errorf("different locations: got.Results[0].Location = %q, got.Results[1].Location = %q", got.Results[0].Location, got.Results[1].Location)
 	}
 }
 
@@ -543,7 +577,7 @@ func TestHandleGetShowsFromLocation_CountryName(t *testing.T) {
 	}
 
 	if got.Results[0].Location != "England" {
-		t.Errorf("got[0].Location = %q; want 'England'", got.Results[0].Location)
+		t.Errorf("got.Results[0].Location = %q; want 'England'", got.Results[0].Location)
 	}
 }
 
@@ -602,10 +636,10 @@ func TestHandleGetShowsFromCity(t *testing.T) {
 	}
 
 	if got.Results[0].City != "Chicago" {
-		t.Errorf("got[0].City = %q; want %q", got.Results[0].City, "Chicago")
+		t.Errorf("got.Results[0].City = %q; want %q", got.Results[0].City, "Chicago")
 	}
 	if got.Results[1].City != "Chicago" {
-		t.Errorf("got[1].City = %q; want %q", got.Results[1].City, "Chicago")
+		t.Errorf("got.Results[1].City = %q; want %q", got.Results[1].City, "Chicago")
 	}
 }
 
@@ -664,11 +698,11 @@ func TestHandleGetShowsFromYear(t *testing.T) {
 	}
 
 	if got.Results[0].Date[:4] != "1995" {
-		t.Errorf("got[0].Date year %q; want '1995'", got.Results[0].Date[:4])
+		t.Errorf("got.Results[0].Date year %q; want '1995'", got.Results[0].Date[:4])
 	}
 
 	if got.Results[0].Date != "1995-01-01" {
-		t.Errorf("got[0].Date = %q; want '1995-01-01'", got.Results[0].Date)
+		t.Errorf("got.Results[0].Date = %q; want '1995-01-01'", got.Results[0].Date)
 	}
 }
 
@@ -730,11 +764,11 @@ func TestHandleGetShowsFromYearAndLocation(t *testing.T) {
 	}
 
 	if got.Results[0].Location != "IL" {
-		t.Errorf("got[0].Location = %q; want 'IL'", got.Results[0].Location)
+		t.Errorf("got.Results[0].Location = %q; want 'IL'", got.Results[0].Location)
 	}
 
 	if got.Results[0].Date[:4] != "1995" {
-		t.Errorf("got[0].Date year = %q; want '1995'", got.Results[0].Date[:4])
+		t.Errorf("got.Results[0].Date year = %q; want '1995'", got.Results[0].Date[:4])
 	}
 }
 
@@ -769,11 +803,11 @@ func TestHandleGetShowsFromYearAndLocation_CountryName(t *testing.T) {
 	}
 
 	if got.Results[0].Location != "England" {
-		t.Errorf("got[0].Location = %q; want 'England'", got.Results[0].Location)
+		t.Errorf("got.Results[0].Location = %q; want 'England'", got.Results[0].Location)
 	}
 
 	if got.Results[0].Date[:4] != "1995" {
-		t.Errorf("got[0].Date year = %q; want '1995'", got.Results[0].Date[:4])
+		t.Errorf("got.Results[0].Date year = %q; want '1995'", got.Results[0].Date[:4])
 	}
 }
 
@@ -831,7 +865,7 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 	}
 
 	if got.Results[0].Notes != "Final show" {
-		t.Errorf("got[0].Notes = %q; want 'Final show'", got.Results[0].Notes)
+		t.Errorf("got.Results[0].Notes = %q; want 'Final show'", got.Results[0].Notes)
 	}
 }
 
@@ -865,7 +899,7 @@ func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 	}
 
 	if got.Results[0].Notes != "" {
-		t.Errorf("got[0].Notes = %q; want ''", got.Results[0].Notes)
+		t.Errorf("got.Results[0].Notes = %q; want ''", got.Results[0].Notes)
 	}
 }
 
