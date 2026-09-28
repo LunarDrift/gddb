@@ -84,7 +84,7 @@ func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date ti
 
 	// some dates have multiple shows attached - early show + late show
 	// need to sort those separately so they don't get combined into a single show object
-	var groups [][]internal.ShowSortInput
+	groups := [][]internal.ShowSortInput{}
 	for _, row := range showRows {
 		parsed := internal.RowToShowSortInput(row)
 		if n := len(groups); n > 0 && groups[n-1][0].ShowID == parsed.ShowID {
@@ -119,7 +119,7 @@ func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32)
 		return
 	}
 
-	var parsedShow []internal.ShowSortInput
+	parsedShow := []internal.ShowSortInput{}
 	for _, row := range showRows {
 		parsedShow = append(parsedShow, internal.RowToShowSortInput(row))
 	}
@@ -156,7 +156,7 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var parsedShow []internal.ShowSortInput
+	parsedShow := []internal.ShowSortInput{}
 	for _, row := range showRows {
 		parsedShow = append(parsedShow, internal.RowToShowSortInput(row))
 	}
