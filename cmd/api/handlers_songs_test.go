@@ -34,7 +34,7 @@ func TestHandleGetSongStats(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.SongStats
+	got := internal.SongStats{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestHandleGetSongsPlayedAtVenue(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.SongsFromVenue]
+	got := internal.Paginated[internal.SongsFromVenue]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -148,7 +148,7 @@ func TestHandleGetMostPlayedSongsBySetName(t *testing.T) {
 		t.Fatalf("status = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.SongsTimesPlayed]
+	got := internal.Paginated[internal.SongsTimesPlayed]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -209,7 +209,7 @@ func TestHandleGetMostPlayedSongs(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.SongsTimesPlayed]
+	got := internal.Paginated[internal.SongsTimesPlayed]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -258,7 +258,7 @@ func TestHandleUniqueSongsPerCity(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.UniqueSongsPerCity]
+	got := internal.Paginated[internal.UniqueSongsPerCity]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -311,7 +311,7 @@ func TestHandleSongsPlayedLessThanNTimes(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.SongsTimesPlayed]
+	got := internal.Paginated[internal.SongsTimesPlayed]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}

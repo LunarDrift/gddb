@@ -49,7 +49,7 @@ func TestHandleShowsFromPathVal_ByID(t *testing.T) {
 		t.Fatalf("status = %d; want 200", res.StatusCode)
 	}
 
-	var got internal.ShowResponse
+	got := internal.ShowResponse{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestHandleShowsFromPathVal_ByID_EmptySetlist(t *testing.T) {
 		t.Fatalf("status = %d; want 200", res.StatusCode)
 	}
 
-	var got internal.ShowWithNoSetlist
+	got := internal.ShowWithNoSetlist{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -141,7 +141,7 @@ func TestHandleShowsFromPathVal_ByDate(t *testing.T) {
 		t.Fatalf("status = %d; want 200", res.StatusCode)
 	}
 
-	var got []internal.ShowResponse
+	got := []internal.ShowResponse{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -179,7 +179,7 @@ func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
 
 	s.handleShowsFromPathVal(w, req)
 
-	var got []internal.ShowResponse
+	got := []internal.ShowResponse{}
 	if err := json.NewDecoder(w.Result().Body).Decode(&got); err != nil {
 		t.Fatalf("failed to decode response: %v", err)
 	}
@@ -277,7 +277,7 @@ func TestHandleGetShowsBetweenDates(t *testing.T) {
 		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -344,7 +344,7 @@ func TestHandleGetShowsFromSongName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -409,7 +409,7 @@ func TestHandleGetShowsFromSetName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -465,7 +465,7 @@ func TestHandleGetShowsFromVenueName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -529,7 +529,7 @@ func TestHandleGetShowsFromLocation(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -567,7 +567,7 @@ func TestHandleGetShowsFromLocation_CountryName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -626,7 +626,7 @@ func TestHandleGetShowsFromCity(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -688,7 +688,7 @@ func TestHandleGetShowsFromYear(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -754,7 +754,7 @@ func TestHandleGetShowsFromYearAndLocation(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -793,7 +793,7 @@ func TestHandleGetShowsFromYearAndLocation_CountryName(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -855,7 +855,7 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
@@ -889,7 +889,7 @@ func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 	}
 
-	var got internal.Paginated[internal.ShowMeta]
+	got := internal.Paginated[internal.ShowMeta]{}
 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
 		t.Fatalf("error decoding response: %v", err)
 	}
