@@ -285,8 +285,6 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Split the song and add % for sql search pattern
-	// So that searching for e.g. "Help on the way > Slipknot! > Franklin's Tower" becomes "%Help%On%The%Way%>..."
 	searchPattern := fuzzyPattern(song)
 	songStatRow, err := s.queries.SongStats(r.Context(), sql.NullString{String: searchPattern, Valid: true})
 	if err != nil {

@@ -56,7 +56,8 @@ func parsePagination(r *http.Request) (limit, offset int, err error) {
 	return limit, offset, nil
 }
 
-// fuzzyPattern wraps and inserts a '%' between every character of `input` to be used during SQL query searches
+// fuzzyPattern wraps and inserts a '%' between every word of `input` to be used during SQL ILIKE query searches
+// e.g. "Help on the way > Slipknot! > Franklin's Tower" becomes "%Help%On%The%Way%>..."
 func fuzzyPattern(input string) string {
 	words := strings.Fields(input)
 	if len(words) == 0 {
