@@ -116,6 +116,7 @@ type UniqueSongsPerCity struct {
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {
+	GetAllShows(ctx context.Context) ([]database.Show, error)
 	GetAllShowIDs(ctx context.Context) ([]int32, error)
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)

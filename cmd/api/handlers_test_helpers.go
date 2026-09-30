@@ -12,6 +12,8 @@ import (
 // tests don't require a connection to the real database
 type fakeQuerier struct {
 	// Shows
+	allShows                     []database.Show
+	allShowsErr                  error
 	allShowIDs                   []int32
 	allShowIDsErr                error
 	showFromIDRows               []database.GetShowFromIDRow
@@ -56,6 +58,10 @@ type fakeQuerier struct {
 	validLocationErr  error
 	footnoteRows      []database.GetFootnotesFromShowIDRow
 	footnoteErr       error
+}
+
+func (f *fakeQuerier) GetAllShows(ctx context.Context) ([]database.Show, error) {
+	return f.allShows, f.allShowsErr
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {

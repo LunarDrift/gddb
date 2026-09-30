@@ -70,6 +70,15 @@ func (s *server) handleShowsFromPathVal(w http.ResponseWriter, r *http.Request) 
 	respondWithError(w, http.StatusBadRequest, "Invalid show identifier, expected an ID or YYYY-MM-DD date", nil)
 }
 
+func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
+	shows, err := s.queries.GetAllShows(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+	respondWithJSON(w, http.StatusOK, shows)
+}
+
 func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date time.Time) {
 	showRows, err := s.queries.GetShowFromDate(r.Context(), date)
 	if err != nil {

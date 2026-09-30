@@ -14,7 +14,6 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
-	"github.com/LunarDrift/deadabase/internal"
 )
 
 type enterEntry struct {
@@ -36,6 +35,26 @@ func (e *enterEntry) KeyDown(key *fyne.KeyEvent) {
 	} else {
 		e.Entry.KeyDown(key)
 	}
+}
+
+type ShowMeta struct {
+	ShowID   int32  `json:"show_id"`
+	Date     string `json:"date"`
+	Venue    string `json:"venue"`
+	City     string `json:"city"`
+	Location string `json:"location"`
+	Notes    string `json:"notes"`
+}
+
+type ShowResponse struct {
+	ShowMeta
+	Sets      []SetResponse     `json:"sets"`
+	Footnotes map[string]string `json:"footnotes"`
+}
+
+type SetResponse struct {
+	SetName string   `json:"set_name"`
+	Songs   []string `json:"songs"`
 }
 
 func main() {
@@ -77,9 +96,9 @@ func main() {
 		if err != nil {
 			fmt.Print(err)
 		}
-		defer res.Body.Close()
+		defer res.Body.Close() //nolint:errcheck
 
-		show := internal.ShowResponse{}
+		show := ShowResponse{}
 		if err := json.NewDecoder(res.Body).Decode(&show); err != nil {
 			fmt.Print(err)
 		}
@@ -125,6 +144,5 @@ func main() {
 	// content := container.NewVBox(input, enterBtn, results)
 
 	w.SetContent(container.NewVBox(content))
-	w.Resize(fyne.NewSize(800, 600))
 	w.ShowAndRun()
 }

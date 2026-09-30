@@ -3,3 +3,4 @@ backups
 *.dump
 .env
 .justfile
+cmd/gui
