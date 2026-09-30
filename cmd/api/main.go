@@ -29,6 +29,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	queries := database.New(db)
 	logger := slog.New(tint.NewTextHandler(os.Stderr, &tint.Options{

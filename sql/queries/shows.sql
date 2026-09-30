@@ -19,6 +19,9 @@ VALUES (
 )
 ON CONFLICT (show_id) DO NOTHING;
 
+-- name: GetAllShows :many
+SELECT * FROM shows ORDER BY shows.show_date;
+
 -- name: GetShowFromDate :many
 SELECT 
   sh.show_id,

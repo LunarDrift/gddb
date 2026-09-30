@@ -83,6 +83,42 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 	return items, nil
 }
 
+const getAllShows = `-- name: GetAllShows :many
+SELECT show_id, show_date, day, city, state, venue, notes, created_at FROM shows ORDER BY shows.show_date
+`
+
+func (q *Queries) GetAllShows(ctx context.Context) ([]Show, error) {
+	rows, err := q.db.QueryContext(ctx, getAllShows)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Show
+	for rows.Next() {
+		var i Show
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Day,
+			&i.City,
+			&i.State,
+			&i.Venue,
+			&i.Notes,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowFromDate = `-- name: GetShowFromDate :many
 SELECT 
   sh.show_id,
