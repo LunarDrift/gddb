@@ -14,6 +14,7 @@ import (
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
+	"github.com/LunarDrift/deadabase/internal"
 )
 
 type enterEntry struct {
@@ -37,112 +38,120 @@ func (e *enterEntry) KeyDown(key *fyne.KeyEvent) {
 	}
 }
 
-type ShowMeta struct {
-	ShowID   int32  `json:"show_id"`
-	Date     string `json:"date"`
-	Venue    string `json:"venue"`
-	City     string `json:"city"`
-	Location string `json:"location"`
-	Notes    string `json:"notes"`
+type singleShowResult struct {
+	showIDLabel    *canvas.Text
+	dateLabel      *canvas.Text
+	locationLabel  *canvas.Text
+	notesLabel     *canvas.Text
+	setsLabel      *widget.Label
+	footnotesLabel *widget.Label
 }
 
-type ShowResponse struct {
-	ShowMeta
-	Sets      []SetResponse     `json:"sets"`
-	Footnotes map[string]string `json:"footnotes"`
+type App struct {
+	fyneApp    fyne.App
+	fyneWindow fyne.Window
+	search     *enterEntry
+	showResult singleShowResult
 }
 
-type SetResponse struct {
-	SetName string   `json:"set_name"`
-	Songs   []string `json:"songs"`
+func (app *App) GetShowFromID() {
+	showID := app.search.Text
+	id, err := strconv.Atoi(showID)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	url := fmt.Sprintf("http://localhost:8080/shows/%d", id)
+
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Print(err)
+	}
+	defer res.Body.Close() //nolint:errcheck
+
+	show := internal.ShowResponse{}
+	if err := json.NewDecoder(res.Body).Decode(&show); err != nil {
+		fmt.Print(err)
+	}
+
+	// Update text of existing labels
+	var setsText strings.Builder
+	for _, set := range show.Sets {
+		fmt.Fprintf(&setsText, "%s: %s\n\n", set.SetName, strings.Join(set.Songs, ", "))
+	}
+	var footnotesText strings.Builder
+	keys := make([]string, 0, len(show.Footnotes))
+	for k := range show.Footnotes {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Fprintf(&footnotesText, "[%s] %s\n", k, show.Footnotes[k])
+	}
+	app.showResult.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
+	app.showResult.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
+	app.showResult.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
+	app.showResult.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
+	app.showResult.setsLabel.SetText(setsText.String())
+	app.showResult.footnotesLabel.SetText(footnotesText.String())
+
+	// Refresh so Fyne redraws with new text
+	app.showResult.showIDLabel.Refresh()
+	app.showResult.dateLabel.Refresh()
+	app.showResult.locationLabel.Refresh()
+	app.showResult.notesLabel.Refresh()
+	app.showResult.setsLabel.Refresh()
+	app.showResult.footnotesLabel.Refresh()
+
+	app.search.SetText("")
 }
 
-func main() {
+func newApp() *App {
 	a := app.New()
 	w := a.NewWindow("Deadabase")
 	w.Resize(fyne.NewSize(1280, 720))
+	return &App{
+		a,
+		w,
+		newEnterEntry(),
+		singleShowResult{},
+	}
+}
 
-	inputID := newEnterEntry()
-	inputID.SetPlaceHolder("Enter a ShowID...")
+func main() {
+	// a := app.New()
+	// w := a.NewWindow("Deadabase")
+	// w.Resize(fyne.NewSize(1280, 720))
+	app := newApp()
 
-	showIDLabel := canvas.NewText("", color.White)
-	dateLabel := canvas.NewText("", color.White)
-	locationLabel := canvas.NewText("", color.White)
-	notesLabel := canvas.NewText("", color.White)
-	setsLabel := widget.NewLabel("")
-	setsLabel.Wrapping = fyne.TextWrapWord
-	footnotesLabel := widget.NewLabel("")
-	footnotesLabel.Wrapping = fyne.TextWrapWord
+	// inputID := newEnterEntry()
+	app.search.SetPlaceHolder("Enter a ShowID...")
+
+	app.showResult.showIDLabel = canvas.NewText("", color.White)
+	app.showResult.dateLabel = canvas.NewText("", color.White)
+	app.showResult.locationLabel = canvas.NewText("", color.White)
+	app.showResult.notesLabel = canvas.NewText("", color.White)
+	app.showResult.setsLabel = widget.NewLabel("")
+	app.showResult.setsLabel.Wrapping = fyne.TextWrapWord
+	app.showResult.footnotesLabel = widget.NewLabel("")
+	app.showResult.footnotesLabel.Wrapping = fyne.TextWrapWord
 
 	results := container.NewVBox(
-		showIDLabel,
-		dateLabel,
-		locationLabel,
-		notesLabel,
-		setsLabel,
-		footnotesLabel,
+		app.showResult.showIDLabel,
+		app.showResult.dateLabel,
+		app.showResult.locationLabel,
+		app.showResult.notesLabel,
+		app.showResult.setsLabel,
+		app.showResult.footnotesLabel,
 	)
 
-	GetShowFromID := func() {
-		showID := inputID.Text
-		id, err := strconv.Atoi(showID)
-		if err != nil {
-			fmt.Print(err)
-		}
+	enterBtn := widget.NewButton("Search", app.GetShowFromID)
+	app.search.OnEnter = app.GetShowFromID
 
-		url := fmt.Sprintf("http://localhost:8080/shows/%d", id)
-
-		res, err := http.Get(url)
-		if err != nil {
-			fmt.Print(err)
-		}
-		defer res.Body.Close() //nolint:errcheck
-
-		show := ShowResponse{}
-		if err := json.NewDecoder(res.Body).Decode(&show); err != nil {
-			fmt.Print(err)
-		}
-
-		// Update text of existing labels
-		var setsText strings.Builder
-		for _, set := range show.Sets {
-			fmt.Fprintf(&setsText, "%s: %s\n\n", set.SetName, strings.Join(set.Songs, ", "))
-		}
-		var footnotesText strings.Builder
-		keys := make([]string, 0, len(show.Footnotes))
-		for k := range show.Footnotes {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			fmt.Fprintf(&footnotesText, "[%s] %s\n", k, show.Footnotes[k])
-		}
-		showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
-		dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
-		locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
-		notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
-		setsLabel.SetText(setsText.String())
-		footnotesLabel.SetText(footnotesText.String())
-
-		// Refresh so Fyne redraws with new text
-		showIDLabel.Refresh()
-		dateLabel.Refresh()
-		locationLabel.Refresh()
-		notesLabel.Refresh()
-		setsLabel.Refresh()
-		footnotesLabel.Refresh()
-
-		inputID.SetText("")
-	}
-
-	enterBtn := widget.NewButton("Enter", GetShowFromID)
-	inputID.OnEnter = GetShowFromID
-
-	showSearch := container.NewVBox(inputID, enterBtn)
+	showSearch := container.NewVBox(app.search, enterBtn)
 	content := container.NewHSplit(showSearch, results)
 	content.SetOffset(0.25)
-	// content := container.NewVBox(input, enterBtn, results)
 
-	w.SetContent(container.NewVBox(content))
-	w.ShowAndRun()
+	app.fyneWindow.SetContent(container.NewVBox(content))
+	app.fyneWindow.ShowAndRun()
 }
