@@ -5,26 +5,32 @@ import (
 	"net/http"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/widget"
 	"github.com/LunarDrift/deadabase/internal"
 )
 
 func main() {
-	app := newApp()
-	app.setupResultCanvas()
+	a := &App{
+		fyneApp:   app.New(),
+		searchBox: newSearchPanel(),
+	}
+	a.fyneWindow = a.fyneApp.NewWindow("Deadabase")
+	a.fyneWindow.Resize(fyne.NewSize(1280, 720))
 
-	showResult := container.NewVBox(
-		app.showResultSingle.showIDLabel,
-		app.showResultSingle.dateLabel,
-		app.showResultSingle.locationLabel,
-		app.showResultSingle.notesLabel,
-		app.showResultSingle.setsLabel,
-		app.showResultSingle.footnotesLabel,
+	a.setupResultCanvas()
+	a.searchBox.enterBtn = widget.NewButton("Search", a.GetShowFromID)
+	a.searchBox.OnEnter = a.GetShowFromID
+
+	a.detailsContainer = container.NewVBox(
+		a.showResultSingle.showIDLabel,
+		a.showResultSingle.dateLabel,
+		a.showResultSingle.locationLabel,
+		a.showResultSingle.notesLabel,
+		a.showResultSingle.setsLabel,
+		a.showResultSingle.footnotesLabel,
 	)
-
-	app.searchPanel.enterBtn = widget.NewButton("Search", app.GetShowFromID)
-	app.searchPanel.OnEnter = app.GetShowFromID
 
 	var data internal.Paginated[internal.ShowMeta]
 
@@ -37,7 +43,7 @@ func main() {
 		panic(err)
 	}
 
-	list := widget.NewList(
+	a.resultsList = widget.NewList(
 		func() int {
 			return len(data.Results)
 		},
@@ -49,11 +55,11 @@ func main() {
 		},
 	)
 
-	searchPanel := container.NewVBox(app.searchPanel, app.searchPanel.enterBtn)
-	thing := container.NewHSplit(searchPanel, list)
-	content := container.NewHSplit(thing, showResult)
-	content.SetOffset(0.25)
+	searchPanel := container.NewVBox(a.searchBox, a.searchBox.enterBtn)
+	searchAndList := container.NewHSplit(searchPanel, a.resultsList)
+	content := container.NewHSplit(searchAndList, a.detailsContainer)
+	content.SetOffset(0.5)
 
-	app.fyneWindow.SetContent(container.NewVBox(content))
-	app.fyneWindow.ShowAndRun()
+	a.fyneWindow.SetContent(container.NewVBox(content))
+	a.fyneWindow.ShowAndRun()
 }

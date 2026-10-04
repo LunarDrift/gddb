@@ -10,31 +10,31 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
-	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/widget"
 	"github.com/LunarDrift/deadabase/internal"
 )
 
-type searchID struct {
+type searchPanel struct {
 	widget.Entry
 	enterBtn *widget.Button
 	OnEnter  func()
 }
 
-func newSearchPanel() *searchID {
-	searchPanel := &searchID{}
-	searchPanel.ExtendBaseWidget(searchPanel)
-	return searchPanel
+func newSearchPanel() *searchPanel {
+	s := &searchPanel{}
+	s.ExtendBaseWidget(s)
+
+	return s
 }
 
-func (e *searchID) KeyDown(key *fyne.KeyEvent) {
+func (s *searchPanel) KeyDown(key *fyne.KeyEvent) {
 	if key.Name == fyne.KeyReturn || key.Name == fyne.KeyEnter {
-		if e.OnEnter != nil {
-			e.OnEnter()
+		if s.OnEnter != nil {
+			s.OnEnter()
 		}
 	} else {
-		e.Entry.KeyDown(key)
+		s.Entry.KeyDown(key)
 	}
 }
 
@@ -50,12 +50,54 @@ type singleShowResult struct {
 type App struct {
 	fyneApp          fyne.App
 	fyneWindow       fyne.Window
-	searchPanel      *searchID
+	searchBox        *searchPanel
+	resultsList      *widget.List
+	detailsContainer *fyne.Container
 	showResultSingle singleShowResult
 }
 
-func (app *App) GetShowFromID() {
-	showID := app.searchPanel.Text
+func (a *App) setupResultCanvas() {
+	a.showResultSingle.showIDLabel = canvas.NewText("", color.White)
+	a.showResultSingle.dateLabel = canvas.NewText("", color.White)
+	a.showResultSingle.locationLabel = canvas.NewText("", color.White)
+	a.showResultSingle.notesLabel = canvas.NewText("", color.White)
+	a.showResultSingle.setsLabel = widget.NewLabel("")
+	a.showResultSingle.setsLabel.Wrapping = fyne.TextWrapWord
+	a.showResultSingle.footnotesLabel = widget.NewLabel("")
+	a.showResultSingle.footnotesLabel.Wrapping = fyne.TextWrapWord
+}
+
+func (a *App) SearchBySongName() {
+	// TODO: Figure out how to get this to work without segfaulting
+	// I think it's got something to do with the length function when there are no results yet? I'm getting this error:
+	// panic: runtime error: invalid memory address or nil pointer dereference
+	var data internal.Paginated[internal.ShowMeta]
+
+	songName := a.searchBox.Text
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/shows?song=%s", songName))
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		panic(err)
+	}
+
+	a.resultsList = widget.NewList(
+		func() int {
+			return len(data.Results)
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("template")
+		},
+		func(id widget.ListItemID, obj fyne.CanvasObject) {
+			obj.(*widget.Label).SetText(data.Results[id].Date)
+		},
+	)
+}
+
+func (a *App) GetShowFromID() {
+	showID := a.searchBox.Text
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		fmt.Print(err)
@@ -88,44 +130,20 @@ func (app *App) GetShowFromID() {
 	for _, k := range keys {
 		fmt.Fprintf(&footnotesText, "[%s] %s\n", k, show.Footnotes[k])
 	}
-	app.showResultSingle.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
-	app.showResultSingle.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
-	app.showResultSingle.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
-	app.showResultSingle.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
-	app.showResultSingle.setsLabel.SetText(setsText.String())
-	app.showResultSingle.footnotesLabel.SetText(footnotesText.String())
+	a.showResultSingle.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
+	a.showResultSingle.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
+	a.showResultSingle.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
+	a.showResultSingle.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
+	a.showResultSingle.setsLabel.SetText(setsText.String())
+	a.showResultSingle.footnotesLabel.SetText(footnotesText.String())
 
 	// Refresh so Fyne redraws with new text
-	app.showResultSingle.showIDLabel.Refresh()
-	app.showResultSingle.dateLabel.Refresh()
-	app.showResultSingle.locationLabel.Refresh()
-	app.showResultSingle.notesLabel.Refresh()
-	app.showResultSingle.setsLabel.Refresh()
-	app.showResultSingle.footnotesLabel.Refresh()
+	a.showResultSingle.showIDLabel.Refresh()
+	a.showResultSingle.dateLabel.Refresh()
+	a.showResultSingle.locationLabel.Refresh()
+	a.showResultSingle.notesLabel.Refresh()
+	a.showResultSingle.setsLabel.Refresh()
+	a.showResultSingle.footnotesLabel.Refresh()
 
-	app.searchPanel.SetText("")
-}
-
-func (app *App) setupResultCanvas() {
-	app.searchPanel.SetPlaceHolder("Enter a ShowID...")
-	app.showResultSingle.showIDLabel = canvas.NewText("", color.White)
-	app.showResultSingle.dateLabel = canvas.NewText("", color.White)
-	app.showResultSingle.locationLabel = canvas.NewText("", color.White)
-	app.showResultSingle.notesLabel = canvas.NewText("", color.White)
-	app.showResultSingle.setsLabel = widget.NewLabel("")
-	app.showResultSingle.setsLabel.Wrapping = fyne.TextWrapWord
-	app.showResultSingle.footnotesLabel = widget.NewLabel("")
-	app.showResultSingle.footnotesLabel.Wrapping = fyne.TextWrapWord
-}
-
-func newApp() *App {
-	a := app.New()
-	w := a.NewWindow("Deadabase")
-	w.Resize(fyne.NewSize(1280, 720))
-	return &App{
-		a,
-		w,
-		newSearchPanel(),
-		singleShowResult{},
-	}
+	a.searchBox.SetText("")
 }
