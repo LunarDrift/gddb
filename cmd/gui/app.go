@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"image/color"
+	"log"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
@@ -15,20 +17,21 @@ import (
 	"github.com/LunarDrift/deadabase/internal"
 )
 
-type searchPanel struct {
+type textSearchEntry struct {
 	widget.Entry
 	enterBtn *widget.Button
 	OnEnter  func()
 }
 
-func newSearchPanel() *searchPanel {
-	s := &searchPanel{}
+func newTextSearch() *textSearchEntry {
+	s := &textSearchEntry{}
 	s.ExtendBaseWidget(s)
+	s.SetPlaceHolder("Enter a show ID...")
 
 	return s
 }
 
-func (s *searchPanel) KeyDown(key *fyne.KeyEvent) {
+func (s *textSearchEntry) KeyDown(key *fyne.KeyEvent) {
 	if key.Name == fyne.KeyReturn || key.Name == fyne.KeyEnter {
 		if s.OnEnter != nil {
 			s.OnEnter()
@@ -47,10 +50,25 @@ type singleShowResult struct {
 	footnotesLabel *widget.Label
 }
 
+type dateChoices struct {
+	dayChoice   *widget.Select
+	monthChoice *widget.Select
+	yearChoice  *widget.Select
+	enterBtn    *widget.Button
+	day         int
+	month       int
+	year        int
+}
+
+type searchPanel struct {
+	textSearch *textSearchEntry
+	dateSearch dateChoices
+}
+
 type App struct {
 	fyneApp          fyne.App
 	fyneWindow       fyne.Window
-	searchBox        *searchPanel
+	search           *searchPanel
 	resultsList      *widget.List
 	detailsContainer *fyne.Container
 	showResultSingle singleShowResult
@@ -67,13 +85,77 @@ func (a *App) setupResultCanvas() {
 	a.showResultSingle.footnotesLabel.Wrapping = fyne.TextWrapWord
 }
 
-func (a *App) SearchBySongName() {
+func (a *App) dayChoiceFn(s string) {
+	a.search.dateSearch.day = a.search.dateSearch.dayChoice.SelectedIndex() + 1
+	log.Println("Day set to:", a.search.dateSearch.day)
+}
+
+func (a *App) monthChoiceFn(s string) {
+	a.search.dateSearch.month = a.search.dateSearch.monthChoice.SelectedIndex() + 1
+	log.Println("Month set to:", a.search.dateSearch.month)
+}
+
+func (a *App) yearChoiceFn(s string) {
+	year, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	a.search.dateSearch.year = year
+	log.Println("Year set to:", a.search.dateSearch.year)
+}
+
+func (a *App) searchByDate() {
+	date := time.Date(a.search.dateSearch.year, time.Month(a.search.dateSearch.month), a.search.dateSearch.day, 0, 0, 0, 0, time.UTC)
+	dateStr := date.Format(time.DateOnly)
+	url := fmt.Sprintf("http://localhost:8080/shows/%s", dateStr)
+	resp, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	data := []internal.ShowResponse{}
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		panic(err)
+	}
+	log.Println(data)
+	// Update text of existing labels
+	var setsText strings.Builder
+	for _, set := range data[0].Sets {
+		fmt.Fprintf(&setsText, "%s: %s\n\n", set.SetName, strings.Join(set.Songs, ", "))
+	}
+	var footnotesText strings.Builder
+	keys := make([]string, 0, len(data[0].Footnotes))
+	for k := range data[0].Footnotes {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		fmt.Fprintf(&footnotesText, "[%s] %s\n", k, data[0].Footnotes[k])
+	}
+	a.showResultSingle.showIDLabel.Text = fmt.Sprintf("Show ID: %v", data[0].ShowID)
+	a.showResultSingle.dateLabel.Text = fmt.Sprintf("Date: %v", data[0].Date)
+	a.showResultSingle.locationLabel.Text = fmt.Sprintf("Location: %v, %v", data[0].Venue, data[0].Location)
+	a.showResultSingle.notesLabel.Text = fmt.Sprintf("Notes: %v", data[0].Notes)
+	a.showResultSingle.setsLabel.SetText(setsText.String())
+	a.showResultSingle.footnotesLabel.SetText(footnotesText.String())
+
+	// Refresh so Fyne redraws with new text
+	a.showResultSingle.showIDLabel.Refresh()
+	a.showResultSingle.dateLabel.Refresh()
+	a.showResultSingle.locationLabel.Refresh()
+	a.showResultSingle.notesLabel.Refresh()
+	a.showResultSingle.setsLabel.Refresh()
+	a.showResultSingle.footnotesLabel.Refresh()
+}
+
+func (a *App) searchBySongName() {
 	// TODO: Figure out how to get this to work without segfaulting
 	// I think it's got something to do with the length function when there are no results yet? I'm getting this error:
 	// panic: runtime error: invalid memory address or nil pointer dereference
 	var data internal.Paginated[internal.ShowMeta]
 
-	songName := a.searchBox.Text
+	songName := a.search.textSearch.Text
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/shows?song=%s", songName))
 	if err != nil {
 		panic(err)
@@ -97,7 +179,7 @@ func (a *App) SearchBySongName() {
 }
 
 func (a *App) GetShowFromID() {
-	showID := a.searchBox.Text
+	showID := a.search.textSearch.Text
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		fmt.Print(err)
@@ -145,5 +227,5 @@ func (a *App) GetShowFromID() {
 	a.showResultSingle.setsLabel.Refresh()
 	a.showResultSingle.footnotesLabel.Refresh()
 
-	a.searchBox.SetText("")
+	a.search.textSearch.SetText("")
 }

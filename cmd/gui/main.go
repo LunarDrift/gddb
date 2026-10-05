@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -12,16 +13,34 @@ import (
 )
 
 func main() {
-	a := &App{
-		fyneApp:   app.New(),
-		searchBox: newSearchPanel(),
+	var days, years []string
+	for i := 1; i <= 31; i++ {
+		days = append(days, strconv.Itoa(i))
 	}
+	for i := 1965; i <= 1995; i++ {
+		years = append(years, strconv.Itoa(i))
+	}
+	months := []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+
+	a := &App{
+		fyneApp: app.New(),
+		search:  &searchPanel{textSearch: newTextSearch()},
+	}
+	a.search.dateSearch = dateChoices{
+		dayChoice:   widget.NewSelect(days, a.dayChoiceFn),
+		monthChoice: widget.NewSelect(months, a.monthChoiceFn),
+		yearChoice:  widget.NewSelect(years, a.yearChoiceFn),
+	}
+	a.search.dateSearch.enterBtn = widget.NewButton("Search by date", a.searchByDate)
+	a.search.dateSearch.dayChoice.PlaceHolder = "Day"
+	a.search.dateSearch.monthChoice.PlaceHolder = "Month"
+	a.search.dateSearch.yearChoice.PlaceHolder = "Year"
 	a.fyneWindow = a.fyneApp.NewWindow("Deadabase")
 	a.fyneWindow.Resize(fyne.NewSize(1280, 720))
 
 	a.setupResultCanvas()
-	a.searchBox.enterBtn = widget.NewButton("Search", a.GetShowFromID)
-	a.searchBox.OnEnter = a.GetShowFromID
+	a.search.textSearch.enterBtn = widget.NewButton("Search by ID", a.GetShowFromID)
+	a.search.textSearch.OnEnter = a.GetShowFromID
 
 	a.detailsContainer = container.NewVBox(
 		a.showResultSingle.showIDLabel,
@@ -55,10 +74,11 @@ func main() {
 		},
 	)
 
-	searchPanel := container.NewVBox(a.searchBox, a.searchBox.enterBtn)
+	dateSearch := container.NewHBox(a.search.dateSearch.yearChoice, a.search.dateSearch.monthChoice, a.search.dateSearch.dayChoice)
+	searchPanel := container.NewVBox(a.search.textSearch, a.search.textSearch.enterBtn, dateSearch, a.search.dateSearch.enterBtn)
 	searchAndList := container.NewHSplit(searchPanel, a.resultsList)
 	content := container.NewHSplit(searchAndList, a.detailsContainer)
-	content.SetOffset(0.5)
+	content.SetOffset(0.4)
 
 	a.fyneWindow.SetContent(container.NewVBox(content))
 	a.fyneWindow.ShowAndRun()
