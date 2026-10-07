@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/color"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 	"strings"
@@ -13,6 +15,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/LunarDrift/deadabase/internal"
 )
@@ -42,6 +45,7 @@ func (s *textSearchEntry) KeyDown(key *fyne.KeyEvent) {
 }
 
 type singleShowResult struct {
+	detailLabel    *widget.Label
 	showIDLabel    *canvas.Text
 	dateLabel      *canvas.Text
 	locationLabel  *canvas.Text
@@ -63,6 +67,7 @@ type dateChoices struct {
 type searchPanel struct {
 	textSearch *textSearchEntry
 	dateSearch dateChoices
+	songSearch *widget.Entry
 }
 
 type App struct {
@@ -98,7 +103,8 @@ func (a *App) monthChoiceFn(s string) {
 func (a *App) yearChoiceFn(s string) {
 	year, err := strconv.Atoi(s)
 	if err != nil {
-		panic(err)
+		dialog.ShowError(err, a.fyneWindow)
+		return
 	}
 	a.search.dateSearch.year = year
 	log.Println("Year set to:", a.search.dateSearch.year)
@@ -110,15 +116,21 @@ func (a *App) searchByDate() {
 	url := fmt.Sprintf("http://localhost:8080/shows/%s", dateStr)
 	resp, err := http.Get(url)
 	if err != nil {
-		panic(err)
+		dialog.ShowError(err, a.fyneWindow)
+		return
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	data := []internal.ShowResponse{}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		panic(err)
+		dialog.ShowError(err, a.fyneWindow)
+		return
 	}
-	log.Println(data)
+
+	if len(data) == 0 {
+		dialog.ShowError(errors.New("no show found on that date"), a.fyneWindow)
+		return
+	}
 	// Update text of existing labels
 	var setsText strings.Builder
 	for _, set := range data[0].Sets {
@@ -149,47 +161,46 @@ func (a *App) searchByDate() {
 	a.showResultSingle.footnotesLabel.Refresh()
 }
 
-func (a *App) searchBySongName() {
-	// TODO: Figure out how to get this to work without segfaulting
-	// I think it's got something to do with the length function when there are no results yet? I'm getting this error:
-	// panic: runtime error: invalid memory address or nil pointer dereference
-	var data internal.Paginated[internal.ShowMeta]
-
-	songName := a.search.textSearch.Text
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/shows?song=%s", songName))
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close() //nolint:errcheck
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		panic(err)
-	}
-
-	a.resultsList = widget.NewList(
-		func() int {
-			return len(data.Results)
-		},
-		func() fyne.CanvasObject {
-			return widget.NewLabel("template")
-		},
-		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			obj.(*widget.Label).SetText(data.Results[id].Date)
-		},
-	)
-}
+// func (a *App) searchBySongName() {
+// 	var data internal.Paginated[internal.ShowMeta]
+//
+// 	songName := a.search.textSearch.Text
+// 	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/shows?song=%s", songName))
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer resp.Body.Close() //nolint:errcheck
+// 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+// 		panic(err)
+// 	}
+//
+// 	a.resultsList = widget.NewList(
+// 		func() int {
+// 			return len(data.Results)
+// 		},
+// 		func() fyne.CanvasObject {
+// 			return widget.NewLabel("template")
+// 		},
+// 		func(id widget.ListItemID, obj fyne.CanvasObject) {
+// 			obj.(*widget.Label).SetText(data.Results[id].Date)
+// 		},
+// 	)
+// }
 
 func (a *App) GetShowFromID() {
 	showID := a.search.textSearch.Text
 	id, err := strconv.Atoi(showID)
 	if err != nil {
-		fmt.Print(err)
+		dialog.ShowError(err, a.fyneWindow)
+		return
 	}
 
 	url := fmt.Sprintf("http://localhost:8080/shows/%d", id)
 
 	res, err := http.Get(url)
 	if err != nil {
-		fmt.Print(err)
+		dialog.ShowError(err, a.fyneWindow)
+		return
 	}
 	defer res.Body.Close() //nolint:errcheck
 
@@ -228,4 +239,39 @@ func (a *App) GetShowFromID() {
 	a.showResultSingle.footnotesLabel.Refresh()
 
 	a.search.textSearch.SetText("")
+}
+
+func searchBySongName(song string) (internal.Paginated[internal.ShowMeta], error) {
+	u := "http://localhost:8080/shows?song=" + url.QueryEscape(song)
+	resp, err := http.Get(u)
+	if err != nil {
+		return internal.Paginated[internal.ShowMeta]{}, err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	if resp.StatusCode != http.StatusOK {
+		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("api returned %s", resp.Status)
+	}
+	var page internal.Paginated[internal.ShowMeta]
+	if err := json.NewDecoder(resp.Body).Decode(&page); err != nil {
+		return internal.Paginated[internal.ShowMeta]{}, err
+	}
+	return page, nil
+}
+
+func getShowFromDate(date string) (*internal.ShowResponse, error) {
+	resp, err := http.Get("http://localhost:8080/shows/" + url.PathEscape(date))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	var shows []internal.ShowResponse
+	if err := json.NewDecoder(resp.Body).Decode(&shows); err != nil {
+		return nil, err
+	}
+	if len(shows) == 0 {
+		return nil, fmt.Errorf("no show found for %s", date)
+	}
+	return &shows[0], nil
 }
