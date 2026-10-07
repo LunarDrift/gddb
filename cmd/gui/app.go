@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"image/color"
-	"log"
 	"net/http"
 	"net/url"
 	"sort"
@@ -20,28 +19,35 @@ import (
 	"github.com/LunarDrift/deadabase/internal"
 )
 
-type textSearchEntry struct {
-	widget.Entry
+type showIDSearch struct {
+	searchID *widget.Entry
 	enterBtn *widget.Button
-	OnEnter  func()
 }
 
-func newTextSearch() *textSearchEntry {
-	s := &textSearchEntry{}
-	s.ExtendBaseWidget(s)
-	s.SetPlaceHolder("Enter a show ID...")
-
-	return s
+type showDateSearch struct {
+	dayChoice   *widget.Select
+	monthChoice *widget.Select
+	yearChoice  *widget.Select
+	enterBtn    *widget.Button
+	day         int
+	month       int
+	year        int
 }
 
-func (s *textSearchEntry) KeyDown(key *fyne.KeyEvent) {
-	if key.Name == fyne.KeyReturn || key.Name == fyne.KeyEnter {
-		if s.OnEnter != nil {
-			s.OnEnter()
-		}
-	} else {
-		s.Entry.KeyDown(key)
-	}
+type showsSongSearch struct {
+	songEntry *widget.Entry
+}
+
+type searchPanel struct {
+	textSearch showIDSearch
+	dateSearch showDateSearch
+	songSearch showsSongSearch
+}
+
+type resultsListPanel struct {
+	results *widget.List
+	nextBtn *widget.Button
+	prevBtn *widget.Button
 }
 
 type singleShowResult struct {
@@ -54,50 +60,40 @@ type singleShowResult struct {
 	footnotesLabel *widget.Label
 }
 
-type dateChoices struct {
-	dayChoice   *widget.Select
-	monthChoice *widget.Select
-	yearChoice  *widget.Select
-	enterBtn    *widget.Button
-	day         int
-	month       int
-	year        int
-}
-
-type searchPanel struct {
-	textSearch *textSearchEntry
-	dateSearch dateChoices
-	songSearch *widget.Entry
+type showDetailsPanel struct {
+	container         *fyne.Container
+	placeholderLayout *fyne.Container
+	showDetails       singleShowResult
 }
 
 type App struct {
-	fyneApp          fyne.App
-	fyneWindow       fyne.Window
-	search           *searchPanel
-	resultsList      *widget.List
-	detailsContainer *fyne.Container
-	showResultSingle singleShowResult
+	fyneApp     fyne.App
+	fyneWindow  fyne.Window
+	search      *searchPanel
+	resultsList resultsListPanel
+	details     showDetailsPanel
 }
 
 func (a *App) setupResultCanvas() {
-	a.showResultSingle.showIDLabel = canvas.NewText("", color.White)
-	a.showResultSingle.dateLabel = canvas.NewText("", color.White)
-	a.showResultSingle.locationLabel = canvas.NewText("", color.White)
-	a.showResultSingle.notesLabel = canvas.NewText("", color.White)
-	a.showResultSingle.setsLabel = widget.NewLabel("")
-	a.showResultSingle.setsLabel.Wrapping = fyne.TextWrapWord
-	a.showResultSingle.footnotesLabel = widget.NewLabel("")
-	a.showResultSingle.footnotesLabel.Wrapping = fyne.TextWrapWord
+	a.details.showDetails.detailLabel = widget.NewLabel("Select an item to see details")
+	a.details.showDetails.showIDLabel = canvas.NewText("", color.White)
+	a.details.showDetails.dateLabel = canvas.NewText("", color.White)
+	a.details.showDetails.locationLabel = canvas.NewText("", color.White)
+	a.details.showDetails.notesLabel = canvas.NewText("", color.White)
+	a.details.showDetails.setsLabel = widget.NewLabel("")
+	a.details.showDetails.setsLabel.Wrapping = fyne.TextWrapWord
+	a.details.showDetails.footnotesLabel = widget.NewLabel("")
+	a.details.showDetails.footnotesLabel.Wrapping = fyne.TextWrapWord
 }
 
 func (a *App) dayChoiceFn(s string) {
 	a.search.dateSearch.day = a.search.dateSearch.dayChoice.SelectedIndex() + 1
-	log.Println("Day set to:", a.search.dateSearch.day)
+	// log.Println("Day set to:", a.search.dateSearch.day)
 }
 
 func (a *App) monthChoiceFn(s string) {
 	a.search.dateSearch.month = a.search.dateSearch.monthChoice.SelectedIndex() + 1
-	log.Println("Month set to:", a.search.dateSearch.month)
+	// log.Println("Month set to:", a.search.dateSearch.month)
 }
 
 func (a *App) yearChoiceFn(s string) {
@@ -107,7 +103,7 @@ func (a *App) yearChoiceFn(s string) {
 		return
 	}
 	a.search.dateSearch.year = year
-	log.Println("Year set to:", a.search.dateSearch.year)
+	// log.Println("Year set to:", a.search.dateSearch.year)
 }
 
 func (a *App) searchByDate() {
@@ -145,50 +141,23 @@ func (a *App) searchByDate() {
 	for _, k := range keys {
 		fmt.Fprintf(&footnotesText, "[%s] %s\n", k, data[0].Footnotes[k])
 	}
-	a.showResultSingle.showIDLabel.Text = fmt.Sprintf("Show ID: %v", data[0].ShowID)
-	a.showResultSingle.dateLabel.Text = fmt.Sprintf("Date: %v", data[0].Date)
-	a.showResultSingle.locationLabel.Text = fmt.Sprintf("Location: %v, %v", data[0].Venue, data[0].Location)
-	a.showResultSingle.notesLabel.Text = fmt.Sprintf("Notes: %v", data[0].Notes)
-	a.showResultSingle.setsLabel.SetText(setsText.String())
-	a.showResultSingle.footnotesLabel.SetText(footnotesText.String())
+	a.details.showDetails.showIDLabel.Text = fmt.Sprintf("Show ID: %v", data[0].ShowID)
+	a.details.showDetails.dateLabel.Text = fmt.Sprintf("Date: %v", data[0].Date)
+	a.details.showDetails.locationLabel.Text = fmt.Sprintf("Location: %v, %v", data[0].Venue, data[0].Location)
+	a.details.showDetails.notesLabel.Text = fmt.Sprintf("Notes: %v", data[0].Notes)
+	a.details.showDetails.setsLabel.SetText(setsText.String())
+	a.details.showDetails.footnotesLabel.SetText(footnotesText.String())
 
 	// Refresh so Fyne redraws with new text
-	a.showResultSingle.showIDLabel.Refresh()
-	a.showResultSingle.dateLabel.Refresh()
-	a.showResultSingle.locationLabel.Refresh()
-	a.showResultSingle.notesLabel.Refresh()
-	a.showResultSingle.setsLabel.Refresh()
-	a.showResultSingle.footnotesLabel.Refresh()
+	a.details.showDetails.showIDLabel.Refresh()
+	a.details.showDetails.dateLabel.Refresh()
+	a.details.showDetails.locationLabel.Refresh()
+	a.details.showDetails.notesLabel.Refresh()
+	a.details.showDetails.setsLabel.Refresh()
+	a.details.showDetails.footnotesLabel.Refresh()
 }
 
-// func (a *App) searchBySongName() {
-// 	var data internal.Paginated[internal.ShowMeta]
-//
-// 	songName := a.search.textSearch.Text
-// 	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/shows?song=%s", songName))
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	defer resp.Body.Close() //nolint:errcheck
-// 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-// 		panic(err)
-// 	}
-//
-// 	a.resultsList = widget.NewList(
-// 		func() int {
-// 			return len(data.Results)
-// 		},
-// 		func() fyne.CanvasObject {
-// 			return widget.NewLabel("template")
-// 		},
-// 		func(id widget.ListItemID, obj fyne.CanvasObject) {
-// 			obj.(*widget.Label).SetText(data.Results[id].Date)
-// 		},
-// 	)
-// }
-
-func (a *App) GetShowFromID() {
-	showID := a.search.textSearch.Text
+func (a *App) getShowFromID(showID string) {
 	id, err := strconv.Atoi(showID)
 	if err != nil {
 		dialog.ShowError(err, a.fyneWindow)
@@ -223,22 +192,28 @@ func (a *App) GetShowFromID() {
 	for _, k := range keys {
 		fmt.Fprintf(&footnotesText, "[%s] %s\n", k, show.Footnotes[k])
 	}
-	a.showResultSingle.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
-	a.showResultSingle.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
-	a.showResultSingle.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
-	a.showResultSingle.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
-	a.showResultSingle.setsLabel.SetText(setsText.String())
-	a.showResultSingle.footnotesLabel.SetText(footnotesText.String())
+	a.details.showDetails.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
+	a.details.showDetails.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
+	a.details.showDetails.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
+	a.details.showDetails.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
+	a.details.showDetails.setsLabel.SetText(setsText.String())
+	a.details.showDetails.footnotesLabel.SetText(footnotesText.String())
 
 	// Refresh so Fyne redraws with new text
-	a.showResultSingle.showIDLabel.Refresh()
-	a.showResultSingle.dateLabel.Refresh()
-	a.showResultSingle.locationLabel.Refresh()
-	a.showResultSingle.notesLabel.Refresh()
-	a.showResultSingle.setsLabel.Refresh()
-	a.showResultSingle.footnotesLabel.Refresh()
+	a.details.showDetails.showIDLabel.Refresh()
+	a.details.showDetails.dateLabel.Refresh()
+	a.details.showDetails.locationLabel.Refresh()
+	a.details.showDetails.notesLabel.Refresh()
+	a.details.showDetails.setsLabel.Refresh()
+	a.details.showDetails.footnotesLabel.Refresh()
 
-	a.search.textSearch.SetText("")
+	a.search.textSearch.searchID.SetText("")
+}
+
+// fetchShowFromIDBtn: widget.Button can't use a func(string) - this was my initial idea to bypass that issue
+func (a *App) fetchShowFromIDBtn() {
+	showID := a.search.textSearch.searchID.Text
+	a.getShowFromID(showID)
 }
 
 func searchBySongName(song string) (internal.Paginated[internal.ShowMeta], error) {

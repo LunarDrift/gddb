@@ -17,6 +17,7 @@ import (
 
 func main() {
 	var days, years []string
+	// TODO: Different number of days depending on the month
 	for i := 1; i <= 31; i++ {
 		days = append(days, strconv.Itoa(i))
 	}
@@ -27,9 +28,18 @@ func main() {
 
 	a := &App{
 		fyneApp: app.New(),
-		search:  &searchPanel{textSearch: newTextSearch()},
+		search: &searchPanel{
+			textSearch: showIDSearch{
+				searchID: widget.NewEntry(),
+			},
+		},
 	}
-	a.search.dateSearch = dateChoices{
+	a.fyneWindow = a.fyneApp.NewWindow("Deadabase")
+	a.fyneWindow.Resize(fyne.NewSize(1280, 720))
+
+	a.search.textSearch.searchID.SetPlaceHolder("Enter a show ID")
+	a.search.textSearch.searchID.OnSubmitted = a.getShowFromID
+	a.search.dateSearch = showDateSearch{
 		dayChoice:   widget.NewSelect(days, a.dayChoiceFn),
 		monthChoice: widget.NewSelect(months, a.monthChoiceFn),
 		yearChoice:  widget.NewSelect(years, a.yearChoiceFn),
@@ -38,26 +48,23 @@ func main() {
 	a.search.dateSearch.dayChoice.PlaceHolder = "Day"
 	a.search.dateSearch.monthChoice.PlaceHolder = "Month"
 	a.search.dateSearch.yearChoice.PlaceHolder = "Year"
-	a.fyneWindow = a.fyneApp.NewWindow("Deadabase")
-	a.fyneWindow.Resize(fyne.NewSize(1280, 720))
 
 	a.setupResultCanvas()
-	a.search.textSearch.enterBtn = widget.NewButton("Search by ID", a.GetShowFromID)
-	a.search.textSearch.OnEnter = a.GetShowFromID
+	a.search.textSearch.enterBtn = widget.NewButton("Search by ID", a.fetchShowFromIDBtn)
 
-	a.detailsContainer = container.NewVBox(
-		a.showResultSingle.showIDLabel,
-		a.showResultSingle.dateLabel,
-		a.showResultSingle.locationLabel,
-		a.showResultSingle.notesLabel,
-		a.showResultSingle.setsLabel,
-		a.showResultSingle.footnotesLabel,
+	a.details.container = container.NewVBox(
+		a.details.showDetails.showIDLabel,
+		a.details.showDetails.dateLabel,
+		a.details.showDetails.locationLabel,
+		a.details.showDetails.notesLabel,
+		a.details.showDetails.setsLabel,
+		a.details.showDetails.footnotesLabel,
 	)
 
 	var shows internal.Paginated[internal.ShowMeta]
 
-	placeholderLayout := container.NewCenter(a.showResultSingle.detailLabel)
-	a.resultsList = widget.NewList(
+	a.details.placeholderLayout = container.NewCenter(a.details.showDetails.detailLabel)
+	a.resultsList.results = widget.NewList(
 		func() int { return len(shows.Results) },
 		func() fyne.CanvasObject { return widget.NewLabel("template") },
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
@@ -65,7 +72,7 @@ func main() {
 		},
 	)
 
-	a.resultsList.OnSelected = func(id widget.ListItemID) {
+	a.resultsList.results.OnSelected = func(id widget.ListItemID) {
 		date := shows.Results[id].Date
 		go func() {
 			show, err := getShowFromDate(date)
@@ -88,22 +95,22 @@ func main() {
 					fmt.Fprintf(&footnotesText, "[%s] %s\n", k, show.Footnotes[k])
 				}
 
-				a.showResultSingle.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
-				a.showResultSingle.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
-				a.showResultSingle.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
-				a.showResultSingle.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
-				a.showResultSingle.setsLabel.SetText(setsText.String())
-				a.showResultSingle.footnotesLabel.SetText(footnotesText.String())
-				placeholderLayout.Hide()
-				a.detailsContainer.Show()
-				a.detailsContainer.Refresh()
+				a.details.showDetails.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
+				a.details.showDetails.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
+				a.details.showDetails.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
+				a.details.showDetails.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
+				a.details.showDetails.setsLabel.SetText(setsText.String())
+				a.details.showDetails.footnotesLabel.SetText(footnotesText.String())
+				a.details.placeholderLayout.Hide()
+				a.details.container.Show()
+				a.details.container.Refresh()
 			})
 		}()
 	}
 
-	a.search.songSearch = widget.NewEntry()
-	a.search.songSearch.SetPlaceHolder("Enter a song name...")
-	a.search.songSearch.OnSubmitted = func(song string) {
+	a.search.songSearch.songEntry = widget.NewEntry()
+	a.search.songSearch.songEntry.SetPlaceHolder("Enter a song name...")
+	a.search.songSearch.songEntry.OnSubmitted = func(song string) {
 		go func() {
 			results, err := searchBySongName(song)
 			fyne.Do(func() {
@@ -112,21 +119,21 @@ func main() {
 					return
 				}
 				shows = results
-				a.resultsList.UnselectAll()
-				a.resultsList.Refresh() // this is what makes the list redraw
+				a.resultsList.results.UnselectAll()
+				a.resultsList.results.Refresh() // this is what makes the list redraw
 
-				a.detailsContainer.Hide()
-				placeholderLayout.Show()
+				a.details.container.Hide()
+				a.details.placeholderLayout.Show()
 			})
 		}()
 	}
 
 	// Placeholder buttons
 	// TODO: Implement these
-	prevBtn := widget.NewButton("Next", func() {
+	a.resultsList.prevBtn = widget.NewButton("Next", func() {
 		fmt.Println("Next...")
 	})
-	nextBtn := widget.NewButton("Previous", func() {
+	a.resultsList.nextBtn = widget.NewButton("Previous", func() {
 		fmt.Println("Previous...")
 	})
 	addToPlaylistBtn := widget.NewButton("Add to Playlist", func() {
@@ -136,21 +143,22 @@ func main() {
 		fmt.Println("Streaming...")
 	})
 	musicPlayer := widget.NewLabel("Music Player")
+	musicPlayer.Alignment = fyne.TextAlignCenter
 	resultsPanel := container.NewBorder(
 		nil,
-		container.NewHBox(prevBtn, layout.NewSpacer(), nextBtn),
+		container.NewHBox(a.resultsList.nextBtn, layout.NewSpacer(), a.resultsList.prevBtn),
 		nil, nil,
-		a.resultsList,
+		a.resultsList.results,
 	)
 	detailsPanel := container.NewBorder(
 		nil,
 		container.NewHBox(addToPlaylistBtn, layout.NewSpacer(), streamBtn),
 		nil, nil,
-		container.NewVScroll(a.detailsContainer),
+		container.NewStack(a.details.placeholderLayout, a.details.container),
 	)
 
 	dateSearch := container.NewHBox(a.search.dateSearch.yearChoice, a.search.dateSearch.monthChoice, a.search.dateSearch.dayChoice)
-	searchPanel := container.NewVBox(a.search.textSearch, a.search.textSearch.enterBtn, dateSearch, a.search.dateSearch.enterBtn, a.search.songSearch)
+	searchPanel := container.NewVBox(a.search.textSearch.searchID, a.search.textSearch.enterBtn, dateSearch, a.search.dateSearch.enterBtn, a.search.songSearch.songEntry)
 	searchAndList := container.NewHSplit(searchPanel, resultsPanel)
 	content := container.NewHSplit(searchAndList, detailsPanel)
 	content.SetOffset(0.4)
