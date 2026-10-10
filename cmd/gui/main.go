@@ -2,9 +2,7 @@ package main
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -17,6 +15,7 @@ import (
 
 func main() {
 	var days, years []string
+	months := []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
 	// TODO: Different number of days depending on the month
 	for i := 1; i <= 31; i++ {
 		days = append(days, strconv.Itoa(i))
@@ -24,7 +23,6 @@ func main() {
 	for i := 1965; i <= 1995; i++ {
 		years = append(years, strconv.Itoa(i))
 	}
-	months := []string{"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
 
 	a := &App{
 		fyneApp: app.New(),
@@ -37,28 +35,25 @@ func main() {
 	a.fyneWindow = a.fyneApp.NewWindow("Deadabase")
 	a.fyneWindow.Resize(fyne.NewSize(1280, 720))
 
-	a.search.textSearch.searchID.SetPlaceHolder("Enter a show ID")
-	a.search.textSearch.searchID.OnSubmitted = a.getShowFromID
-	a.search.dateSearch = showDateSearch{
-		dayChoice:   widget.NewSelect(days, a.dayChoiceFn),
-		monthChoice: widget.NewSelect(months, a.monthChoiceFn),
-		yearChoice:  widget.NewSelect(years, a.yearChoiceFn),
-	}
-	a.search.dateSearch.enterBtn = widget.NewButton("Search by date", a.searchByDate)
-	a.search.dateSearch.dayChoice.PlaceHolder = "Day"
-	a.search.dateSearch.monthChoice.PlaceHolder = "Month"
-	a.search.dateSearch.yearChoice.PlaceHolder = "Year"
-
+	a.setupSearchPanel(days, months, years)
 	a.setupResultCanvas()
-	a.search.textSearch.enterBtn = widget.NewButton("Search by ID", a.fetchShowFromIDBtn)
 
-	a.details.container = container.NewVBox(
+	topMetaData := container.NewVBox(
 		a.details.showDetails.showIDLabel,
 		a.details.showDetails.dateLabel,
 		a.details.showDetails.locationLabel,
 		a.details.showDetails.notesLabel,
-		a.details.showDetails.setsLabel,
-		a.details.showDetails.footnotesLabel,
+	)
+
+	scrollableSets := container.NewVScroll(a.details.showDetails.setsLabel)
+	scrollableFootnotes := container.NewVScroll(a.details.showDetails.footnotesLabel)
+	scrollableFootnotes.SetMinSize(fyne.NewSize(0, 80))
+	a.details.container = container.NewBorder(
+		topMetaData,
+		scrollableFootnotes,
+		nil,
+		nil,
+		scrollableSets,
 	)
 
 	var shows internal.Paginated[internal.ShowMeta]
@@ -81,29 +76,7 @@ func main() {
 					dialog.ShowError(err, a.fyneWindow)
 					return
 				}
-				var setsText strings.Builder
-				for _, set := range show.Sets {
-					fmt.Fprintf(&setsText, "%s: %s\n\n", set.SetName, strings.Join(set.Songs, ", "))
-				}
-				var footnotesText strings.Builder
-				keys := make([]string, 0, len(show.Footnotes))
-				for k := range show.Footnotes {
-					keys = append(keys, k)
-				}
-				sort.Strings(keys)
-				for _, k := range keys {
-					fmt.Fprintf(&footnotesText, "[%s] %s\n", k, show.Footnotes[k])
-				}
-
-				a.details.showDetails.showIDLabel.Text = fmt.Sprintf("Show ID: %v", show.ShowID)
-				a.details.showDetails.dateLabel.Text = fmt.Sprintf("Date: %v", show.Date)
-				a.details.showDetails.locationLabel.Text = fmt.Sprintf("Location: %v, %v", show.Venue, show.Location)
-				a.details.showDetails.notesLabel.Text = fmt.Sprintf("Notes: %v", show.Notes)
-				a.details.showDetails.setsLabel.SetText(setsText.String())
-				a.details.showDetails.footnotesLabel.SetText(footnotesText.String())
-				a.details.placeholderLayout.Hide()
-				a.details.container.Show()
-				a.details.container.Refresh()
+				a.updateMultiShowDetails(show)
 			})
 		}()
 	}
@@ -158,7 +131,7 @@ func main() {
 	)
 
 	dateSearch := container.NewHBox(a.search.dateSearch.yearChoice, a.search.dateSearch.monthChoice, a.search.dateSearch.dayChoice)
-	searchPanel := container.NewVBox(a.search.textSearch.searchID, a.search.textSearch.enterBtn, dateSearch, a.search.dateSearch.enterBtn, a.search.songSearch.songEntry)
+	searchPanel := container.NewVBox(a.search.textSearch.searchID, a.search.textSearch.enterBtn, dateSearch, a.search.dateSearch.enterBtn, a.search.songSearch.songEntry, a.search.songSearch.enterBtn)
 	searchAndList := container.NewHSplit(searchPanel, resultsPanel)
 	content := container.NewHSplit(searchAndList, detailsPanel)
 	content.SetOffset(0.4)
