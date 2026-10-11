@@ -31,6 +31,9 @@ func main() {
 				searchID: widget.NewEntry(),
 			},
 		},
+		resultsListPnl: resultsListPanel{
+			showResults: &internal.Paginated[internal.ShowMeta]{},
+		},
 	}
 	a.fyneWindow = a.fyneApp.NewWindow("Deadabase")
 	a.fyneWindow.Resize(fyne.NewSize(1280, 720))
@@ -56,19 +59,17 @@ func main() {
 		scrollableSets,
 	)
 
-	var shows internal.Paginated[internal.ShowMeta]
-
 	a.details.placeholderLayout = container.NewCenter(a.details.showDetails.detailLabel)
-	a.resultsList.results = widget.NewList(
-		func() int { return len(shows.Results) },
+	a.resultsListPnl.resultsList = widget.NewList(
+		func() int { return len(a.resultsListPnl.showResults.Results) },
 		func() fyne.CanvasObject { return widget.NewLabel("template") },
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			obj.(*widget.Label).SetText(shows.Results[id].Date)
+			obj.(*widget.Label).SetText(a.resultsListPnl.showResults.Results[id].Date)
 		},
 	)
 
-	a.resultsList.results.OnSelected = func(id widget.ListItemID) {
-		date := shows.Results[id].Date
+	a.resultsListPnl.resultsList.OnSelected = func(id widget.ListItemID) {
+		date := a.resultsListPnl.showResults.Results[id].Date
 		go func() {
 			show, err := getShowFromDate(date)
 			fyne.Do(func() {
@@ -91,24 +92,15 @@ func main() {
 					dialog.ShowError(err, a.fyneWindow)
 					return
 				}
-				shows = results
-				a.resultsList.results.UnselectAll()
-				a.resultsList.results.Refresh() // this is what makes the list redraw
-
-				a.details.container.Hide()
-				a.details.placeholderLayout.Show()
+				a.setResults(&results)
 			})
 		}()
 	}
 
 	// Placeholder buttons
 	// TODO: Implement these
-	a.resultsList.prevBtn = widget.NewButton("Next", func() {
-		fmt.Println("Next...")
-	})
-	a.resultsList.nextBtn = widget.NewButton("Previous", func() {
-		fmt.Println("Previous...")
-	})
+	a.resultsListPnl.prevBtn = widget.NewButton("Previous", func() { a.load(*a.resultsListPnl.showResults.Previous) })
+	a.resultsListPnl.nextBtn = widget.NewButton("Next", func() { a.load(*a.resultsListPnl.showResults.Next) })
 	addToPlaylistBtn := widget.NewButton("Add to Playlist", func() {
 		fmt.Println("Add to playlist...")
 	})
@@ -119,9 +111,9 @@ func main() {
 	musicPlayer.Alignment = fyne.TextAlignCenter
 	resultsPanel := container.NewBorder(
 		nil,
-		container.NewHBox(a.resultsList.nextBtn, layout.NewSpacer(), a.resultsList.prevBtn),
+		container.NewHBox(a.resultsListPnl.prevBtn, layout.NewSpacer(), a.resultsListPnl.nextBtn),
 		nil, nil,
-		a.resultsList.results,
+		a.resultsListPnl.resultsList,
 	)
 	detailsPanel := container.NewBorder(
 		nil,
@@ -131,12 +123,19 @@ func main() {
 	)
 
 	dateSearch := container.NewHBox(a.search.dateSearch.yearChoice, a.search.dateSearch.monthChoice, a.search.dateSearch.dayChoice)
-	searchPanel := container.NewVBox(a.search.textSearch.searchID, a.search.textSearch.enterBtn, dateSearch, a.search.dateSearch.enterBtn, a.search.songSearch.songEntry, a.search.songSearch.enterBtn)
+	searchPanel := container.NewVBox(
+		a.search.textSearch.searchID,
+		a.search.textSearch.enterBtn,
+		dateSearch, a.search.dateSearch.enterBtn,
+		a.search.songSearch.songEntry,
+		a.search.songSearch.enterBtn,
+	)
 	searchAndList := container.NewHSplit(searchPanel, resultsPanel)
 	content := container.NewHSplit(searchAndList, detailsPanel)
 	content.SetOffset(0.4)
 	root := container.NewBorder(nil, musicPlayer, nil, nil, content)
 
 	a.fyneWindow.SetContent(root)
+	a.updateButtons()
 	a.fyneWindow.ShowAndRun()
 }

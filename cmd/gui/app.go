@@ -10,12 +10,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
+	"unicode/utf8"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	"github.com/LunarDrift/deadabase/internal"
 )
+
+const baseURL = "http://localhost:8080"
 
 type showIDSearch struct {
 	searchID *widget.Entry
@@ -44,9 +48,10 @@ type searchPanel struct {
 }
 
 type resultsListPanel struct {
-	results *widget.List
-	nextBtn *widget.Button
-	prevBtn *widget.Button
+	resultsList *widget.List
+	showResults *internal.Paginated[internal.ShowMeta]
+	nextBtn     *widget.Button
+	prevBtn     *widget.Button
 }
 
 type singleShowResult struct {
@@ -66,11 +71,11 @@ type showDetailsPanel struct {
 }
 
 type App struct {
-	fyneApp     fyne.App
-	fyneWindow  fyne.Window
-	search      *searchPanel
-	resultsList resultsListPanel
-	details     showDetailsPanel
+	fyneApp        fyne.App
+	fyneWindow     fyne.Window
+	search         *searchPanel
+	resultsListPnl resultsListPanel
+	details        showDetailsPanel
 }
 
 func (a *App) setupSearchPanel(days, months, years []string) {
@@ -124,7 +129,7 @@ func (a *App) yearChoiceFn(s string) {
 func (a *App) updateSingleShowDetails(data internal.ShowResponse) {
 	var setsText, footnotesText strings.Builder
 	for _, set := range data.Sets {
-		fmt.Fprintf(&setsText, "%s:\n%s\n\n", set.SetName, strings.Join(set.Songs, "\n"))
+		fmt.Fprintf(&setsText, "%s:\n%s\n\n", formatSetName(set.SetName), strings.Join(set.Songs, "\n"))
 	}
 	keys := make([]string, 0, len(data.Footnotes))
 	for k := range data.Footnotes {
@@ -136,7 +141,7 @@ func (a *App) updateSingleShowDetails(data internal.ShowResponse) {
 	}
 	a.details.showDetails.showIDLabel.Text = fmt.Sprintf("Show ID: %v", data.ShowID)
 	a.details.showDetails.dateLabel.Text = fmt.Sprintf("Date: %v", data.Date)
-	a.details.showDetails.locationLabel.Text = fmt.Sprintf("Location: %v, %v", data.Venue, data.Location)
+	a.details.showDetails.locationLabel.Text = fmt.Sprintf("Location: %v - %v, %v", data.Venue, data.City, data.Location)
 	a.details.showDetails.notesLabel.Text = fmt.Sprintf("Notes: %v", data.Notes)
 	a.details.showDetails.setsLabel.SetText(setsText.String())
 	a.details.showDetails.footnotesLabel.SetText(footnotesText.String())
@@ -151,11 +156,12 @@ func (a *App) updateMultiShowDetails(data []internal.ShowResponse) {
 		return
 	}
 
+	var footnotesText, masterShowText strings.Builder
+
 	// Set shared top-level info once
 	a.details.showDetails.dateLabel.SetText(fmt.Sprintf("Date: %v", data[0].Date))
-	a.details.showDetails.locationLabel.SetText(fmt.Sprintf("Location: %v, %v", data[0].Venue, data[0].Location))
+	a.details.showDetails.locationLabel.SetText(fmt.Sprintf("Location: %v - %v, %v", data[0].Venue, data[0].City, data[0].Location))
 
-	var footnotesText, masterShowText strings.Builder
 	for i := range data {
 		fmt.Fprintf(&masterShowText, "Show ID: %v\n", data[i].ShowID)
 		if data[i].Notes != "" {
@@ -163,8 +169,11 @@ func (a *App) updateMultiShowDetails(data []internal.ShowResponse) {
 		}
 		fmt.Fprintln(&masterShowText, "") // Padding
 
+		if len(data[i].Sets) == 0 {
+			fmt.Fprintln(&masterShowText, "No setlist available for this show")
+		}
 		for _, set := range data[i].Sets {
-			fmt.Fprintf(&masterShowText, "%s: \n%s\n\n", set.SetName, strings.Join(set.Songs, "\n"))
+			fmt.Fprintf(&masterShowText, "%s: \n%s\n\n", formatSetName(set.SetName), strings.Join(set.Songs, "\n"))
 		}
 
 		if len(data[i].Footnotes) > 0 {
@@ -183,7 +192,7 @@ func (a *App) updateMultiShowDetails(data []internal.ShowResponse) {
 
 		// divider between shows
 		if i < len(data)-1 {
-			fmt.Fprintln(&masterShowText, strings.Repeat("━", 30)+"\n")
+			fmt.Fprintln(&masterShowText, strings.Repeat("━", 90)+"\n")
 		}
 
 	}
@@ -201,8 +210,8 @@ func (a *App) updateMultiShowDetails(data []internal.ShowResponse) {
 func (a *App) searchByDate() {
 	date := time.Date(a.search.dateSearch.year, time.Month(a.search.dateSearch.month), a.search.dateSearch.day, 0, 0, 0, 0, time.UTC)
 	dateStr := date.Format(time.DateOnly)
-	url := fmt.Sprintf("http://localhost:8080/shows/%s", dateStr)
-	resp, err := http.Get(url)
+	u := fmt.Sprintf("http://localhost:8080/shows/%s", dateStr)
+	resp, err := http.Get(u)
 	if err != nil {
 		dialog.ShowError(err, a.fyneWindow)
 		return
@@ -224,15 +233,9 @@ func (a *App) searchByDate() {
 }
 
 func (a *App) getShowFromID(showID string) {
-	id, err := strconv.Atoi(showID)
-	if err != nil {
-		dialog.ShowError(err, a.fyneWindow)
-		return
-	}
+	u := fmt.Sprintf("http://localhost:8080/shows/%s", showID)
 
-	url := fmt.Sprintf("http://localhost:8080/shows/%d", id)
-
-	res, err := http.Get(url)
+	res, err := http.Get(u)
 	if err != nil {
 		dialog.ShowError(err, a.fyneWindow)
 		return
@@ -254,20 +257,18 @@ func (a *App) fetchShowFromIDBtn() {
 }
 
 func (a *App) searchBySongNameBtn() {
-	// NOTE: this doesn't work...
 	song := a.search.songSearch.songEntry.Text
-	shows, err := searchBySongName(song)
-	if err != nil {
-		dialog.ShowError(err, a.fyneWindow)
-	}
-	a.resultsList.results = widget.NewList(
-		func() int { return len(shows.Results) },
-		func() fyne.CanvasObject { return widget.NewLabel("template") },
-		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			obj.(*widget.Label).SetText(shows.Results[id].Date)
-		},
-	)
-	a.resultsList.results.Refresh()
+
+	go func() {
+		results, err := searchBySongName(song)
+		fyne.Do(func() {
+			if err != nil {
+				dialog.ShowError(err, a.fyneWindow)
+				return
+			}
+			a.setResults(&results)
+		})
+	}()
 }
 
 func searchBySongName(song string) (internal.Paginated[internal.ShowMeta], error) {
@@ -303,4 +304,71 @@ func getShowFromDate(date string) ([]internal.ShowResponse, error) {
 		return nil, fmt.Errorf("no show found for %s", date)
 	}
 	return shows, nil
+}
+
+func formatSetName(s string) string {
+	words := strings.Split(s, "_")
+	for i, word := range words {
+		if word == "" {
+			continue
+		}
+		r, size := utf8.DecodeRuneInString(word)
+		words[i] = string(unicode.ToUpper(r)) + word[size:]
+	}
+	return strings.Join(words, " ")
+}
+
+func fetchPage(u string) (*internal.Paginated[internal.ShowMeta], error) {
+	resp, err := http.Get(u)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status: %s", resp.Status)
+	}
+	var page internal.Paginated[internal.ShowMeta]
+	if err := json.NewDecoder(resp.Body).Decode(&page); err != nil {
+		return nil, err
+	}
+	return &page, nil
+}
+
+func (a *App) setResults(p *internal.Paginated[internal.ShowMeta]) {
+	a.resultsListPnl.showResults = p
+	a.resultsListPnl.resultsList.UnselectAll()
+	a.resultsListPnl.resultsList.Refresh()
+	a.resultsListPnl.resultsList.ScrollToTop()
+	a.details.container.Hide()
+	a.details.placeholderLayout.Show()
+	a.updateButtons()
+}
+
+func (a *App) load(path string) {
+	a.resultsListPnl.prevBtn.Disable()
+	a.resultsListPnl.nextBtn.Disable()
+	go func() {
+		p, err := fetchPage(baseURL + path)
+		fyne.Do(func() {
+			if err != nil {
+				dialog.ShowError(err, a.fyneWindow)
+				a.updateButtons()
+				return
+			}
+			a.setResults(p)
+		})
+	}()
+}
+
+func (a *App) updateButtons() {
+	if a.resultsListPnl.showResults != nil && a.resultsListPnl.showResults.Previous != nil {
+		a.resultsListPnl.prevBtn.Enable()
+	} else {
+		a.resultsListPnl.prevBtn.Disable()
+	}
+	if a.resultsListPnl.showResults != nil && a.resultsListPnl.showResults.Next != nil {
+		a.resultsListPnl.nextBtn.Enable()
+	} else {
+		a.resultsListPnl.nextBtn.Disable()
+	}
 }
