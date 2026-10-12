@@ -13,13 +13,14 @@ type App struct {
 	win fyne.Window
 
 	// Search panel
-	idEntry     *widget.Entry
-	yearSelect  *widget.Select
-	monthSelect *widget.Select
-	daySelect   *widget.Select
-	songEntry   *widget.Entry
-	venueEntry  *widget.Entry
-	cityEntry   *widget.Entry
+	idEntry       *widget.Entry
+	yearSelect    *widget.Select
+	monthSelect   *widget.Select
+	daySelect     *widget.Select
+	songEntry     *widget.Entry
+	venueEntry    *widget.Entry
+	cityEntry     *widget.Entry
+	locationEntry *widget.Entry
 
 	// Results panel
 	results     *showPage
@@ -96,6 +97,10 @@ func (a *App) searchByVenue(venue string) {
 
 func (a *App) searchByCity(city string) {
 	async(a, func() (*showPage, error) { return searchCities(city) }, a.setResults)
+}
+
+func (a *App) searchByLocation(location string) {
+	async(a, func() (*showPage, error) { return searchLocations(location) }, a.setResults)
 }
 
 // ---------------- Results list ----------------

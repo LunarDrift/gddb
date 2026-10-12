@@ -9,6 +9,7 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -28,6 +29,7 @@ func newApp() *App {
 
 func (a *App) buildUI() fyne.CanvasObject {
 	searchAndList := container.NewHSplit(a.buildSearchPanel(), a.buildResultsPanel())
+	searchAndList.SetOffset(0.4)
 	content := container.NewHSplit(searchAndList, a.buildDetailsPanel())
 	content.SetOffset(0.4)
 
@@ -41,7 +43,7 @@ func (a *App) buildSearchPanel() fyne.CanvasObject {
 	a.idEntry = widget.NewEntry()
 	a.idEntry.SetPlaceHolder("Enter a show ID")
 	a.idEntry.OnSubmitted = a.searchByID
-	idBtn := widget.NewButton("Search by ID", func() { a.searchByID(a.idEntry.Text) })
+	idBtn := widget.NewButtonWithIcon("Search by ID", theme.SearchIcon(), func() { a.searchByID(a.idEntry.Text) })
 
 	// By date
 	a.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
@@ -50,32 +52,39 @@ func (a *App) buildSearchPanel() fyne.CanvasObject {
 	a.monthSelect.PlaceHolder = "Month"
 	a.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
 	a.daySelect.PlaceHolder = "Day"
-	dateBtn := widget.NewButton("Search by date", a.searchByDate)
+	dateBtn := widget.NewButtonWithIcon("Search by date", theme.SearchIcon(), a.searchByDate)
 	datePickers := container.NewHBox(a.yearSelect, a.monthSelect, a.daySelect)
 
 	// By song
 	a.songEntry = widget.NewEntry()
 	a.songEntry.SetPlaceHolder("Enter a song name...")
 	a.songEntry.OnSubmitted = a.searchBySong
-	songBtn := widget.NewButton("Search by song", func() { a.searchBySong(a.songEntry.Text) })
+	songBtn := widget.NewButtonWithIcon("Search by song", theme.SearchIcon(), func() { a.searchBySong(a.songEntry.Text) })
 
 	// By venue
 	a.venueEntry = widget.NewEntry()
 	a.venueEntry.SetPlaceHolder("Enter a venue...")
 	a.venueEntry.OnSubmitted = a.searchByVenue
-	venueBtn := widget.NewButton("Search by venue", func() { a.searchByVenue(a.venueEntry.Text) })
+	venueBtn := widget.NewButtonWithIcon("Search by venue", theme.SearchIcon(), func() { a.searchByVenue(a.venueEntry.Text) })
 
 	// By city
 	a.cityEntry = widget.NewEntry()
 	a.cityEntry.SetPlaceHolder("Enter a city...")
 	a.cityEntry.OnSubmitted = a.searchByCity
-	cityBtn := widget.NewButton("Search by city", func() { a.searchByCity(a.cityEntry.Text) })
+	cityBtn := widget.NewButtonWithIcon("Search by city", theme.SearchIcon(), func() { a.searchByCity(a.cityEntry.Text) })
+
+	// By location
+	a.locationEntry = widget.NewEntry()
+	a.locationEntry.SetPlaceHolder("(State/Country) e.g. NY / Spain")
+	a.locationEntry.OnSubmitted = a.searchByLocation
+	locBtn := widget.NewButtonWithIcon("Search by location", theme.SearchIcon(), func() { a.searchByLocation(a.locationEntry.Text) })
 
 	return container.NewVBox(a.idEntry, idBtn,
 		datePickers, dateBtn,
 		a.songEntry, songBtn,
 		a.venueEntry, venueBtn,
 		a.cityEntry, cityBtn,
+		a.locationEntry, locBtn,
 	)
 }
 
@@ -89,8 +98,8 @@ func (a *App) buildResultsPanel() fyne.CanvasObject {
 	)
 	a.resultsList.OnSelected = a.onResultSelected
 
-	a.prevBtn = widget.NewButton("Previous", a.loadPrev)
-	a.nextBtn = widget.NewButton("Next", a.loadNext)
+	a.prevBtn = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), a.loadPrev)
+	a.nextBtn = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), a.loadNext)
 
 	return container.NewBorder(
 		nil,

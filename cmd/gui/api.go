@@ -53,15 +53,31 @@ func fetchPage(u string) (*showPage, error) {
 }
 
 func searchSongs(song string) (*showPage, error) {
+	if song == "" {
+		return nil, errors.New("enter a song name")
+	}
 	return fetchPage(baseURL + "/shows?song=" + url.QueryEscape(song))
 }
 
 func searchVenues(venue string) (*showPage, error) {
+	if venue == "" {
+		return nil, errors.New("enter a venue name")
+	}
 	return fetchPage(baseURL + "/shows?venue=" + url.QueryEscape(venue))
 }
 
 func searchCities(city string) (*showPage, error) {
+	if city == "" {
+		return nil, errors.New("enter a city name")
+	}
 	return fetchPage(baseURL + "/shows?city=" + url.QueryEscape(city))
+}
+
+func searchLocations(location string) (*showPage, error) {
+	if location == "" {
+		return nil, errors.New("enter a location")
+	}
+	return fetchPage(baseURL + "/shows?location=" + url.QueryEscape(location))
 }
 
 func fetchShowByID(id string) (internal.ShowResponse, error) {
@@ -83,14 +99,3 @@ func fetchShowsByDate(date string) ([]internal.ShowResponse, error) {
 	}
 	return shows, nil
 }
-
-// func fetchShowsByVenue(venue string) ([]internal.ShowResponse, error) {
-// 	shows, err := getJSON[internal.ShowResponse](baseURL + "/shows?venue=" + url.QueryEscape(venue))
-// 	if errors.Is(err, errNotFound) {
-// 		return nil, fmt.Errorf("no show found at %s", venue)
-// 	}
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return shows, nil
-// }
