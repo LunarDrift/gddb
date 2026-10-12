@@ -65,7 +65,7 @@ func formatShows(data []internal.ShowResponse) showText {
 	}
 }
 
-// formatSetName turns "set_1" to "Set 1"
+// formatSetName turns "set_1" to "Set 1" etc...
 func formatSetName(s string) string {
 	words := strings.Split(s, "_")
 	for i, word := range words {

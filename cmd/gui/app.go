@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -21,6 +22,7 @@ type App struct {
 	venueEntry    *widget.Entry
 	cityEntry     *widget.Entry
 	locationEntry *widget.Entry
+	setNameSelect *widget.Select
 
 	// Results panel
 	results     *showPage
@@ -81,6 +83,16 @@ func (a *App) searchByDate() {
 		return
 	}
 	a.loadShowsByDate(date)
+}
+
+func (a *App) searchBySetName() {
+	i := a.setNameSelect.SelectedIndex()
+	if i < 0 {
+		a.showError(errors.New("pick a set"))
+		return
+	}
+	setName := validSetNames[i]
+	async(a, func() (*showPage, error) { return searchSetNames(setName) }, a.setResults)
 }
 
 func (a *App) searchBySong(song string) {

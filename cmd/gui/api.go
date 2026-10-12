@@ -19,6 +19,8 @@ var (
 	httpClient = &http.Client{Timeout: 10 * time.Second}
 
 	errNotFound = errors.New("not found")
+
+	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric", "acoustic_1", "acoustic_2"}
 )
 
 // getJSON GETs u and decodes the JSON body into a T
@@ -78,6 +80,10 @@ func searchLocations(location string) (*showPage, error) {
 		return nil, errors.New("enter a location")
 	}
 	return fetchPage(baseURL + "/shows?location=" + url.QueryEscape(location))
+}
+
+func searchSetNames(setName string) (*showPage, error) {
+	return fetchPage(baseURL + "/shows?set_name=" + url.QueryEscape(setName))
 }
 
 func fetchShowByID(id string) (internal.ShowResponse, error) {
