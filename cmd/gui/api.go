@@ -1,0 +1,96 @@
+package main
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"net/url"
+	"time"
+
+	"github.com/LunarDrift/deadabase/internal"
+)
+
+const baseURL = "http://localhost:8080"
+
+type showPage = internal.Paginated[internal.ShowMeta]
+
+var (
+	httpClient = &http.Client{Timeout: 10 * time.Second}
+
+	errNotFound = errors.New("not found")
+)
+
+// getJSON GETs u and decodes the JSON body into a T
+func getJSON[T any](u string) (T, error) {
+	var out T
+	resp, err := httpClient.Get(u)
+	if err != nil {
+		return out, err
+	}
+	defer resp.Body.Close() //nolint:errcheck
+
+	switch {
+	case resp.StatusCode == http.StatusNotFound:
+		return out, errNotFound
+	case resp.StatusCode != http.StatusOK:
+		return out, fmt.Errorf("api returned %s", resp.Status)
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		return out, err
+	}
+	return out, nil
+}
+
+// fetchPage loads any paginated URL, including the next/previous links
+// the API hands back.
+func fetchPage(u string) (*showPage, error) {
+	p, err := getJSON[showPage](u)
+	if err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func searchSongs(song string) (*showPage, error) {
+	return fetchPage(baseURL + "/shows?song=" + url.QueryEscape(song))
+}
+
+func searchVenues(venue string) (*showPage, error) {
+	return fetchPage(baseURL + "/shows?venue=" + url.QueryEscape(venue))
+}
+
+func searchCities(city string) (*showPage, error) {
+	return fetchPage(baseURL + "/shows?city=" + url.QueryEscape(city))
+}
+
+func fetchShowByID(id string) (internal.ShowResponse, error) {
+	show, err := getJSON[internal.ShowResponse](baseURL + "/shows/" + url.PathEscape(id))
+	if errors.Is(err, errNotFound) {
+		return show, fmt.Errorf("no show with ID %s", id)
+	}
+	return show, err
+}
+
+// fetchShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)
+func fetchShowsByDate(date string) ([]internal.ShowResponse, error) {
+	shows, err := getJSON[[]internal.ShowResponse](baseURL + "/shows/" + url.PathEscape(date))
+	if errors.Is(err, errNotFound) || (err == nil && len(shows) == 0) {
+		return nil, fmt.Errorf("no show found on %s", date)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return shows, nil
+}
+
+// func fetchShowsByVenue(venue string) ([]internal.ShowResponse, error) {
+// 	shows, err := getJSON[internal.ShowResponse](baseURL + "/shows?venue=" + url.QueryEscape(venue))
+// 	if errors.Is(err, errNotFound) {
+// 		return nil, fmt.Errorf("no show found at %s", venue)
+// 	}
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return shows, nil
+// }
