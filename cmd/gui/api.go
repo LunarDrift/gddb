@@ -86,6 +86,10 @@ func searchSetNames(setName string) (*showPage, error) {
 	return fetchPage(baseURL + "/shows?set_name=" + url.QueryEscape(setName))
 }
 
+func searchNotes(option string) (*showPage, error) {
+	return fetchPage(baseURL + "/shows?has_notes=" + url.QueryEscape(option))
+}
+
 func fetchShowByID(id string) (internal.ShowResponse, error) {
 	show, err := getJSON[internal.ShowResponse](baseURL + "/shows/" + url.PathEscape(id))
 	if errors.Is(err, errNotFound) {

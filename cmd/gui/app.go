@@ -23,6 +23,7 @@ type App struct {
 	cityEntry     *widget.Entry
 	locationEntry *widget.Entry
 	setNameSelect *widget.Select
+	notesSelect   *widget.Select
 
 	// Results panel
 	results     *showPage
@@ -93,6 +94,17 @@ func (a *App) searchBySetName() {
 	}
 	setName := validSetNames[i]
 	async(a, func() (*showPage, error) { return searchSetNames(setName) }, a.setResults)
+}
+
+func (a *App) searchByNotes() {
+	options := []string{"true", "false"}
+	i := a.notesSelect.SelectedIndex()
+	if i < 0 {
+		a.showError(errors.New("pick an option"))
+		return
+	}
+	option := options[i]
+	async(a, func() (*showPage, error) { return searchNotes(option) }, a.setResults)
 }
 
 func (a *App) searchBySong(song string) {

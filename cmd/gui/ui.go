@@ -29,9 +29,8 @@ func newApp() *App {
 
 func (a *App) buildUI() fyne.CanvasObject {
 	searchAndList := container.NewHSplit(a.buildSearchPanel(), a.buildResultsPanel())
-	searchAndList.SetOffset(0.4)
 	content := container.NewHSplit(searchAndList, a.buildDetailsPanel())
-	content.SetOffset(0.4)
+	content.SetOffset(0.45)
 
 	player := widget.NewLabel("Music Player")
 	player.Alignment = fyne.TextAlignCenter
@@ -53,7 +52,7 @@ func (a *App) buildSearchPanel() fyne.CanvasObject {
 	a.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
 	a.daySelect.PlaceHolder = "Day"
 	dateBtn := widget.NewButtonWithIcon("Search date", theme.SearchIcon(), a.searchByDate)
-	datePickers := container.NewHBox(a.yearSelect, a.monthSelect, a.daySelect)
+	datePickers := container.NewGridWithColumns(3, a.yearSelect, a.monthSelect, a.daySelect)
 
 	// By song
 	a.songEntry = widget.NewEntry()
@@ -84,13 +83,21 @@ func (a *App) buildSearchPanel() fyne.CanvasObject {
 	a.setNameSelect.PlaceHolder = "Sets"
 	setNameBtn := widget.NewButtonWithIcon("Search by set", theme.SearchIcon(), a.searchBySetName)
 
+	// By notes
+	a.notesSelect = widget.NewSelect(notesLabels(), nil)
+	a.notesSelect.PlaceHolder = "Has Notes"
+	notesBtn := widget.NewButtonWithIcon("Search notes", theme.SearchIcon(), a.searchByNotes)
+
+	setAndNotes := container.NewGridWithColumns(2, a.setNameSelect, a.notesSelect)
+	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
+
 	return container.NewVBox(a.idEntry, idBtn,
 		datePickers, dateBtn,
 		a.songEntry, songBtn,
 		a.venueEntry, venueBtn,
 		a.cityEntry, cityBtn,
 		a.locationEntry, locBtn,
-		a.setNameSelect, setNameBtn,
+		setAndNotes, setAndNotesBtns,
 	)
 }
 
@@ -169,4 +176,8 @@ func setLabels() []string {
 		out[i] = formatSetName(name)
 	}
 	return out
+}
+
+func notesLabels() []string {
+	return []string{"True", "False"}
 }
