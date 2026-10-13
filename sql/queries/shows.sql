@@ -81,9 +81,9 @@ FROM
 	shows sh
 WHERE venue ILIKE @venue_name
 ORDER BY
+	sh.show_date,
   sh.show_id,
-	sh.venue,
-	sh.show_date
+	sh.venue
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetAllShowIDs :many
