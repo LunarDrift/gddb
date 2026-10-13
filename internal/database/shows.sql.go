@@ -755,9 +755,9 @@ FROM
 	shows sh
 WHERE venue ILIKE $1
 ORDER BY
+	sh.show_date,
   sh.show_id,
-	sh.venue,
-	sh.show_date
+	sh.venue
 LIMIT $3 OFFSET $2
 `
 
