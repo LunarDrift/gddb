@@ -35,7 +35,6 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /shows", s.handleShowsFromQueryParam)
 	s.mux.HandleFunc("GET /shows/{value}", s.handleShowsFromPathVal)
 	s.mux.HandleFunc("GET /shows/random", s.handleGetRandomShow)
-	s.mux.HandleFunc("GET /shows/all", s.handleGetAllShows)
 
 	s.mux.HandleFunc("GET /songs", s.handleSongsFromQueryParam)
 	s.mux.HandleFunc("GET /songs/{song}", s.handleGetSongStats)

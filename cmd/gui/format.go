@@ -52,7 +52,7 @@ func formatShows(data []internal.ShowResponse) showText {
 		}
 
 		if i < len(data)-1 {
-			fmt.Fprintln(&sets, strings.Repeat("━", 80)+"\n")
+			fmt.Fprintln(&sets, strings.Repeat("━", 60)+"\n")
 		}
 	}
 
