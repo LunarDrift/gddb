@@ -11,8 +11,13 @@ import (
 )
 
 type App struct {
-	win fyne.Window
+	win   fyne.Window
+	shows *showsTab
+	songs *songsTab
+}
 
+type showsTab struct {
+	app *App
 	// Search panel
 	idEntry       *widget.Entry
 	yearSelect    *widget.Select
@@ -40,6 +45,13 @@ type App struct {
 	footnotesLabel *widget.Label
 }
 
+type songsTab struct {
+	app        *App
+	page       *songPage
+	list       *widget.List
+	prev, next *widget.Button
+}
+
 // async runs work off the UI thread, then runs done back on it. Fyne's rule:
 // slow things (HTTP) in a goroutine, anything touching widgets inside
 // fyne.Do. On error it shows a dialog and skips done.
@@ -62,124 +74,169 @@ func (a *App) showError(err error) {
 
 // ---------------- Searches ----------------
 
-func (a *App) searchByID(id string) {
+func (s *showsTab) searchByID(id string) {
 	id = strings.TrimSpace(id)
 	if id == "" {
 		return
 	}
-	async(a, func() ([]internal.ShowResponse, error) {
+	async(s.app, func() ([]internal.ShowResponse, error) {
 		show, err := fetchShowByID(id)
 		return []internal.ShowResponse{show}, err
-	}, a.showShowDetails)
+	}, s.showShowDetails)
 }
 
-func (a *App) searchByDate() {
+func (s *showsTab) searchByDate() {
 	date, err := buildDate(
-		a.yearSelect.Selected,
-		a.monthSelect.SelectedIndex()+1,
-		a.daySelect.SelectedIndex()+1,
+		s.yearSelect.Selected,
+		s.monthSelect.SelectedIndex()+1,
+		s.daySelect.SelectedIndex()+1,
 	)
 	if err != nil {
-		a.showError(err)
+		s.app.showError(err)
 		return
 	}
-	a.loadShowsByDate(date)
+	s.loadShowsByDate(date)
 }
 
-func (a *App) searchBySetName() {
-	i := a.setNameSelect.SelectedIndex()
+func (s *showsTab) searchBySetName() {
+	i := s.setNameSelect.SelectedIndex()
 	if i < 0 {
-		a.showError(errors.New("pick a set"))
+		s.app.showError(errors.New("pick a set"))
 		return
 	}
 	setName := validSetNames[i]
-	async(a, func() (*showPage, error) { return searchSetNames(setName) }, a.setResults)
+	async(s.app, func() (*showPage, error) { return searchSetNames(setName) }, s.setResults)
 }
 
-func (a *App) searchByNotes() {
+func (s *showsTab) searchByNotes() {
 	options := []string{"true", "false"}
-	i := a.notesSelect.SelectedIndex()
+	i := s.notesSelect.SelectedIndex()
 	if i < 0 {
-		a.showError(errors.New("pick an option"))
+		s.app.showError(errors.New("pick an option"))
 		return
 	}
 	option := options[i]
-	async(a, func() (*showPage, error) { return searchNotes(option) }, a.setResults)
+	async(s.app, func() (*showPage, error) { return searchNotes(option) }, s.setResults)
 }
 
-func (a *App) searchBySong(song string) {
-	async(a, func() (*showPage, error) { return searchSongs(song) }, a.setResults)
+func (s *showsTab) searchBySong(song string) {
+	async(s.app, func() (*showPage, error) { return searchSongs(song) }, s.setResults)
 }
 
-func (a *App) loadShowsByDate(date string) {
-	async(a, func() ([]internal.ShowResponse, error) { return fetchShowsByDate(date) }, a.showShowDetails)
+func (s *showsTab) loadShowsByDate(date string) {
+	async(s.app, func() ([]internal.ShowResponse, error) { return fetchShowsByDate(date) }, s.showShowDetails)
 }
 
-func (a *App) searchByVenue(venue string) {
-	async(a, func() (*showPage, error) { return searchVenues(venue) }, a.setResults)
+func (s *showsTab) searchByVenue(venue string) {
+	async(s.app, func() (*showPage, error) { return searchVenues(venue) }, s.setResults)
 }
 
-func (a *App) searchByCity(city string) {
-	async(a, func() (*showPage, error) { return searchCities(city) }, a.setResults)
+func (s *showsTab) searchByCity(city string) {
+	async(s.app, func() (*showPage, error) { return searchCities(city) }, s.setResults)
 }
 
-func (a *App) searchByLocation(location string) {
-	async(a, func() (*showPage, error) { return searchLocations(location) }, a.setResults)
+func (s *showsTab) searchByLocation(location string) {
+	async(s.app, func() (*showPage, error) { return searchLocations(location) }, s.setResults)
+}
+
+func (s *songsTab) mostPlayedSongs() {
+	async(s.app, func() (*songPage, error) { return getMostPlayedSongs() }, s.setPage)
 }
 
 // ---------------- Results list ----------------
 
-func (a *App) onResultSelected(id widget.ListItemID) {
-	if id >= len(a.results.Results) {
+func (s *showsTab) onResultSelected(id widget.ListItemID) {
+	if id >= len(s.results.Results) {
 		return
 	}
-	a.loadShowsByDate(a.results.Results[id].Date)
+	s.loadShowsByDate(s.results.Results[id].Date)
 }
 
 // setResults is the ONE place new results enter the app. Everything that
 // produces a page (song search, next, previous) funnelsthrough here, so the
 // list, selection, and details pane and buttons can never get out of sync.
-func (a *App) setResults(p *showPage) {
-	a.results = p
-	a.resultsList.UnselectAll()
-	a.resultsList.Refresh()
-	a.resultsList.ScrollToTop()
-	a.showPlaceholder()
-	a.updateButtons()
+func (s *showsTab) setResults(p *showPage) {
+	s.results = p
+	s.resultsList.UnselectAll()
+	s.resultsList.Refresh()
+	s.resultsList.ScrollToTop()
+	s.showPlaceholder()
+	s.updateButtons()
 }
 
-func (a *App) loadPrev() {
-	if a.results.Previous != nil {
-		a.loadPage(*a.results.Previous)
+func (s *songsTab) setPage(p *songPage) {
+	s.page = p
+	s.list.UnselectAll()
+	s.list.Refresh()
+	s.list.ScrollToTop()
+	s.updateButtons()
+}
+
+func (s *songsTab) loadPrev() {
+	if s.page.Previous != nil {
+		s.loadPage(*s.page.Previous)
 	}
 }
 
-func (a *App) loadNext() {
-	if a.results.Next != nil {
-		a.loadPage(*a.results.Next)
+func (s *songsTab) loadNext() {
+	if s.page.Next != nil {
+		s.loadPage(*s.page.Next)
 	}
 }
 
-func (a *App) loadPage(u string) {
-	// Disable while loading so a double-click can't fire two requests
-	a.prevBtn.Disable()
-	a.nextBtn.Disable()
+func (s *songsTab) loadPage(u string) {
+	s.prev.Disable()
+	s.next.Disable()
 	go func() {
-		p, err := fetchPage(baseURL + u)
+		p, err := fetchPage[songPage](baseURL + u)
 		fyne.Do(func() {
 			if err != nil {
-				a.showError(err)
-				a.updateButtons()
+				s.app.showError(err)
+				s.updateButtons()
 				return
 			}
-			a.setResults(p)
+			s.setPage(p)
 		})
 	}()
 }
 
-func (a *App) updateButtons() {
-	setEnabled(a.prevBtn, a.results.Previous != nil)
-	setEnabled(a.nextBtn, a.results.Next != nil)
+func (s *songsTab) updateButtons() {
+	setEnabled(s.prev, s.page.Previous != nil)
+	setEnabled(s.next, s.page.Next != nil)
+}
+
+func (s *showsTab) loadPrev() {
+	if s.results.Previous != nil {
+		s.loadPage(*s.results.Previous)
+	}
+}
+
+func (s *showsTab) loadNext() {
+	if s.results.Next != nil {
+		s.loadPage(*s.results.Next)
+	}
+}
+
+func (s *showsTab) loadPage(u string) {
+	// Disable while loading so a double-click can't fire two requests
+	s.prevBtn.Disable()
+	s.nextBtn.Disable()
+	go func() {
+		p, err := fetchPage[showPage](baseURL + u)
+		fyne.Do(func() {
+			if err != nil {
+				s.app.showError(err)
+				s.updateButtons()
+				return
+			}
+			s.setResults(p)
+		})
+	}()
+}
+
+func (s *showsTab) updateButtons() {
+	setEnabled(s.prevBtn, s.results.Previous != nil)
+	setEnabled(s.nextBtn, s.results.Next != nil)
 }
 
 func setEnabled(b *widget.Button, on bool) {
@@ -192,20 +249,20 @@ func setEnabled(b *widget.Button, on bool) {
 
 // ---------------- Details panel ----------------
 
-func (a *App) showShowDetails(data []internal.ShowResponse) {
+func (s *showsTab) showShowDetails(data []internal.ShowResponse) {
 	if len(data) == 0 {
 		return
 	}
 	t := formatShows(data)
-	a.dateLabel.SetText(t.date)
-	a.locationLabel.SetText(t.location)
-	a.setsLabel.SetText(t.sets)
-	a.footnotesLabel.SetText(t.footnotes)
-	a.placeholder.Hide()
-	a.details.Show()
+	s.dateLabel.SetText(t.date)
+	s.locationLabel.SetText(t.location)
+	s.setsLabel.SetText(t.sets)
+	s.footnotesLabel.SetText(t.footnotes)
+	s.placeholder.Hide()
+	s.details.Show()
 }
 
-func (a *App) showPlaceholder() {
-	a.details.Hide()
-	a.placeholder.Show()
+func (s *showsTab) showPlaceholder() {
+	s.details.Hide()
+	s.placeholder.Show()
 }

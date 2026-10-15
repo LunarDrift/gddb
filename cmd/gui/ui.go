@@ -14,131 +14,145 @@ import (
 )
 
 func newApp() *App {
-	a := &App{
-		results: &showPage{}, // never nil, so list callbacks are always safe
-	}
+	a := &App{}
+	a.shows = &showsTab{app: a, results: &showPage{}}
+	a.songs = &songsTab{app: a, page: &songPage{}}
 	a.win = app.New().NewWindow("Deadabase")
 	a.win.Resize(fyne.NewSize(1200, 875))
 	a.win.SetContent(a.buildUI())
 
 	// Set initial state of things that start hidden/disabled
-	a.showPlaceholder()
-	a.updateButtons()
+	a.shows.showPlaceholder()
+	a.shows.updateButtons()
+	a.songs.updateButtons()
 	return a
 }
 
 func (a *App) buildUI() fyne.CanvasObject {
-	searchAndList := container.NewHSplit(a.buildSearchPanel(), a.buildResultsPanel())
-	content := container.NewHSplit(searchAndList, a.buildDetailsPanel())
-	content.SetOffset(0.45)
+	tabs := container.NewAppTabs(
+		container.NewTabItem("Shows", a.shows.buildShowsTab()),
+		container.NewTabItem("Songs", a.songs.buildSongsTab()),
+	)
 
 	player := widget.NewLabel("Music Player")
 	player.Alignment = fyne.TextAlignCenter
-	return container.NewBorder(nil, player, nil, nil, content)
+	return container.NewBorder(nil, player, nil, nil, tabs)
 }
 
-func (a *App) buildSearchPanel() fyne.CanvasObject {
+func (s *showsTab) buildShowsTab() fyne.CanvasObject {
+	searchAndList := container.NewHSplit(s.buildShowsSearchPanel(), s.buildShowsResultsPanel())
+	content := container.NewHSplit(searchAndList, s.buildDetailsPanel())
+	content.SetOffset(0.45)
+	return content
+}
+
+func (s *songsTab) buildSongsTab() fyne.CanvasObject {
+	content := container.NewHSplit(s.buildSongsSearchPanel(), s.buildSongsResultsPanel())
+	return content
+}
+
+func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	// By ID
-	a.idEntry = widget.NewEntry()
-	a.idEntry.SetPlaceHolder("Enter a show ID")
-	a.idEntry.OnSubmitted = a.searchByID
-	idBtn := widget.NewButtonWithIcon("Search ID", theme.SearchIcon(), func() { a.searchByID(a.idEntry.Text) })
+	s.idEntry = widget.NewEntry()
+	s.idEntry.SetPlaceHolder("Enter a show ID")
+	s.idEntry.OnSubmitted = s.searchByID
+	idBtn := widget.NewButtonWithIcon("Search ID", theme.SearchIcon(), func() { s.searchByID(s.idEntry.Text) })
 
 	// By date
-	a.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
-	a.yearSelect.PlaceHolder = "Year"
-	a.monthSelect = widget.NewSelect(monthNames(), nil)
-	a.monthSelect.PlaceHolder = "Month"
-	a.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
-	a.daySelect.PlaceHolder = "Day"
-	dateBtn := widget.NewButtonWithIcon("Search date", theme.SearchIcon(), a.searchByDate)
-	datePickers := container.NewGridWithColumns(3, a.yearSelect, a.monthSelect, a.daySelect)
+	s.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
+	s.yearSelect.PlaceHolder = "Year"
+	s.monthSelect = widget.NewSelect(monthNames(), nil)
+	s.monthSelect.PlaceHolder = "Month"
+	s.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
+	s.daySelect.PlaceHolder = "Day"
+	dateBtn := widget.NewButtonWithIcon("Search date", theme.SearchIcon(), s.searchByDate)
+	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
 
 	// By song
-	a.songEntry = widget.NewEntry()
-	a.songEntry.SetPlaceHolder("Enter a song name...")
-	a.songEntry.OnSubmitted = a.searchBySong
-	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { a.searchBySong(a.songEntry.Text) })
+	s.songEntry = widget.NewEntry()
+	s.songEntry.SetPlaceHolder("Enter a song name...")
+	s.songEntry.OnSubmitted = s.searchBySong
+	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { s.searchBySong(s.songEntry.Text) })
 
 	// By venue
-	a.venueEntry = widget.NewEntry()
-	a.venueEntry.SetPlaceHolder("Enter a venue...")
-	a.venueEntry.OnSubmitted = a.searchByVenue
-	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { a.searchByVenue(a.venueEntry.Text) })
+	s.venueEntry = widget.NewEntry()
+	s.venueEntry.SetPlaceHolder("Enter a venue...")
+	s.venueEntry.OnSubmitted = s.searchByVenue
+	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueEntry.Text) })
 
 	// By city
-	a.cityEntry = widget.NewEntry()
-	a.cityEntry.SetPlaceHolder("Enter a city...")
-	a.cityEntry.OnSubmitted = a.searchByCity
-	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { a.searchByCity(a.cityEntry.Text) })
+	s.cityEntry = widget.NewEntry()
+	s.cityEntry.SetPlaceHolder("Enter a city...")
+	s.cityEntry.OnSubmitted = s.searchByCity
+	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.cityEntry.Text) })
 
 	// By location
-	a.locationEntry = widget.NewEntry()
-	a.locationEntry.SetPlaceHolder("(State/Country) e.g. NY / Spain")
-	a.locationEntry.OnSubmitted = a.searchByLocation
-	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { a.searchByLocation(a.locationEntry.Text) })
+	s.locationEntry = widget.NewEntry()
+	s.locationEntry.SetPlaceHolder("(State/Country) e.g. NY / Spain")
+	s.locationEntry.OnSubmitted = s.searchByLocation
+	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationEntry.Text) })
 
 	// By set name
-	a.setNameSelect = widget.NewSelect(setLabels(), nil)
-	a.setNameSelect.PlaceHolder = "Sets"
-	setNameBtn := widget.NewButtonWithIcon("Search by set", theme.SearchIcon(), a.searchBySetName)
+	s.setNameSelect = widget.NewSelect(setLabels(), nil)
+	s.setNameSelect.PlaceHolder = "Sets"
+	setNameBtn := widget.NewButtonWithIcon("Search by set", theme.SearchIcon(), s.searchBySetName)
 
 	// By notes
-	a.notesSelect = widget.NewSelect(notesLabels(), nil)
-	a.notesSelect.PlaceHolder = "Has Notes"
-	notesBtn := widget.NewButtonWithIcon("Search notes", theme.SearchIcon(), a.searchByNotes)
+	s.notesSelect = widget.NewSelect(notesLabels(), nil)
+	s.notesSelect.PlaceHolder = "Has Notes"
+	notesBtn := widget.NewButtonWithIcon("Search notes", theme.SearchIcon(), s.searchByNotes)
 
-	setAndNotes := container.NewGridWithColumns(2, a.setNameSelect, a.notesSelect)
+	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
 
-	return container.NewVBox(a.idEntry, idBtn,
+	return container.NewVBox(s.idEntry, idBtn,
 		datePickers, dateBtn,
-		a.songEntry, songBtn,
-		a.venueEntry, venueBtn,
-		a.cityEntry, cityBtn,
-		a.locationEntry, locBtn,
+		s.songEntry, songBtn,
+		s.venueEntry, venueBtn,
+		s.cityEntry, cityBtn,
+		s.locationEntry, locBtn,
 		setAndNotes, setAndNotesBtns,
 	)
 }
 
-func (a *App) buildResultsPanel() fyne.CanvasObject {
-	a.resultsList = widget.NewList(
-		func() int { return len(a.results.Results) },
+func (s *showsTab) buildShowsResultsPanel() fyne.CanvasObject {
+	s.resultsList = widget.NewList(
+		func() int { return len(s.results.Results) },
 		func() fyne.CanvasObject { return widget.NewLabel("template") },
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			obj.(*widget.Label).SetText(a.results.Results[id].Date)
+			obj.(*widget.Label).SetText(s.results.Results[id].Date)
 		},
 	)
-	a.resultsList.OnSelected = a.onResultSelected
+	s.resultsList.OnSelected = s.onResultSelected
 
-	a.prevBtn = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), a.loadPrev)
-	a.nextBtn = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), a.loadNext)
+	s.prevBtn = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), s.loadPrev)
+	s.nextBtn = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
 
 	return container.NewBorder(
 		nil,
-		container.NewHBox(a.prevBtn, layout.NewSpacer(), a.nextBtn),
+		container.NewHBox(s.prevBtn, layout.NewSpacer(), s.nextBtn),
 		nil, nil,
-		a.resultsList,
+		s.resultsList,
 	)
 }
 
-func (a *App) buildDetailsPanel() fyne.CanvasObject {
-	a.placeholder = container.NewCenter(widget.NewLabel("Select an item to see details"))
+func (s *showsTab) buildDetailsPanel() fyne.CanvasObject {
+	s.placeholder = container.NewCenter(widget.NewLabel("Select an item to see details"))
 
-	a.dateLabel = widget.NewLabel("")
-	a.locationLabel = widget.NewLabel("")
-	a.setsLabel = widget.NewLabel("")
-	a.setsLabel.Wrapping = fyne.TextWrapWord
-	a.footnotesLabel = widget.NewLabel("")
-	a.footnotesLabel.Wrapping = fyne.TextWrapWord
+	s.dateLabel = widget.NewLabel("")
+	s.locationLabel = widget.NewLabel("")
+	s.setsLabel = widget.NewLabel("")
+	s.setsLabel.Wrapping = fyne.TextWrapWord
+	s.footnotesLabel = widget.NewLabel("")
+	s.footnotesLabel.Wrapping = fyne.TextWrapWord
 
-	footnotes := container.NewVScroll(a.footnotesLabel)
+	footnotes := container.NewVScroll(s.footnotesLabel)
 	footnotes.SetMinSize(fyne.NewSize(0, 100))
-	a.details = container.NewBorder(
-		container.NewVBox(a.dateLabel, a.locationLabel),
+	s.details = container.NewBorder(
+		container.NewVBox(s.dateLabel, s.locationLabel),
 		footnotes,
 		nil, nil,
-		container.NewVScroll(a.setsLabel),
+		container.NewVScroll(s.setsLabel),
 	)
 
 	// Placeholder buttons.
@@ -150,7 +164,31 @@ func (a *App) buildDetailsPanel() fyne.CanvasObject {
 		nil,
 		container.NewHBox(addBtn, layout.NewSpacer(), streamBtn),
 		nil, nil,
-		container.NewStack(a.placeholder, a.details),
+		container.NewStack(s.placeholder, s.details),
+	)
+}
+
+func (s *songsTab) buildSongsSearchPanel() fyne.CanvasObject {
+	mostPlayedButton := widget.NewButton("Most Played Songs", s.mostPlayedSongs)
+	return container.NewWithoutLayout(mostPlayedButton)
+}
+
+func (s *songsTab) buildSongsResultsPanel() fyne.CanvasObject {
+	s.list = widget.NewList(
+		func() int { return len(s.page.Results) },
+		func() fyne.CanvasObject { return widget.NewLabel("template") },
+		func(id widget.ListItemID, obj fyne.CanvasObject) {
+			obj.(*widget.Label).SetText(s.page.Results[id].Song)
+		},
+	)
+	s.prev = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), s.loadPrev)
+	s.next = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
+
+	return container.NewBorder(
+		nil,
+		container.NewHBox(s.app.songs.prev, layout.NewSpacer(), s.app.songs.next),
+		nil, nil,
+		s.app.songs.list,
 	)
 }
 

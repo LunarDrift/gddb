@@ -13,7 +13,10 @@ import (
 
 const baseURL = "http://localhost:8080"
 
-type showPage = internal.Paginated[internal.ShowMeta]
+type (
+	showPage = internal.Paginated[internal.ShowMeta]
+	songPage = internal.Paginated[internal.SongsTimesPlayed]
+)
 
 var (
 	httpClient = &http.Client{Timeout: 10 * time.Second}
@@ -46,8 +49,8 @@ func getJSON[T any](u string) (T, error) {
 
 // fetchPage loads any paginated URL, including the next/previous links
 // the API hands back.
-func fetchPage(u string) (*showPage, error) {
-	p, err := getJSON[showPage](u)
+func fetchPage[T any](u string) (*T, error) {
+	p, err := getJSON[T](u)
 	if err != nil {
 		return nil, err
 	}
@@ -58,36 +61,40 @@ func searchSongs(song string) (*showPage, error) {
 	if song == "" {
 		return nil, errors.New("enter a song name")
 	}
-	return fetchPage(baseURL + "/shows?song=" + url.QueryEscape(song))
+	return fetchPage[showPage](baseURL + "/shows?song=" + url.QueryEscape(song))
 }
 
 func searchVenues(venue string) (*showPage, error) {
 	if venue == "" {
 		return nil, errors.New("enter a venue name")
 	}
-	return fetchPage(baseURL + "/shows?venue=" + url.QueryEscape(venue))
+	return fetchPage[showPage](baseURL + "/shows?venue=" + url.QueryEscape(venue))
 }
 
 func searchCities(city string) (*showPage, error) {
 	if city == "" {
 		return nil, errors.New("enter a city name")
 	}
-	return fetchPage(baseURL + "/shows?city=" + url.QueryEscape(city))
+	return fetchPage[showPage](baseURL + "/shows?city=" + url.QueryEscape(city))
 }
 
 func searchLocations(location string) (*showPage, error) {
 	if location == "" {
 		return nil, errors.New("enter a location")
 	}
-	return fetchPage(baseURL + "/shows?location=" + url.QueryEscape(location))
+	return fetchPage[showPage](baseURL + "/shows?location=" + url.QueryEscape(location))
 }
 
 func searchSetNames(setName string) (*showPage, error) {
-	return fetchPage(baseURL + "/shows?set_name=" + url.QueryEscape(setName))
+	return fetchPage[showPage](baseURL + "/shows?set_name=" + url.QueryEscape(setName))
 }
 
 func searchNotes(option string) (*showPage, error) {
-	return fetchPage(baseURL + "/shows?has_notes=" + url.QueryEscape(option))
+	return fetchPage[showPage](baseURL + "/shows?has_notes=" + url.QueryEscape(option))
+}
+
+func getMostPlayedSongs() (*songPage, error) {
+	return fetchPage[songPage](baseURL + "/songs?sort=most_played")
 }
 
 func fetchShowByID(id string) (internal.ShowResponse, error) {
