@@ -215,12 +215,6 @@ func (s *songsTab) buildSongsResultsPanel() fyne.CanvasObject {
 	s.prev = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), s.loadPrev)
 	s.next = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
 
-	// s.list.OnSelected = func(id widget.ListItemID) {
-	// 	fullSongName := s.page.Results[id].Song
-	// 	tooltipLabel := widget.NewLabel(fullSongName)
-	// 	activePopUp := widget.NewPopUp(tooltipLabel, s.app.win.Canvas())
-	// 	activePopUp.Show()
-	// }
 	s.list.OnHighlighted = func(id widget.ListItemID) {
 		fullSongName := s.page.Results[id].Song
 		timesPlayed := s.page.Results[id].TimesPlayed
