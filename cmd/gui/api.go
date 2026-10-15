@@ -57,6 +57,8 @@ func fetchPage[T any](u string) (*T, error) {
 	return &p, nil
 }
 
+// ----- Shows -----
+
 func searchSongs(song string) (*showPage, error) {
 	if song == "" {
 		return nil, errors.New("enter a song name")
@@ -93,10 +95,6 @@ func searchNotes(option string) (*showPage, error) {
 	return fetchPage[showPage](baseURL + "/shows?has_notes=" + url.QueryEscape(option))
 }
 
-func getMostPlayedSongs() (*songPage, error) {
-	return fetchPage[songPage](baseURL + "/songs?sort=most_played")
-}
-
 func fetchShowByID(id string) (internal.ShowResponse, error) {
 	show, err := getJSON[internal.ShowResponse](baseURL + "/shows/" + url.PathEscape(id))
 	if errors.Is(err, errNotFound) {
@@ -115,4 +113,14 @@ func fetchShowsByDate(date string) ([]internal.ShowResponse, error) {
 		return nil, err
 	}
 	return shows, nil
+}
+
+// ----- Songs -----
+
+func getMostPlayedSongs() (*songPage, error) {
+	return fetchPage[songPage](baseURL + "/songs?sort=most_played")
+}
+
+func getMostPlayedSongsBySet(set string) (*songPage, error) {
+	return fetchPage[songPage](baseURL + "/songs?sort=most_played&set_name=" + set)
 }

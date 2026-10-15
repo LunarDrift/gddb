@@ -50,7 +50,9 @@ type songsTab struct {
 	app  *App
 	page *songPage
 	// Search panel
-	mostPlayed *widget.Button
+	mostPlayed         *widget.Button
+	setSelect          *widget.Select
+	mostPlayedBySetBtn *widget.Button
 	// Results list
 	list       *widget.List
 	prev, next *widget.Button
@@ -147,6 +149,15 @@ func (s *songsTab) mostPlayedSongs() {
 	async(s.app, func() (*songPage, error) { return getMostPlayedSongs() }, s.setPage)
 }
 
+func (s *songsTab) mostPlayedBySet() {
+	i := s.setSelect.SelectedIndex()
+	if i < 0 {
+		s.app.showError(errors.New("pick a set"))
+	}
+	set := validSetNames[i]
+	async(s.app, func() (*songPage, error) { return getMostPlayedSongsBySet(set) }, s.setPage)
+}
+
 // ---------------- Results list ----------------
 
 func (s *showsTab) onResultSelected(id widget.ListItemID) {
@@ -166,6 +177,40 @@ func (s *showsTab) setResults(p *showPage) {
 	s.resultsList.ScrollToTop()
 	s.showPlaceholder()
 	s.updateButtons()
+}
+
+func (s *showsTab) loadPrev() {
+	if s.results.Previous != nil {
+		s.loadPage(*s.results.Previous)
+	}
+}
+
+func (s *showsTab) loadNext() {
+	if s.results.Next != nil {
+		s.loadPage(*s.results.Next)
+	}
+}
+
+func (s *showsTab) loadPage(u string) {
+	// Disable while loading so a double-click can't fire two requests
+	s.prevBtn.Disable()
+	s.nextBtn.Disable()
+	go func() {
+		p, err := fetchPage[showPage](baseURL + u)
+		fyne.Do(func() {
+			if err != nil {
+				s.app.showError(err)
+				s.updateButtons()
+				return
+			}
+			s.setResults(p)
+		})
+	}()
+}
+
+func (s *showsTab) updateButtons() {
+	setEnabled(s.prevBtn, s.results.Previous != nil)
+	setEnabled(s.nextBtn, s.results.Next != nil)
 }
 
 func (s *songsTab) setPage(p *songPage) {
@@ -207,40 +252,6 @@ func (s *songsTab) loadPage(u string) {
 func (s *songsTab) updateButtons() {
 	setEnabled(s.prev, s.page.Previous != nil)
 	setEnabled(s.next, s.page.Next != nil)
-}
-
-func (s *showsTab) loadPrev() {
-	if s.results.Previous != nil {
-		s.loadPage(*s.results.Previous)
-	}
-}
-
-func (s *showsTab) loadNext() {
-	if s.results.Next != nil {
-		s.loadPage(*s.results.Next)
-	}
-}
-
-func (s *showsTab) loadPage(u string) {
-	// Disable while loading so a double-click can't fire two requests
-	s.prevBtn.Disable()
-	s.nextBtn.Disable()
-	go func() {
-		p, err := fetchPage[showPage](baseURL + u)
-		fyne.Do(func() {
-			if err != nil {
-				s.app.showError(err)
-				s.updateButtons()
-				return
-			}
-			s.setResults(p)
-		})
-	}()
-}
-
-func (s *showsTab) updateButtons() {
-	setEnabled(s.prevBtn, s.results.Previous != nil)
-	setEnabled(s.nextBtn, s.results.Next != nil)
 }
 
 func setEnabled(b *widget.Button, on bool) {
