@@ -47,13 +47,13 @@ type showsTab struct {
 }
 
 type songsTab struct {
-	app  *App
-	page *songPage
+	app *App
 	// Search panel
-	mostPlayed         *widget.Button
-	setSelect          *widget.Select
-	mostPlayedBySetBtn *widget.Button
+	mostPlayed *widget.Button
+	setSelect  *widget.Select
+
 	// Results list
+	page       *songPage
 	list       *widget.List
 	prev, next *widget.Button
 }
@@ -86,7 +86,7 @@ func (s *showsTab) searchByID(id string) {
 		return
 	}
 	async(s.app, func() ([]internal.ShowResponse, error) {
-		show, err := fetchShowByID(id)
+		show, err := getShowByID(id)
 		return []internal.ShowResponse{show}, err
 	}, s.showShowDetails)
 }
@@ -101,13 +101,13 @@ func (s *showsTab) searchByDate() {
 		s.app.showError(err)
 		return
 	}
-	s.loadShowsByDate(date)
+	s.searchShowsByDate(date)
 }
 
 func (s *showsTab) searchBySetName() {
 	i := s.setNameSelect.SelectedIndex()
 	if i < 0 {
-		s.app.showError(errors.New("pick a set"))
+		s.app.showError(errors.New("choose a set"))
 		return
 	}
 	setName := validSetNames[i]
@@ -118,7 +118,7 @@ func (s *showsTab) searchByNotes() {
 	options := []string{"true", "false"}
 	i := s.notesSelect.SelectedIndex()
 	if i < 0 {
-		s.app.showError(errors.New("pick an option"))
+		s.app.showError(errors.New("choose an option"))
 		return
 	}
 	option := options[i]
@@ -129,8 +129,8 @@ func (s *showsTab) searchBySong(song string) {
 	async(s.app, func() (*showPage, error) { return searchSongs(song) }, s.setResults)
 }
 
-func (s *showsTab) loadShowsByDate(date string) {
-	async(s.app, func() ([]internal.ShowResponse, error) { return fetchShowsByDate(date) }, s.showShowDetails)
+func (s *showsTab) searchShowsByDate(date string) {
+	async(s.app, func() ([]internal.ShowResponse, error) { return getShowsByDate(date) }, s.showShowDetails)
 }
 
 func (s *showsTab) searchByVenue(venue string) {
@@ -145,6 +145,14 @@ func (s *showsTab) searchByLocation(location string) {
 	async(s.app, func() (*showPage, error) { return searchLocations(location) }, s.setResults)
 }
 
+func (s *showsTab) searchByYear(year string) {
+	if year == "" {
+		s.app.showError(errors.New("choose a year"))
+		return
+	}
+	async(s.app, func() (*showPage, error) { return searchByYear(year) }, s.setResults)
+}
+
 func (s *songsTab) mostPlayedSongs() {
 	async(s.app, func() (*songPage, error) { return getMostPlayedSongs() }, s.setPage)
 }
@@ -152,7 +160,8 @@ func (s *songsTab) mostPlayedSongs() {
 func (s *songsTab) mostPlayedBySet() {
 	i := s.setSelect.SelectedIndex()
 	if i < 0 {
-		s.app.showError(errors.New("pick a set"))
+		s.app.showError(errors.New("choose a set"))
+		return
 	}
 	set := validSetNames[i]
 	async(s.app, func() (*songPage, error) { return getMostPlayedSongsBySet(set) }, s.setPage)
@@ -164,7 +173,7 @@ func (s *showsTab) onResultSelected(id widget.ListItemID) {
 	if id >= len(s.results.Results) {
 		return
 	}
-	s.loadShowsByDate(s.results.Results[id].Date)
+	s.searchShowsByDate(s.results.Results[id].Date)
 }
 
 // setResults is the ONE place new results enter the app. Everything that

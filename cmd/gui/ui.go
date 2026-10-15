@@ -42,7 +42,7 @@ func (a *App) buildUI() fyne.CanvasObject {
 func (s *showsTab) buildShowsTab() fyne.CanvasObject {
 	searchAndList := container.NewHSplit(s.buildShowsSearchPanel(), s.buildShowsResultsPanel())
 	content := container.NewHSplit(searchAndList, s.buildShowsDetailsPanel())
-	content.SetOffset(0.45)
+	content.SetOffset(0.5)
 	return content
 }
 
@@ -67,6 +67,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.daySelect.PlaceHolder = "Day"
 	dateBtn := widget.NewButtonWithIcon("Search date", theme.SearchIcon(), s.searchByDate)
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
+
+	// By year
+	yearBtn := widget.NewButtonWithIcon("Search by year", theme.SearchIcon(), func() { s.searchByYear(s.yearSelect.Selected) })
 
 	// By song
 	s.songEntry = widget.NewEntry()
@@ -106,11 +109,18 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
 
 	return container.NewVBox(s.idEntry, idBtn,
+		layout.NewSpacer(),
 		datePickers, dateBtn,
+		yearBtn,
+		layout.NewSpacer(),
 		s.songEntry, songBtn,
+		layout.NewSpacer(),
 		s.venueEntry, venueBtn,
+		layout.NewSpacer(),
 		s.cityEntry, cityBtn,
+		layout.NewSpacer(),
 		s.locationEntry, locBtn,
+		layout.NewSpacer(),
 		setAndNotes, setAndNotesBtns,
 	)
 }
@@ -169,11 +179,14 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 }
 
 func (s *songsTab) buildSongsSearchPanel() fyne.CanvasObject {
-	s.mostPlayed = widget.NewButton("Most Played Songs", s.mostPlayedSongs)
+	s.mostPlayed = widget.NewButtonWithIcon("Most Played Songs", theme.SearchIcon(), s.mostPlayedSongs)
 	s.setSelect = widget.NewSelect(setLabels(), nil)
-	s.mostPlayedBySetBtn = widget.NewButton("Most Played by Set", s.mostPlayedBySet)
+	s.setSelect.PlaceHolder = "Sets"
+	mostPlayedBySetBtn := widget.NewButtonWithIcon("Most Played by Set", theme.SearchIcon(), s.mostPlayedBySet)
+
 	return container.NewVBox(s.mostPlayed,
-		s.setSelect, s.mostPlayedBySetBtn)
+		s.setSelect, mostPlayedBySetBtn,
+	)
 }
 
 func (s *songsTab) buildSongsResultsPanel() fyne.CanvasObject {
@@ -208,7 +221,7 @@ func (s *songsTab) buildSongsResultsPanel() fyne.CanvasObject {
 	// 	activePopUp := widget.NewPopUp(tooltipLabel, s.app.win.Canvas())
 	// 	activePopUp.Show()
 	// }
-	s.list.OnSelected = func(id widget.ListItemID) {
+	s.list.OnHighlighted = func(id widget.ListItemID) {
 		fullSongName := s.page.Results[id].Song
 		timesPlayed := s.page.Results[id].TimesPlayed
 		s.app.player.SetText(fmt.Sprintf("%s | Played %d times", fullSongName, timesPlayed))

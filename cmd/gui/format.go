@@ -83,7 +83,7 @@ func formatSetName(s string) string {
 func buildDate(yearStr string, month, day int) (string, error) {
 	year, err := strconv.Atoi(yearStr)
 	if err != nil || month < 1 || day < 1 {
-		return "", errors.New("pick a year, month, and day")
+		return "", errors.New("choose a year, month, and day")
 	}
 	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 	if t.Day() != day { // Feb 31 silently rolls over to Mar 3
