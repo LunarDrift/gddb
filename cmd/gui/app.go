@@ -11,9 +11,10 @@ import (
 )
 
 type App struct {
-	win   fyne.Window
-	shows *showsTab
-	songs *songsTab
+	win    fyne.Window
+	player *widget.Label
+	shows  *showsTab
+	songs  *songsTab
 }
 
 type showsTab struct {
@@ -46,8 +47,11 @@ type showsTab struct {
 }
 
 type songsTab struct {
-	app        *App
-	page       *songPage
+	app  *App
+	page *songPage
+	// Search panel
+	mostPlayed *widget.Button
+	// Results list
 	list       *widget.List
 	prev, next *widget.Button
 }

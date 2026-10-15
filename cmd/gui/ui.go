@@ -34,14 +34,14 @@ func (a *App) buildUI() fyne.CanvasObject {
 		container.NewTabItem("Songs", a.songs.buildSongsTab()),
 	)
 
-	player := widget.NewLabel("Music Player")
-	player.Alignment = fyne.TextAlignCenter
-	return container.NewBorder(nil, player, nil, nil, tabs)
+	a.player = widget.NewLabel("Music Player")
+	a.player.Alignment = fyne.TextAlignCenter
+	return container.NewBorder(nil, a.player, nil, nil, tabs)
 }
 
 func (s *showsTab) buildShowsTab() fyne.CanvasObject {
 	searchAndList := container.NewHSplit(s.buildShowsSearchPanel(), s.buildShowsResultsPanel())
-	content := container.NewHSplit(searchAndList, s.buildDetailsPanel())
+	content := container.NewHSplit(searchAndList, s.buildShowsDetailsPanel())
 	content.SetOffset(0.45)
 	return content
 }
@@ -136,7 +136,7 @@ func (s *showsTab) buildShowsResultsPanel() fyne.CanvasObject {
 	)
 }
 
-func (s *showsTab) buildDetailsPanel() fyne.CanvasObject {
+func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 	s.placeholder = container.NewCenter(widget.NewLabel("Select an item to see details"))
 
 	s.dateLabel = widget.NewLabel("")
@@ -169,20 +169,47 @@ func (s *showsTab) buildDetailsPanel() fyne.CanvasObject {
 }
 
 func (s *songsTab) buildSongsSearchPanel() fyne.CanvasObject {
-	mostPlayedButton := widget.NewButton("Most Played Songs", s.mostPlayedSongs)
-	return container.NewWithoutLayout(mostPlayedButton)
+	s.mostPlayed = widget.NewButton("Most Played Songs", s.mostPlayedSongs)
+	return container.NewVBox(s.mostPlayed)
 }
 
 func (s *songsTab) buildSongsResultsPanel() fyne.CanvasObject {
 	s.list = widget.NewList(
 		func() int { return len(s.page.Results) },
-		func() fyne.CanvasObject { return widget.NewLabel("template") },
+		func() fyne.CanvasObject {
+			songLabel := widget.NewLabel("")
+			songLabel.Truncation = fyne.TextTruncateEllipsis
+			// songLabel.Wrapping = fyne.TextWrapWord
+			timesLabel := widget.NewLabel("")
+			timesLabel.Alignment = fyne.TextAlignTrailing
+			return container.NewBorder(nil, nil, nil, timesLabel, songLabel)
+			// return widget.NewLabel("template")
+		},
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			obj.(*widget.Label).SetText(s.page.Results[id].Song)
+			borderContainer := obj.(*fyne.Container)
+			songLabel := borderContainer.Objects[0].(*widget.Label)
+			timesLabel := borderContainer.Objects[1].(*widget.Label)
+
+			songLabel.SetText(s.page.Results[id].Song)
+			timesLabel.SetText(fmt.Sprintf("Played %d times", s.page.Results[id].TimesPlayed))
+			obj.Refresh()
+			// obj.(*widget.Label).SetText(fmt.Sprintf("%s\tPlayed %v times", s.page.Results[id].Song, s.page.Results[id].TimesPlayed))
 		},
 	)
 	s.prev = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), s.loadPrev)
 	s.next = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
+
+	// s.list.OnSelected = func(id widget.ListItemID) {
+	// 	fullSongName := s.page.Results[id].Song
+	// 	tooltipLabel := widget.NewLabel(fullSongName)
+	// 	activePopUp := widget.NewPopUp(tooltipLabel, s.app.win.Canvas())
+	// 	activePopUp.Show()
+	// }
+	s.list.OnHighlighted = func(id widget.ListItemID) {
+		fullSongName := s.page.Results[id].Song
+		timesPlayed := s.page.Results[id].TimesPlayed
+		s.app.player.SetText(fmt.Sprintf("%s (Played %d times)", fullSongName, timesPlayed))
+	}
 
 	return container.NewBorder(
 		nil,
