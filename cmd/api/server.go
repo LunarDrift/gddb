@@ -40,6 +40,7 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /songs/{song}", s.handleGetSongStats)
 
 	s.mux.HandleFunc("GET /stats/songs-per-city", s.handleGetUniqueSongsPerCity)
+	s.mux.HandleFunc("GET /all-venues", s.handleGetAllVenues)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -47,4 +48,16 @@ func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
 		Status string `json:"status"`
 	}
 	respondWithJSON(w, http.StatusOK, healthResponse{Status: `🪬 𝐎𝐍𝐋𝐈𝐍𝐄 🪬`})
+}
+
+func (s *server) handleGetAllVenues(w http.ResponseWriter, r *http.Request) {
+	venues, err := s.queries.GetAllVenues(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not get venues", err)
+	}
+
+	type venuesResp struct {
+		Venues []string `json:"venues"`
+	}
+	respondWithJSON(w, http.StatusOK, venuesResp{Venues: venues})
 }

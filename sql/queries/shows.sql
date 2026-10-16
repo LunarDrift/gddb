@@ -235,3 +235,6 @@ LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetValidLocations :many
 SELECT DISTINCT LOWER(state) AS location FROM shows;
+
+-- name: GetAllVenues :many
+SELECT DISTINCT LOWER(venue) FROM shows ORDER BY LOWER(venue);

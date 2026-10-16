@@ -14,6 +14,8 @@ type fakeQuerier struct {
 	// Shows
 	allShowIDs                   []int32
 	allShowIDsErr                error
+	allVenues                    []string
+	allVenuesError               error
 	showFromIDRows               []database.GetShowFromIDRow
 	showFromIDErr                error
 	showFromDateRows             []database.GetShowFromDateRow
@@ -56,6 +58,10 @@ type fakeQuerier struct {
 	validLocationErr  error
 	footnoteRows      []database.GetFootnotesFromShowIDRow
 	footnoteErr       error
+}
+
+func (f *fakeQuerier) GetAllVenues(ctx context.Context) ([]string, error) {
+	return f.allVenues, f.allVenuesError
 }
 
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {

@@ -83,6 +83,33 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 	return items, nil
 }
 
+const getAllVenues = `-- name: GetAllVenues :many
+SELECT DISTINCT LOWER(venue) FROM shows ORDER BY LOWER(venue)
+`
+
+func (q *Queries) GetAllVenues(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllVenues)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var lower string
+		if err := rows.Scan(&lower); err != nil {
+			return nil, err
+		}
+		items = append(items, lower)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowFromDate = `-- name: GetShowFromDate :many
 SELECT 
   sh.show_id,
