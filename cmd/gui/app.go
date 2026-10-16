@@ -25,7 +25,7 @@ type showsTab struct {
 	monthSelect   *widget.Select
 	daySelect     *widget.Select
 	songEntry     *widget.Entry
-	venueEntry    *widget.Entry
+	venueSelect   *widget.SelectEntry
 	cityEntry     *widget.Entry
 	locationEntry *widget.Entry
 	setNameSelect *widget.Select
@@ -135,6 +135,7 @@ func (s *showsTab) searchShowsByDate(date string) {
 
 func (s *showsTab) searchByVenue(venue string) {
 	async(s.app, func() (*showPage, error) { return searchVenues(venue) }, s.setResults)
+	s.venueSelect.SetText("")
 }
 
 func (s *showsTab) searchByCity(city string) {

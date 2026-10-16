@@ -84,7 +84,7 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 }
 
 const getAllVenues = `-- name: GetAllVenues :many
-SELECT DISTINCT LOWER(venue) FROM shows ORDER BY LOWER(venue)
+SELECT DISTINCT venue FROM shows ORDER BY venue
 `
 
 func (q *Queries) GetAllVenues(ctx context.Context) ([]string, error) {
@@ -95,11 +95,11 @@ func (q *Queries) GetAllVenues(ctx context.Context) ([]string, error) {
 	defer rows.Close()
 	var items []string
 	for rows.Next() {
-		var lower string
-		if err := rows.Scan(&lower); err != nil {
+		var venue string
+		if err := rows.Scan(&venue); err != nil {
 			return nil, err
 		}
-		items = append(items, lower)
+		items = append(items, venue)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

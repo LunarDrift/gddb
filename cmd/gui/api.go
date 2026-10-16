@@ -128,3 +128,13 @@ func getMostPlayedSongs() (*songPage, error) {
 func getMostPlayedSongsBySet(set string) (*songPage, error) {
 	return fetchPage[songPage](baseURL + "/songs?sort=most_played&set_name=" + set)
 }
+
+// ----- Helpers -----
+
+func getAllVenues() []string {
+	venues, err := getJSON[internal.AllVenues](baseURL + "/all-venues")
+	if err != nil {
+		return nil
+	}
+	return venues.Venues
+}

@@ -55,9 +55,5 @@ func (s *server) handleGetAllVenues(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not get venues", err)
 	}
-
-	type venuesResp struct {
-		Venues []string `json:"venues"`
-	}
-	respondWithJSON(w, http.StatusOK, venuesResp{Venues: venues})
+	respondWithJSON(w, http.StatusOK, internal.AllVenues{Venues: venues})
 }
