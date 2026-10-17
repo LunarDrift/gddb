@@ -154,6 +154,10 @@ func (s *showsTab) searchByYear(year string) {
 	async(s.app, func() (*showPage, error) { return searchByYear(year) }, s.setResults)
 }
 
+func (s *showsTab) randomShow() {
+	async(s.app, func() ([]internal.ShowResponse, error) { return getRandomShow() }, s.showShowDetails)
+}
+
 func (s *songsTab) mostPlayedSongs() {
 	async(s.app, func() (*songPage, error) { return getMostPlayedSongs() }, s.setPage)
 }

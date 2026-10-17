@@ -53,6 +53,8 @@ func (s *songsTab) buildSongsTab() fyne.CanvasObject {
 }
 
 func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
+	randShowBtn := widget.NewButton("Random Show", s.randomShow)
+
 	// By ID
 	s.idEntry = widget.NewEntry()
 	idClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
@@ -143,7 +145,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
 
-	return container.NewVBox(s.idEntry, idBtn,
+	return container.NewVBox(randShowBtn,
+		layout.NewSpacer(),
+		s.idEntry, idBtn,
 		layout.NewSpacer(),
 		datePickers, dateBtn,
 		yearBtn,

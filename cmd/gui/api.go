@@ -119,6 +119,16 @@ func getShowsByDate(date string) ([]internal.ShowResponse, error) {
 	return shows, nil
 }
 
+func getRandomShow() ([]internal.ShowResponse, error) {
+	out := []internal.ShowResponse{}
+	show, err := getJSON[internal.ShowResponse](baseURL + "/shows/random")
+	if err != nil {
+		return nil, err
+	}
+	out = append(out, show)
+	return out, nil
+}
+
 // ----- Songs -----
 
 func getMostPlayedSongs() (*songPage, error) {
