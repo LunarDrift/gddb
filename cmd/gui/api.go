@@ -23,7 +23,7 @@ var (
 
 	errNotFound = errors.New("not found")
 
-	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric", "acoustic_1", "acoustic_2"}
+	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 )
 
 // getJSON GETs u and decodes the JSON body into a T
@@ -137,6 +137,10 @@ func getMostPlayedSongs() (*songPage, error) {
 
 func getMostPlayedSongsBySet(set string) (*songPage, error) {
 	return fetchPage[songPage](baseURL + "/songs?sort=most_played&set_name=" + set)
+}
+
+func getSongsPlayedLessThanNTimes(n string) (*songPage, error) {
+	return fetchPage[songPage](baseURL + "/songs?played_lt=" + n)
 }
 
 // ----- Helpers -----

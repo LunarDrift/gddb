@@ -49,8 +49,9 @@ type showsTab struct {
 type songsTab struct {
 	app *App
 	// Search panel
-	mostPlayed *widget.Button
-	setSelect  *widget.Select
+	mostPlayed     *widget.Button
+	setSelect      *widget.Select
+	playedLessThan *widget.Entry
 
 	// Results list
 	page       *songPage
@@ -135,7 +136,7 @@ func (s *showsTab) searchShowsByDate(date string) {
 
 func (s *showsTab) searchByVenue(venue string) {
 	async(s.app, func() (*showPage, error) { return searchVenues(venue) }, s.setResults)
-	s.venueSelect.SetText("")
+	// s.venueSelect.SetText("")
 }
 
 func (s *showsTab) searchByCity(city string) {
@@ -170,6 +171,10 @@ func (s *songsTab) mostPlayedBySet() {
 	}
 	set := validSetNames[i]
 	async(s.app, func() (*songPage, error) { return getMostPlayedSongsBySet(set) }, s.setPage)
+}
+
+func (s *songsTab) playedLessThanNTimes(n string) {
+	async(s.app, func() (*songPage, error) { return getSongsPlayedLessThanNTimes(n) }, s.setPage)
 }
 
 // ---------------- Results list ----------------

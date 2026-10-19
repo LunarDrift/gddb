@@ -28,9 +28,10 @@ func formatShows(data []internal.ShowResponse) showText {
 		return showText{}
 	}
 
-	var sets, notes strings.Builder
+	var sets, notes, location strings.Builder
 	for i, show := range data {
 		fmt.Fprintf(&sets, "Show ID: %v\n", show.ShowID)
+		fmt.Fprintf(&location, "Location(s): %v - %v, %v\n", show.Venue, show.City, show.Location)
 		if show.Notes != "" {
 			fmt.Fprintf(&sets, "Notes: %v\n", show.Notes)
 		}
@@ -58,8 +59,9 @@ func formatShows(data []internal.ShowResponse) showText {
 
 	first := data[0]
 	return showText{
-		date:      fmt.Sprintf("Date: %v", first.Date),
-		location:  fmt.Sprintf("Location: %v - %v, %v", first.Venue, first.City, first.Location),
+		date:     fmt.Sprintf("Date: %v", first.Date),
+		location: strings.TrimSpace(location.String()),
+		// location:  fmt.Sprintf("Location: %v - %v, %v", first.Venue, first.City, first.Location),
 		sets:      strings.TrimSpace(sets.String()),
 		footnotes: strings.TrimSpace(notes.String()),
 	}

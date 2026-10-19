@@ -14,6 +14,8 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+var venues = getAllVenues()
+
 func newApp() *App {
 	a := &App{}
 	a.shows = &showsTab{app: a, results: &showPage{}}
@@ -91,23 +93,10 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { s.searchBySong(s.songEntry.Text) })
 
 	// By venue
-	venues := getAllVenues()
 	s.venueSelect = widget.NewSelectEntry(venues)
 	s.venueSelect.PlaceHolder = "Choose or type a venue"
 	s.venueSelect.OnSubmitted = s.searchByVenue
-	s.venueSelect.OnChanged = func(input string) {
-		if input == "" {
-			s.venueSelect.SetOptions(venues)
-			return
-		}
-		var filtered []string
-		for _, venue := range venues {
-			if strings.Contains(strings.ToLower(venue), strings.ToLower(input)) {
-				filtered = append(filtered, venue)
-			}
-		}
-		s.venueSelect.SetOptions(filtered)
-	}
+	s.venueSelect.OnChanged = s.venueFilter
 	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSelect.Text) })
 
 	// By city
@@ -223,8 +212,18 @@ func (s *songsTab) buildSongsSearchPanel() fyne.CanvasObject {
 	s.setSelect.PlaceHolder = "Sets"
 	mostPlayedBySetBtn := widget.NewButtonWithIcon("Most Played by Set", theme.SearchIcon(), s.mostPlayedBySet)
 
-	return container.NewVBox(s.mostPlayed,
+	s.playedLessThan = widget.NewEntry()
+	s.playedLessThan.PlaceHolder = "Enter a number"
+	s.playedLessThan.OnSubmitted = s.playedLessThanNTimes
+	playedLessThanBtn := widget.NewButton("Songs played less than N times", func() { s.playedLessThanNTimes(s.playedLessThan.Text) })
+
+	return container.NewVBox(
+		s.mostPlayed,
+		layout.NewSpacer(),
 		s.setSelect, mostPlayedBySetBtn,
+		layout.NewSpacer(),
+		s.playedLessThan, playedLessThanBtn,
+		layout.NewSpacer(),
 	)
 }
 
@@ -297,4 +296,18 @@ func setLabels() []string {
 
 func notesLabels() []string {
 	return []string{"True", "False"}
+}
+
+func (s *showsTab) venueFilter(input string) {
+	if input == "" {
+		s.venueSelect.SetOptions(venues)
+		return
+	}
+	var filtered []string
+	for _, venue := range venues {
+		if strings.Contains(strings.ToLower(venue), strings.ToLower(input)) {
+			filtered = append(filtered, venue)
+		}
+	}
+	s.venueSelect.SetOptions(filtered)
 }
