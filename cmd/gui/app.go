@@ -75,6 +75,13 @@ func async[T any](a *App, work func() (T, error), done func(T)) {
 	}()
 }
 
+func absoluteURL(u string) string {
+	if strings.HasPrefix(u, "/") {
+		return baseURL + u
+	}
+	return u
+}
+
 func (a *App) showError(err error) {
 	dialog.ShowError(err, a.win)
 }
@@ -215,7 +222,7 @@ func (s *showsTab) loadPage(u string) {
 	s.prevBtn.Disable()
 	s.nextBtn.Disable()
 	go func() {
-		p, err := fetchPage[showPage](baseURL + u)
+		p, err := fetchPage[showPage](absoluteURL(u))
 		fyne.Do(func() {
 			if err != nil {
 				s.app.showError(err)
@@ -256,7 +263,7 @@ func (s *songsTab) loadPage(u string) {
 	s.prev.Disable()
 	s.next.Disable()
 	go func() {
-		p, err := fetchPage[songPage](baseURL + u)
+		p, err := fetchPage[songPage](absoluteURL(u))
 		fyne.Do(func() {
 			if err != nil {
 				s.app.showError(err)

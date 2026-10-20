@@ -94,7 +94,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By venue
 	s.venueSelect = widget.NewSelectEntry(venues)
-	s.venueSelect.PlaceHolder = "Choose or type a venue"
+	s.venueSelect.PlaceHolder = "Start typing to filter venues"
 	s.venueSelect.OnSubmitted = s.searchByVenue
 	s.venueSelect.OnChanged = s.venueFilter
 	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSelect.Text) })
