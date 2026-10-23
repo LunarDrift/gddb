@@ -20,16 +20,16 @@ type App struct {
 type showsTab struct {
 	app *App
 	// Search panel
-	idEntry       *widget.Entry
-	yearSelect    *widget.Select
-	monthSelect   *widget.Select
-	daySelect     *widget.Select
-	songEntry     *widget.Entry
-	venueSelect   *widget.SelectEntry
-	cityEntry     *widget.Entry
-	locationEntry *widget.Entry
-	setNameSelect *widget.Select
-	notesSelect   *widget.Select
+	idEntry        *widget.Entry
+	yearSelect     *widget.Select
+	monthSelect    *widget.Select
+	daySelect      *widget.Select
+	songEntry      *widget.Entry
+	venueSelect    *widget.SelectEntry
+	cityEntry      *widget.Entry
+	locationSelect *widget.Select
+	setNameSelect  *widget.Select
+	notesSelect    *widget.Select
 
 	// Results panel
 	results     *showPage

@@ -14,7 +14,10 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
-var venues = getAllVenues()
+var (
+	venues    = getAllVenues()
+	locations = getAllLocations()
+)
 
 func newApp() *App {
 	a := &App{}
@@ -111,15 +114,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.cityEntry.Text) })
 
 	// By location
-	s.locationEntry = widget.NewEntry()
-	locClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-		s.locationEntry.SetText("")
-	})
-	locClearBtn.Importance = widget.LowImportance
-	s.locationEntry.ActionItem = locClearBtn
-	s.locationEntry.SetPlaceHolder("(State/Country) e.g. NY / Spain")
-	s.locationEntry.OnSubmitted = s.searchByLocation
-	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationEntry.Text) })
+	s.locationSelect = widget.NewSelect(locations, nil)
+	s.locationSelect.PlaceHolder = "Locations (State/Country)"
+	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationSelect.Selected) })
 
 	// By set name
 	s.setNameSelect = widget.NewSelect(setLabels(), nil)
@@ -147,7 +144,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		layout.NewSpacer(),
 		s.cityEntry, cityBtn,
 		layout.NewSpacer(),
-		s.locationEntry, locBtn,
+		s.locationSelect, locBtn,
 		layout.NewSpacer(),
 		setAndNotes, setAndNotesBtns,
 	)

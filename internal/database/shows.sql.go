@@ -56,6 +56,39 @@ func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
 	return err
 }
 
+const getAllLocations = `-- name: GetAllLocations :many
+SELECT state AS "location"
+FROM shows
+GROUP BY "location"
+ORDER BY
+  -- states first, then countries
+  CASE WHEN length(shows.state) = 2 THEN 0 ELSE 1 END,
+  "location"
+`
+
+func (q *Queries) GetAllLocations(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllLocations)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var location string
+		if err := rows.Scan(&location); err != nil {
+			return nil, err
+		}
+		items = append(items, location)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllShowIDs = `-- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id
 `

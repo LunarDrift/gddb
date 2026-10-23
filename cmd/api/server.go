@@ -41,6 +41,7 @@ func (s *server) registerRoutes() {
 
 	s.mux.HandleFunc("GET /stats/songs-per-city", s.handleGetUniqueSongsPerCity)
 	s.mux.HandleFunc("GET /all-venues", s.handleGetAllVenues)
+	s.mux.HandleFunc("GET /all-locations", s.handleGetAllLocations)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -56,4 +57,12 @@ func (s *server) handleGetAllVenues(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, "could not get venues", err)
 	}
 	respondWithJSON(w, http.StatusOK, internal.AllVenues{Venues: venues})
+}
+
+func (s *server) handleGetAllLocations(w http.ResponseWriter, r *http.Request) {
+	locations, err := s.queries.GetAllLocations(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not get locations", err)
+	}
+	respondWithJSON(w, http.StatusOK, internal.AllLocations{Locations: locations})
 }

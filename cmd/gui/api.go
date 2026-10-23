@@ -146,9 +146,17 @@ func getSongsPlayedLessThanNTimes(n string) (*songPage, error) {
 // ----- Helpers -----
 
 func getAllVenues() []string {
-	venues, err := getJSON[internal.AllVenues](baseURL + "/all-venues")
+	venues, err := getJSON[internal.AllVenues](absoluteURL("/all-venues"))
 	if err != nil {
 		return nil
 	}
 	return venues.Venues
+}
+
+func getAllLocations() []string {
+	locations, err := getJSON[internal.AllLocations](absoluteURL("/all-locations"))
+	if err != nil {
+		return nil
+	}
+	return locations.Locations
 }

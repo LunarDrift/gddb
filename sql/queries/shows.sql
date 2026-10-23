@@ -238,3 +238,12 @@ SELECT DISTINCT LOWER(state) AS location FROM shows;
 
 -- name: GetAllVenues :many
 SELECT DISTINCT venue FROM shows ORDER BY venue;
+
+-- name: GetAllLocations :many
+SELECT state AS "location"
+FROM shows
+GROUP BY "location"
+ORDER BY
+  -- states first, then countries
+  CASE WHEN length(shows.state) = 2 THEN 0 ELSE 1 END,
+  "location";
