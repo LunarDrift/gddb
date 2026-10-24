@@ -17,6 +17,7 @@ import (
 var (
 	venues    = getAllVenues()
 	locations = getAllLocations()
+	cities    = getAllCities()
 )
 
 func newApp() *App {
@@ -103,14 +104,10 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSelect.Text) })
 
 	// By city
-	s.cityEntry = widget.NewEntry()
-	cityClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-		s.cityEntry.SetText("")
-	})
-	cityClearBtn.Importance = widget.LowImportance
-	s.cityEntry.ActionItem = cityClearBtn
-	s.cityEntry.SetPlaceHolder("Enter a city...")
+	s.cityEntry = widget.NewSelectEntry(cities)
+	s.cityEntry.SetPlaceHolder("Start typing to filter cities")
 	s.cityEntry.OnSubmitted = s.searchByCity
+	s.cityEntry.OnChanged = s.cityFilter
 	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.cityEntry.Text) })
 
 	// By location
@@ -307,4 +304,18 @@ func (s *showsTab) venueFilter(input string) {
 		}
 	}
 	s.venueSelect.SetOptions(filtered)
+}
+
+func (s *showsTab) cityFilter(input string) {
+	if input == "" {
+		s.cityEntry.SetOptions(cities)
+		return
+	}
+	var filtered []string
+	for _, city := range cities {
+		if strings.Contains(strings.ToLower(city), strings.ToLower(input)) {
+			filtered = append(filtered, city)
+		}
+	}
+	s.cityEntry.SetOptions(filtered)
 }

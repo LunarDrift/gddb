@@ -247,3 +247,6 @@ ORDER BY
   -- states first, then countries
   CASE WHEN length(shows.state) = 2 THEN 0 ELSE 1 END,
   "location";
+
+-- name: GetAllCities :many
+SELECT DISTINCT city FROM shows ORDER BY city;

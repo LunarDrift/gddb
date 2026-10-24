@@ -121,12 +121,17 @@ type AllLocations struct {
 	Locations []string `json:"locations"`
 }
 
+type AllCities struct {
+	Cities []string `json:"cities"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {
 	GetAllShowIDs(ctx context.Context) ([]int32, error)
 	GetAllVenues(ctx context.Context) ([]string, error)
 	GetAllLocations(ctx context.Context) ([]string, error)
+	GetAllCities(ctx context.Context) ([]string, error)
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)

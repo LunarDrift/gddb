@@ -160,3 +160,11 @@ func getAllLocations() []string {
 	}
 	return locations.Locations
 }
+
+func getAllCities() []string {
+	cities, err := getJSON[internal.AllCities](absoluteURL("/all-cities"))
+	if err != nil {
+		return nil
+	}
+	return cities.Cities
+}
