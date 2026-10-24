@@ -97,23 +97,23 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { s.searchBySong(s.songEntry.Text) })
 
 	// By venue
-	s.venueSelect = widget.NewSelectEntry(venues)
-	s.venueSelect.PlaceHolder = "Start typing to filter venues"
-	s.venueSelect.OnSubmitted = s.searchByVenue
-	s.venueSelect.OnChanged = s.venueFilter
-	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSelect.Text) })
+	s.venueSearch = widget.NewSelectEntry(venues)
+	s.venueSearch.PlaceHolder = "Start typing to filter venues"
+	s.venueSearch.OnSubmitted = s.searchByVenue
+	s.venueSearch.OnChanged = s.venueFilter
+	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSearch.Text) })
 
 	// By city
-	s.cityEntry = widget.NewSelectEntry(cities)
-	s.cityEntry.SetPlaceHolder("Start typing to filter cities")
-	s.cityEntry.OnSubmitted = s.searchByCity
-	s.cityEntry.OnChanged = s.cityFilter
-	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.cityEntry.Text) })
+	s.citySearch = widget.NewSelectEntry(cities)
+	s.citySearch.SetPlaceHolder("Start typing to filter cities")
+	s.citySearch.OnSubmitted = s.searchByCity
+	s.citySearch.OnChanged = s.cityFilter
+	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.citySearch.Text) })
 
 	// By location
-	s.locationSelect = widget.NewSelect(locations, nil)
-	s.locationSelect.PlaceHolder = "Locations (State/Country)"
-	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationSelect.Selected) })
+	s.locationSearch = widget.NewSelect(locations, nil)
+	s.locationSearch.PlaceHolder = "Locations (State/Country)"
+	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationSearch.Selected) })
 
 	// By set name
 	s.setNameSelect = widget.NewSelect(setLabels(), nil)
@@ -137,11 +137,11 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		layout.NewSpacer(),
 		s.songEntry, songBtn,
 		layout.NewSpacer(),
-		s.venueSelect, venueBtn,
+		s.venueSearch, venueBtn,
 		layout.NewSpacer(),
-		s.cityEntry, cityBtn,
+		s.citySearch, cityBtn,
 		layout.NewSpacer(),
-		s.locationSelect, locBtn,
+		s.locationSearch, locBtn,
 		layout.NewSpacer(),
 		setAndNotes, setAndNotesBtns,
 	)
@@ -294,7 +294,7 @@ func notesLabels() []string {
 
 func (s *showsTab) venueFilter(input string) {
 	if input == "" {
-		s.venueSelect.SetOptions(venues)
+		s.venueSearch.SetOptions(venues)
 		return
 	}
 	var filtered []string
@@ -303,12 +303,12 @@ func (s *showsTab) venueFilter(input string) {
 			filtered = append(filtered, venue)
 		}
 	}
-	s.venueSelect.SetOptions(filtered)
+	s.venueSearch.SetOptions(filtered)
 }
 
 func (s *showsTab) cityFilter(input string) {
 	if input == "" {
-		s.cityEntry.SetOptions(cities)
+		s.citySearch.SetOptions(cities)
 		return
 	}
 	var filtered []string
@@ -317,5 +317,5 @@ func (s *showsTab) cityFilter(input string) {
 			filtered = append(filtered, city)
 		}
 	}
-	s.cityEntry.SetOptions(filtered)
+	s.citySearch.SetOptions(filtered)
 }

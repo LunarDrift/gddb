@@ -25,9 +25,9 @@ type showsTab struct {
 	monthSelect    *widget.Select
 	daySelect      *widget.Select
 	songEntry      *widget.Entry
-	venueSelect    *widget.SelectEntry
-	cityEntry      *widget.SelectEntry
-	locationSelect *widget.Select
+	venueSearch    *widget.SelectEntry
+	citySearch     *widget.SelectEntry
+	locationSearch *widget.Select
 	setNameSelect  *widget.Select
 	notesSelect    *widget.Select
 
