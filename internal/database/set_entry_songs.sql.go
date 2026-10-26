@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"time"
 )
 
 const deleteEntrySongs = `-- name: DeleteEntrySongs :exec
@@ -31,4 +32,65 @@ type InsertEntrySongParams struct {
 func (q *Queries) InsertEntrySong(ctx context.Context, arg InsertEntrySongParams) error {
 	_, err := q.db.ExecContext(ctx, insertEntrySong, arg.SetEntryID, arg.SongName)
 	return err
+}
+
+const listSongStats = `-- name: ListSongStats :many
+SELECT
+    ses.song_name AS title,
+    COUNT(*) AS times_played,
+    MIN(sh.show_date)::date AS first_played,
+    MAX(sh.show_date)::date AS last_played,
+    COUNT(*) FILTER (WHERE st.set_name = 'set_1') AS set_1,
+    COUNT(*) FILTER (WHERE st.set_name IN ('set_2', 'set_3')) AS set_2_3,
+    COUNT(*) FILTER (WHERE st.set_name = 'encore') AS encore,
+    COUNT(*) FILTER (WHERE st.set_name = 'acoustic') AS acoustic
+FROM set_entry_songs ses
+JOIN set_entries se ON se.id = ses.set_entry_id
+JOIN sets st ON st.id = se.set_id
+JOIN shows sh ON sh.show_id = st.show_id
+GROUP BY ses.song_name
+ORDER BY ses.song_name
+`
+
+type ListSongStatsRow struct {
+	Title       string
+	TimesPlayed int64
+	FirstPlayed time.Time
+	LastPlayed  time.Time
+	Set1        int64
+	Set23       int64
+	Encore      int64
+	Acoustic    int64
+}
+
+func (q *Queries) ListSongStats(ctx context.Context) ([]ListSongStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listSongStats)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListSongStatsRow
+	for rows.Next() {
+		var i ListSongStatsRow
+		if err := rows.Scan(
+			&i.Title,
+			&i.TimesPlayed,
+			&i.FirstPlayed,
+			&i.LastPlayed,
+			&i.Set1,
+			&i.Set23,
+			&i.Encore,
+			&i.Acoustic,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

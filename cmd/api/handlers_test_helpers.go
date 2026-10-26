@@ -57,6 +57,8 @@ type fakeQuerier struct {
 	songsUniquePerCityErr   error
 	songsPlayedLessThanRows []database.SongsPlayedLessThanRow
 	songsPlayedLessThanErr  error
+	listSongStatsRow        []database.ListSongStatsRow
+	listSongStatsErr        error
 	// Other
 	validLocationRows []string
 	validLocationErr  error
@@ -158,4 +160,8 @@ func (f *fakeQuerier) GetValidLocations(ctx context.Context) ([]string, error) {
 
 func (f *fakeQuerier) GetShowsFromCity(ctx context.Context, arg database.GetShowsFromCityParams) ([]database.GetShowsFromCityRow, error) {
 	return f.showsFromCityRows, f.showsFromCityErr
+}
+
+func (f *fakeQuerier) ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error) {
+	return f.listSongStatsRow, f.listSongStatsErr
 }

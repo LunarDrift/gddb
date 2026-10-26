@@ -58,13 +58,6 @@ type Paginated[T any] struct {
 	Results  []T     `json:"results"`
 }
 
-// type PaginatedShowResponse struct {
-// 	Count    int64      `json:"count"`
-// 	Next     *string    `json:"next"`
-// 	Previous *string    `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
-// 	Results  []ShowMeta `json:"results"`
-// }
-
 // SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {
 	SetName string   `json:"set_name"`
@@ -125,6 +118,17 @@ type AllCities struct {
 	Cities []string `json:"cities"`
 }
 
+type ListSongStatsRow struct {
+	Title       string    `json:"title"`
+	TimesPlayed int       `json:"times_played"`
+	FirstPlayed time.Time `json:"first_played"`
+	LastPlayed  time.Time `json:"last_played"`
+	Set1        int       `json:"set_1"`
+	Set23       int       `json:"set_2_3"`
+	Encore      int       `json:"encore"`
+	Acoustic    int       `json:"acoustic"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {
@@ -152,4 +156,5 @@ type ShowQuerier interface {
 	UniqueSongsPerCity(ctx context.Context, arg database.UniqueSongsPerCityParams) ([]database.UniqueSongsPerCityRow, error)
 	GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error)
 	GetValidLocations(ctx context.Context) ([]string, error)
+	ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error)
 }
