@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -39,7 +40,7 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 	if err != nil {
 		return fmt.Errorf("error starting SQL transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	q := database.New(db).WithTx(tx)
 
@@ -84,15 +85,30 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 			return fmt.Errorf("error creating set: %w", err)
 		}
 
-		for j, song := range songs {
-			err = q.CreateSetEntry(context.Background(), database.CreateSetEntryParams{
+		for j, rawEntry := range songs {
+			entryID, err := q.CreateSetEntry(context.Background(), database.CreateSetEntryParams{
 				SetID:    setID,
-				RawEntry: song,
+				RawEntry: rawEntry,
 				Position: int32(j + 1),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating set entry: %w", err)
 			}
+
+			if err := q.DeleteEntrySongs(context.Background(), int64(entryID)); err != nil {
+				return fmt.Errorf("error clearing entry songs: %w", err)
+			}
+
+			for _, name := range parseEntry(rawEntry) {
+				err = q.InsertEntrySong(context.Background(), database.InsertEntrySongParams{
+					SetEntryID: int64(entryID),
+					SongName:   name,
+				})
+				if err != nil {
+					return fmt.Errorf("error creating entry song: %w", err)
+				}
+			}
+
 		}
 	}
 
@@ -108,4 +124,18 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 	}
 
 	return tx.Commit()
+}
+
+var markerRe = regexp.MustCompile(`\s*(\*+)\s*$`)
+
+func parseEntry(raw string) []string {
+	parts := strings.Split(raw, ">")
+	songs := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(markerRe.ReplaceAllString(part, ""))
+		if part != "" {
+			songs = append(songs, part)
+		}
+	}
+	return songs
 }

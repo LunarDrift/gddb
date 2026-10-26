@@ -26,6 +26,12 @@ type SetEntry struct {
 	SongName  sql.NullString
 }
 
+type SetEntrySong struct {
+	ID         int64
+	SetEntryID int64
+	SongName   string
+}
+
 type Show struct {
 	ShowID    int32
 	ShowDate  time.Time

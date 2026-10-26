@@ -66,7 +66,7 @@ func (q *Queries) AllSongsPlayedAtVenue(ctx context.Context, arg AllSongsPlayedA
 	return items, nil
 }
 
-const createSetEntry = `-- name: CreateSetEntry :exec
+const createSetEntry = `-- name: CreateSetEntry :one
 INSERT INTO set_entries (
 set_id,
 raw_entry,
@@ -77,7 +77,9 @@ VALUES (
   $2,
   $3
   )
-ON CONFLICT (set_id, position) DO NOTHING
+ON CONFLICT (set_id, position) DO UPDATE
+SET raw_entry = EXCLUDED.raw_entry
+RETURNING id
 `
 
 type CreateSetEntryParams struct {
@@ -86,9 +88,11 @@ type CreateSetEntryParams struct {
 	Position int32
 }
 
-func (q *Queries) CreateSetEntry(ctx context.Context, arg CreateSetEntryParams) error {
-	_, err := q.db.ExecContext(ctx, createSetEntry, arg.SetID, arg.RawEntry, arg.Position)
-	return err
+func (q *Queries) CreateSetEntry(ctx context.Context, arg CreateSetEntryParams) (int32, error) {
+	row := q.db.QueryRowContext(ctx, createSetEntry, arg.SetID, arg.RawEntry, arg.Position)
+	var id int32
+	err := row.Scan(&id)
+	return id, err
 }
 
 const mostCommonSongsBySetName = `-- name: MostCommonSongsBySetName :many

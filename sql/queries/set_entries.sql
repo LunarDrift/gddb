@@ -1,4 +1,4 @@
--- name: CreateSetEntry :exec
+-- name: CreateSetEntry :one
 INSERT INTO set_entries (
 set_id,
 raw_entry,
@@ -9,7 +9,9 @@ VALUES (
   $2,
   $3
   )
-ON CONFLICT (set_id, position) DO NOTHING;
+ON CONFLICT (set_id, position) DO UPDATE
+SET raw_entry = EXCLUDED.raw_entry
+RETURNING id;
 
 -- name: MostPlayedSongs :many
 SELECT se.song_name AS song, COUNT(*) AS times_played, COUNT(*) OVER ()
