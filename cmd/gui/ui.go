@@ -23,7 +23,7 @@ var (
 func newApp() *App {
 	a := &App{}
 	a.shows = &showsTab{app: a, results: &showPage{}}
-	a.songs = &songsTab{app: a, page: &songPage{}}
+	a.songs = &songsTab{app: a, allSongStats: []songStats{}}
 	a.win = app.New().NewWindow("Deadabase")
 	a.win.Resize(fyne.NewSize(1200, 875))
 	a.win.SetContent(a.buildUI())
@@ -31,7 +31,6 @@ func newApp() *App {
 	// Set initial state of things that start hidden/disabled
 	a.shows.showPlaceholder()
 	a.shows.updateButtons()
-	a.songs.updateButtons()
 	return a
 }
 
@@ -54,7 +53,11 @@ func (s *showsTab) buildShowsTab() fyne.CanvasObject {
 }
 
 func (s *songsTab) buildSongsTab() fyne.CanvasObject {
-	content := container.NewHSplit(s.buildSongsSearchPanel(), s.buildSongsResultsPanel())
+	rows, err := getAllSongStats()
+	if err != nil {
+		s.app.showError(err)
+	}
+	content := s.buildSongTable(rows)
 	return content
 }
 
@@ -204,68 +207,54 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 	)
 }
 
-func (s *songsTab) buildSongsSearchPanel() fyne.CanvasObject {
-	s.mostPlayed = widget.NewButtonWithIcon("Most Played Songs", theme.SearchIcon(), s.mostPlayedSongs)
-	s.setSelect = widget.NewSelect(setLabels(), nil)
-	s.setSelect.PlaceHolder = "Sets"
-	mostPlayedBySetBtn := widget.NewButtonWithIcon("Most Played by Set", theme.SearchIcon(), s.mostPlayedBySet)
+func (s *songsTab) buildSongTable(rows []songStats) *widget.Table {
+	headers := []string{"Title", "Times Played", "First Played", "Last Played", "Set 1", "Set 2/3", "Encore", "Acoustic"}
 
-	s.playedLessThan = widget.NewEntry()
-	s.playedLessThan.PlaceHolder = "Enter a number"
-	s.playedLessThan.OnSubmitted = s.playedLessThanNTimes
-	playedLessThanBtn := widget.NewButton("Songs played less than N times", func() { s.playedLessThanNTimes(s.playedLessThan.Text) })
-
-	return container.NewVBox(
-		s.mostPlayed,
-		layout.NewSpacer(),
-		s.setSelect, mostPlayedBySetBtn,
-		layout.NewSpacer(),
-		s.playedLessThan, playedLessThanBtn,
-		layout.NewSpacer(),
-	)
-}
-
-func (s *songsTab) buildSongsResultsPanel() fyne.CanvasObject {
-	s.list = widget.NewList(
-		func() int { return len(s.page.Results) },
-		func() fyne.CanvasObject {
-			songLabel := widget.NewLabel("")
-			songLabel.Truncation = fyne.TextTruncateEllipsis
-			// songLabel.Wrapping = fyne.TextWrapWord
-			timesLabel := widget.NewLabel("")
-			timesLabel.Alignment = fyne.TextAlignTrailing
-			return container.NewBorder(nil, nil, nil, timesLabel, songLabel)
-			// return widget.NewLabel("template")
-		},
-		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			borderContainer := obj.(*fyne.Container)
-			songLabel := borderContainer.Objects[0].(*widget.Label)
-			timesLabel := borderContainer.Objects[1].(*widget.Label)
-
-			songLabel.SetText(s.page.Results[id].Song)
-			timesLabel.SetText(fmt.Sprintf("Played %d times", s.page.Results[id].TimesPlayed))
-			obj.Refresh()
-			// obj.(*widget.Label).SetText(fmt.Sprintf("%s\tPlayed %v times", s.page.Results[id].Song, s.page.Results[id].TimesPlayed))
-		},
-	)
-	s.prev = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), s.loadPrev)
-	s.next = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
-
-	s.list.OnHighlighted = func(id widget.ListItemID) {
-		fullSongName := s.page.Results[id].Song
-		timesPlayed := s.page.Results[id].TimesPlayed
-		s.app.player.SetText(fmt.Sprintf("%s | Played %d times", fullSongName, timesPlayed))
-	}
-	s.list.OnUnselected = func(id widget.ListItemID) {
-		s.app.player.SetText("")
+	cell := func(r songStats, col int) string {
+		switch col {
+		case 0:
+			return r.Title
+		case 1:
+			return strconv.FormatInt(int64(r.TimesPlayed), 10)
+		case 2:
+			return r.FirstPlayed.Format(time.DateOnly)
+		case 3:
+			return r.LastPlayed.Format(time.DateOnly)
+		case 4:
+			return strconv.FormatInt(int64(r.Set1), 10)
+		case 5:
+			return strconv.FormatInt(int64(r.Set23), 10)
+		case 6:
+			return strconv.FormatInt(int64(r.Encore), 10)
+		case 7:
+			return strconv.FormatInt(int64(r.Acoustic), 10)
+		}
+		return ""
 	}
 
-	return container.NewBorder(
-		nil,
-		container.NewHBox(s.app.songs.prev, layout.NewSpacer(), s.app.songs.next),
-		nil, nil,
-		s.app.songs.list,
+	s.table = widget.NewTableWithHeaders(
+		func() (int, int) { return len(rows), len(headers) },
+		func() fyne.CanvasObject { return widget.NewLabel("placeholder") },
+		func(id widget.TableCellID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(cell(rows[id.Row], id.Col))
+		},
 	)
+
+	s.table.CreateHeader = func() fyne.CanvasObject { return widget.NewLabel("header") }
+	s.table.UpdateHeader = func(id widget.TableCellID, o fyne.CanvasObject) {
+		l := o.(*widget.Label)
+		if id.Col >= 0 && id.Row == -1 {
+			l.SetText(headers[id.Col])
+		} else {
+			l.SetText(strconv.Itoa(id.Row + 1)) // row numbers
+		}
+	}
+
+	s.table.SetColumnWidth(0, 320)
+	for c := 1; c < len(headers); c++ {
+		s.table.SetColumnWidth(c, 110)
+	}
+	return s.table
 }
 
 func numberStrings(from, to int) []string {

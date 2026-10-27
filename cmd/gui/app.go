@@ -47,16 +47,9 @@ type showsTab struct {
 }
 
 type songsTab struct {
-	app *App
-	// Search panel
-	mostPlayed     *widget.Button
-	setSelect      *widget.Select
-	playedLessThan *widget.Entry
-
-	// Results list
-	page       *songPage
-	list       *widget.List
-	prev, next *widget.Button
+	app          *App
+	table        *widget.Table
+	allSongStats []songStats
 }
 
 // async runs work off the UI thread, then runs done back on it. Fyne's rule:
@@ -166,24 +159,6 @@ func (s *showsTab) randomShow() {
 	async(s.app, func() ([]internal.ShowResponse, error) { return getRandomShow() }, s.showShowDetails)
 }
 
-func (s *songsTab) mostPlayedSongs() {
-	async(s.app, func() (*songPage, error) { return getMostPlayedSongs() }, s.setPage)
-}
-
-func (s *songsTab) mostPlayedBySet() {
-	i := s.setSelect.SelectedIndex()
-	if i < 0 {
-		s.app.showError(errors.New("choose a set"))
-		return
-	}
-	set := validSetNames[i]
-	async(s.app, func() (*songPage, error) { return getMostPlayedSongsBySet(set) }, s.setPage)
-}
-
-func (s *songsTab) playedLessThanNTimes(n string) {
-	async(s.app, func() (*songPage, error) { return getSongsPlayedLessThanNTimes(n) }, s.setPage)
-}
-
 // ---------------- Results list ----------------
 
 func (s *showsTab) onResultSelected(id widget.ListItemID) {
@@ -239,45 +214,11 @@ func (s *showsTab) updateButtons() {
 	setEnabled(s.nextBtn, s.results.Next != nil)
 }
 
-func (s *songsTab) setPage(p *songPage) {
-	s.page = p
-	s.list.UnselectAll()
-	s.list.Refresh()
-	s.list.ScrollToTop()
-	s.updateButtons()
-}
-
-func (s *songsTab) loadPrev() {
-	if s.page.Previous != nil {
-		s.loadPage(*s.page.Previous)
-	}
-}
-
-func (s *songsTab) loadNext() {
-	if s.page.Next != nil {
-		s.loadPage(*s.page.Next)
-	}
-}
-
-func (s *songsTab) loadPage(u string) {
-	s.prev.Disable()
-	s.next.Disable()
-	go func() {
-		p, err := fetchPage[songPage](absoluteURL(u))
-		fyne.Do(func() {
-			if err != nil {
-				s.app.showError(err)
-				s.updateButtons()
-				return
-			}
-			s.setPage(p)
-		})
-	}()
-}
-
-func (s *songsTab) updateButtons() {
-	setEnabled(s.prev, s.page.Previous != nil)
-	setEnabled(s.next, s.page.Next != nil)
+// NOTE: not used currently, but probably needed for when table filtering/sorting is implemented
+func (s *songsTab) setTable(t []songStats) {
+	s.allSongStats = t
+	s.table.Refresh()
+	s.table.ScrollToTop()
 }
 
 func setEnabled(b *widget.Button, on bool) {

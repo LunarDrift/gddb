@@ -14,8 +14,8 @@ import (
 const baseURL = "http://localhost:8080"
 
 type (
-	showPage = internal.Paginated[internal.ShowMeta]
-	songPage = internal.Paginated[internal.SongsTimesPlayed]
+	showPage  = internal.Paginated[internal.ShowMeta]
+	songStats = internal.ListSongStatsRow
 )
 
 var (
@@ -131,16 +131,8 @@ func getRandomShow() ([]internal.ShowResponse, error) {
 
 // ----- Songs -----
 
-func getMostPlayedSongs() (*songPage, error) {
-	return fetchPage[songPage](absoluteURL("/songs?sort=most_played"))
-}
-
-func getMostPlayedSongsBySet(set string) (*songPage, error) {
-	return fetchPage[songPage](absoluteURL("/songs?sort=most_played&set_name=") + set)
-}
-
-func getSongsPlayedLessThanNTimes(n string) (*songPage, error) {
-	return fetchPage[songPage](absoluteURL("/songs?played_lt=") + n)
+func getAllSongStats() ([]songStats, error) {
+	return getJSON[[]songStats](absoluteURL("/stats/all-songs"))
 }
 
 // ----- Helpers -----
