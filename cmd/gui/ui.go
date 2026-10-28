@@ -212,7 +212,7 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 }
 
 func (s *songsTab) buildSongTable() *widget.Table {
-	headers := []string{"Title", "Times Played", "First Played", "Last Played", "Set 1", "Set 2/3", "Encore", "Acoustic"}
+	headers := []string{"Title", "Times Played", "First Played", "Last Played", "Set 1", "Set 2/3", "Encore", "Acoustic", "Electric"}
 
 	cell := func(r songStats, col int) string {
 		switch col {
@@ -232,6 +232,8 @@ func (s *songsTab) buildSongTable() *widget.Table {
 			return strconv.FormatInt(r.Encore, 10)
 		case 7:
 			return strconv.FormatInt(r.Acoustic, 10)
+		case 8:
+			return strconv.FormatInt(r.Electric, 10)
 		}
 		return ""
 	}

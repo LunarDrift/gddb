@@ -43,7 +43,8 @@ SELECT
     COUNT(*) FILTER (WHERE st.set_name = 'set_1') AS set_1,
     COUNT(*) FILTER (WHERE st.set_name IN ('set_2', 'set_3')) AS set_2_3,
     COUNT(*) FILTER (WHERE st.set_name = 'encore') AS encore,
-    COUNT(*) FILTER (WHERE st.set_name = 'acoustic') AS acoustic
+    COUNT(*) FILTER (WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')) AS acoustic,
+    COUNT(*) FILTER (WHERE st.set_name = 'electric') AS electric
 FROM set_entry_songs ses
 JOIN set_entries se ON se.id = ses.set_entry_id
 JOIN sets st ON st.id = se.set_id
@@ -61,6 +62,7 @@ type ListSongStatsRow struct {
 	Set23       int64
 	Encore      int64
 	Acoustic    int64
+	Electric    int64
 }
 
 func (q *Queries) ListSongStats(ctx context.Context) ([]ListSongStatsRow, error) {
@@ -81,6 +83,7 @@ func (q *Queries) ListSongStats(ctx context.Context) ([]ListSongStatsRow, error)
 			&i.Set23,
 			&i.Encore,
 			&i.Acoustic,
+			&i.Electric,
 		); err != nil {
 			return nil, err
 		}

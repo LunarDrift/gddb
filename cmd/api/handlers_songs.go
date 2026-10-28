@@ -316,6 +316,7 @@ func (s *server) handleGetAllSongStats(w http.ResponseWriter, r *http.Request) {
 			Set23:       row.Set23,
 			Encore:      row.Encore,
 			Acoustic:    row.Acoustic,
+			Electric:    row.Electric,
 		}
 		results = append(results, song)
 	}

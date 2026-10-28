@@ -127,6 +127,7 @@ type ListSongStatsRow struct {
 	Set23       int64     `json:"set_2_3"`
 	Encore      int64     `json:"encore"`
 	Acoustic    int64     `json:"acoustic"`
+	Electric    int64     `json:"electric"`
 }
 
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
