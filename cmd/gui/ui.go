@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -23,7 +22,7 @@ var (
 func newApp() *App {
 	a := &App{}
 	a.shows = &showsTab{app: a, results: &showPage{}}
-	a.songs = &songsTab{app: a, allSongStats: []songStats{}}
+	a.songs = &songsTab{app: a, allSongStats: []songStats{}, visibleSongs: []songStats{}}
 	a.win = app.New().NewWindow("Deadabase")
 	a.win.Resize(fyne.NewSize(1200, 875))
 	a.win.SetContent(a.buildUI())
@@ -40,9 +39,7 @@ func (a *App) buildUI() fyne.CanvasObject {
 		container.NewTabItem("Songs", a.songs.buildSongsTab()),
 	)
 
-	a.player = widget.NewLabel("Music Player")
-	a.player.Alignment = fyne.TextAlignCenter
-	return container.NewBorder(nil, a.player, nil, nil, tabs)
+	return container.NewBorder(nil, nil, nil, nil, tabs)
 }
 
 func (s *showsTab) buildShowsTab() fyne.CanvasObject {
@@ -53,11 +50,25 @@ func (s *showsTab) buildShowsTab() fyne.CanvasObject {
 }
 
 func (s *songsTab) buildSongsTab() fyne.CanvasObject {
+	s.songSearch = widget.NewEntry()
+	s.songSearch.PlaceHolder = "Search song..."
+	s.songSearch.OnChanged = s.songsFilter
+
 	rows, err := getAllSongStats()
 	if err != nil {
 		s.app.showError(err)
+		return nil
 	}
-	content := s.buildSongTable(rows)
+	s.allSongStats = rows
+	s.visibleSongs = s.allSongStats
+	s.table = s.buildSongTable()
+	content := container.NewBorder(
+		s.songSearch,
+		nil,
+		nil,
+		nil,
+		s.table,
+	)
 	return content
 }
 
@@ -131,7 +142,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
 
-	return container.NewVBox(randShowBtn,
+	return container.NewVBox(
+		layout.NewSpacer(),
+		randShowBtn,
 		layout.NewSpacer(),
 		s.idEntry, idBtn,
 		layout.NewSpacer(),
@@ -147,6 +160,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.locationSearch, locBtn,
 		layout.NewSpacer(),
 		setAndNotes, setAndNotesBtns,
+		layout.NewSpacer(),
 	)
 }
 
@@ -194,20 +208,10 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 		container.NewVScroll(s.setsLabel),
 	)
 
-	// Placeholder buttons.
-	// TODO: implement these
-	addBtn := widget.NewButton("Add to playlist", func() { fmt.Println("Add to playlist") })
-	streamBtn := widget.NewButton("Stream from archive.org", func() { fmt.Println("Streaming") })
-
-	return container.NewBorder(
-		nil,
-		container.NewHBox(addBtn, layout.NewSpacer(), streamBtn),
-		nil, nil,
-		container.NewStack(s.placeholder, s.details),
-	)
+	return container.NewStack(s.placeholder, s.details)
 }
 
-func (s *songsTab) buildSongTable(rows []songStats) *widget.Table {
+func (s *songsTab) buildSongTable() *widget.Table {
 	headers := []string{"Title", "Times Played", "First Played", "Last Played", "Set 1", "Set 2/3", "Encore", "Acoustic"}
 
 	cell := func(r songStats, col int) string {
@@ -232,16 +236,16 @@ func (s *songsTab) buildSongTable(rows []songStats) *widget.Table {
 		return ""
 	}
 
-	s.table = widget.NewTableWithHeaders(
-		func() (int, int) { return len(rows), len(headers) },
+	table := widget.NewTableWithHeaders(
+		func() (int, int) { return len(s.visibleSongs), len(headers) },
 		func() fyne.CanvasObject { return widget.NewLabel("placeholder") },
 		func(id widget.TableCellID, o fyne.CanvasObject) {
-			o.(*widget.Label).SetText(cell(rows[id.Row], id.Col))
+			o.(*widget.Label).SetText(cell(s.visibleSongs[id.Row], id.Col))
 		},
 	)
 
-	s.table.CreateHeader = func() fyne.CanvasObject { return widget.NewLabel("header") }
-	s.table.UpdateHeader = func(id widget.TableCellID, o fyne.CanvasObject) {
+	table.CreateHeader = func() fyne.CanvasObject { return widget.NewLabel("header") }
+	table.UpdateHeader = func(id widget.TableCellID, o fyne.CanvasObject) {
 		l := o.(*widget.Label)
 		if id.Col >= 0 && id.Row == -1 {
 			l.SetText(headers[id.Col])
@@ -250,11 +254,11 @@ func (s *songsTab) buildSongTable(rows []songStats) *widget.Table {
 		}
 	}
 
-	s.table.SetColumnWidth(0, 320)
+	table.SetColumnWidth(0, 320)
 	for c := 1; c < len(headers); c++ {
-		s.table.SetColumnWidth(c, 110)
+		table.SetColumnWidth(c, 110)
 	}
-	return s.table
+	return table
 }
 
 func numberStrings(from, to int) []string {
@@ -311,4 +315,15 @@ func (s *showsTab) cityFilter(input string) {
 		}
 	}
 	s.citySearch.SetOptions(filtered)
+}
+
+func (s *songsTab) songsFilter(input string) {
+	needle := strings.ToLower(strings.TrimSpace(input))
+	filtered := make([]songStats, 0, len(s.allSongStats))
+	for _, song := range s.allSongStats {
+		if needle == "" || strings.Contains(strings.ToLower(song.Title), needle) {
+			filtered = append(filtered, song)
+		}
+	}
+	s.setVisible(filtered)
 }

@@ -11,10 +11,10 @@ import (
 )
 
 type App struct {
-	win    fyne.Window
-	player *widget.Label
-	shows  *showsTab
-	songs  *songsTab
+	win fyne.Window
+	// player *widget.Label
+	shows *showsTab
+	songs *songsTab
 }
 
 type showsTab struct {
@@ -48,8 +48,10 @@ type showsTab struct {
 
 type songsTab struct {
 	app          *App
-	table        *widget.Table
 	allSongStats []songStats
+	visibleSongs []songStats
+	songSearch   *widget.Entry
+	table        *widget.Table
 }
 
 // async runs work off the UI thread, then runs done back on it. Fyne's rule:
@@ -215,8 +217,8 @@ func (s *showsTab) updateButtons() {
 }
 
 // NOTE: not used currently, but probably needed for when table filtering/sorting is implemented
-func (s *songsTab) setTable(t []songStats) {
-	s.allSongStats = t
+func (s *songsTab) setVisible(rows []songStats) {
+	s.visibleSongs = rows
 	s.table.Refresh()
 	s.table.ScrollToTop()
 }
