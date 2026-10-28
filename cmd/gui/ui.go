@@ -215,19 +215,19 @@ func (s *songsTab) buildSongTable(rows []songStats) *widget.Table {
 		case 0:
 			return r.Title
 		case 1:
-			return strconv.FormatInt(int64(r.TimesPlayed), 10)
+			return strconv.FormatInt(r.TimesPlayed, 10)
 		case 2:
 			return r.FirstPlayed.Format(time.DateOnly)
 		case 3:
 			return r.LastPlayed.Format(time.DateOnly)
 		case 4:
-			return strconv.FormatInt(int64(r.Set1), 10)
+			return strconv.FormatInt(r.Set1, 10)
 		case 5:
-			return strconv.FormatInt(int64(r.Set23), 10)
+			return strconv.FormatInt(r.Set23, 10)
 		case 6:
-			return strconv.FormatInt(int64(r.Encore), 10)
+			return strconv.FormatInt(r.Encore, 10)
 		case 7:
-			return strconv.FormatInt(int64(r.Acoustic), 10)
+			return strconv.FormatInt(r.Acoustic, 10)
 		}
 		return ""
 	}

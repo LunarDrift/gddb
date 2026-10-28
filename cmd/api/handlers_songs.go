@@ -309,13 +309,13 @@ func (s *server) handleGetAllSongStats(w http.ResponseWriter, r *http.Request) {
 	for _, row := range songStatsRows {
 		song := internal.ListSongStatsRow{
 			Title:       row.Title,
-			TimesPlayed: int(row.TimesPlayed),
+			TimesPlayed: row.TimesPlayed,
 			FirstPlayed: row.FirstPlayed,
 			LastPlayed:  row.LastPlayed,
-			Set1:        int(row.Set1),
-			Set23:       int(row.Set23),
-			Encore:      int(row.Encore),
-			Acoustic:    int(row.Acoustic),
+			Set1:        row.Set1,
+			Set23:       row.Set23,
+			Encore:      row.Encore,
+			Acoustic:    row.Acoustic,
 		}
 		results = append(results, song)
 	}

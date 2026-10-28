@@ -120,13 +120,13 @@ type AllCities struct {
 
 type ListSongStatsRow struct {
 	Title       string    `json:"title"`
-	TimesPlayed int       `json:"times_played"`
+	TimesPlayed int64     `json:"times_played"`
 	FirstPlayed time.Time `json:"first_played"`
 	LastPlayed  time.Time `json:"last_played"`
-	Set1        int       `json:"set_1"`
-	Set23       int       `json:"set_2_3"`
-	Encore      int       `json:"encore"`
-	Acoustic    int       `json:"acoustic"`
+	Set1        int64     `json:"set_1"`
+	Set23       int64     `json:"set_2_3"`
+	Encore      int64     `json:"encore"`
+	Acoustic    int64     `json:"acoustic"`
 }
 
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
