@@ -63,9 +63,10 @@ Many thanks to them for this wonderful data!
 
 ## GUI Client
 
-GUI built with [Fyne](https://fyne.io/). After spinning up the API server in Docker,
-`go run ./cmd/gui` will launch the client GUI with various show search methods
-and a table of all song stats.
+GUI built with [Fyne](https://fyne.io/). After spinning up the database + API server
+in Docker, `go run ./cmd/gui` will launch the client GUI with various show search
+methods and a table of all song stats.
+
 ![Example Screenshot](./examples/gddb1.png)
 ![Example Screenshot](./examples/gddb2.png)
 
