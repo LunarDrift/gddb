@@ -30,11 +30,6 @@ Many thanks to them for this wonderful data!
 - **sqlc:** type-safe SQL query generation
 - **Docker:** package dependencies together and make setup a simple command
 
-## ~~Live~~
-
-~~<https://deadabase.onrender.com>~~
-No longer being hosted publicly, sorry. Local-hosting only via Docker.
-
 ## Local Setup
 
 1. Clone the repo
@@ -65,6 +60,14 @@ No longer being hosted publicly, sorry. Local-hosting only via Docker.
    Use `--build` on first run or after any change to the Go source or Dockerfile,
    so `docker-compose` rebuilds the `deadabase:local` app image before starting
    the containers.
+
+## GUI Client
+
+GUI built with [Fyne](https://fyne.io/). After spinning up the API server in Docker,
+`go run ./cmd/gui` will launch the client GUI with various show search methods
+and a table of all song stats.
+[Example Screenshot](./examples/gddb1.png)
+[Example Screenshot](./examples/gddb2.png)
 
 ## API Endpoints (GET only)
 
