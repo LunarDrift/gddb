@@ -40,6 +40,7 @@ services:
   api:
     <<: *app
     tty: true
+    command: ["./api"]
     depends_on:
       import:
         condition: service_completed_successfully
