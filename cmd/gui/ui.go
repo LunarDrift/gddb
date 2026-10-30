@@ -240,7 +240,7 @@ func (s *songsTab) buildSongTable() *widget.Table {
 
 	table := widget.NewTableWithHeaders(
 		func() (int, int) { return len(s.visibleSongs), len(headers) },
-		func() fyne.CanvasObject { return widget.NewLabel("placeholder") },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
 		func(id widget.TableCellID, o fyne.CanvasObject) {
 			o.(*widget.Label).SetText(cell(s.visibleSongs[id.Row], id.Col))
 		},
@@ -256,9 +256,9 @@ func (s *songsTab) buildSongTable() *widget.Table {
 		}
 	}
 
-	table.SetColumnWidth(0, 320)
+	table.SetColumnWidth(0, 370)
 	for c := 1; c < len(headers); c++ {
-		table.SetColumnWidth(c, 110)
+		table.SetColumnWidth(c, 100)
 	}
 	return table
 }
