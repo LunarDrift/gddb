@@ -13,8 +13,9 @@ import (
 type App struct {
 	win fyne.Window
 	// player *widget.Label
-	shows *showsTab
-	songs *songsTab
+	shows  *showsTab
+	songs  *songsTab
+	venues *venuesTab
 }
 
 type showsTab struct {
@@ -52,6 +53,12 @@ type songsTab struct {
 	visibleSongs []songStats
 	songSearch   *widget.Entry
 	table        *widget.Table
+}
+
+type venuesTab struct {
+	app   *App
+	stats []venueStats
+	table *widget.Table
 }
 
 // async runs work off the UI thread, then runs done back on it. Fyne's rule:

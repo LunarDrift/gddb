@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -23,6 +24,7 @@ func newApp() *App {
 	a := &App{}
 	a.shows = &showsTab{app: a, results: &showPage{}}
 	a.songs = &songsTab{app: a, allSongStats: []songStats{}, visibleSongs: []songStats{}}
+	a.venues = &venuesTab{app: a, stats: []venueStats{}}
 	a.win = app.New().NewWindow("Deadabase")
 	a.win.Resize(fyne.NewSize(1200, 875))
 	a.win.SetContent(a.buildUI())
@@ -37,6 +39,7 @@ func (a *App) buildUI() fyne.CanvasObject {
 	tabs := container.NewAppTabs(
 		container.NewTabItem("Shows", a.shows.buildShowsTab()),
 		container.NewTabItem("Songs", a.songs.buildSongsTab()),
+		container.NewTabItem("Venues", a.venues.buildVenuesTab()),
 	)
 
 	return container.NewBorder(nil, nil, nil, nil, tabs)
@@ -68,6 +71,24 @@ func (s *songsTab) buildSongsTab() fyne.CanvasObject {
 		nil,
 		nil,
 		s.table,
+	)
+	return content
+}
+
+func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
+	rows, err := getAllVenueStats()
+	if err != nil {
+		v.app.showError(err)
+		return nil
+	}
+	v.stats = rows
+	v.table = v.buildVenueTable()
+	content := container.NewBorder(
+		nil,
+		nil,
+		nil,
+		nil,
+		v.table,
 	)
 	return content
 }
@@ -209,6 +230,44 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 	)
 
 	return container.NewStack(s.placeholder, s.details)
+}
+
+func (v *venuesTab) buildVenueTable() *widget.Table {
+	headers := []string{"Location", "Venue", "Shows Played"}
+
+	cell := func(r venueStats, col int) string {
+		switch col {
+		case 0:
+			return fmt.Sprintf("%s, %s", r.City, r.Location)
+		case 1:
+			return r.Venue
+		case 2:
+			return strconv.FormatInt(r.ShowsPlayed, 10)
+		}
+		return ""
+	}
+
+	table := widget.NewTableWithHeaders(
+		func() (int, int) { return len(v.stats), len(headers) },
+		func() fyne.CanvasObject { return widget.NewLabel("") },
+		func(id widget.TableCellID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(cell(v.stats[id.Row], id.Col))
+		},
+	)
+
+	table.CreateHeader = func() fyne.CanvasObject { return widget.NewLabel("header") }
+	table.UpdateHeader = func(id widget.TableCellID, o fyne.CanvasObject) {
+		l := o.(*widget.Label)
+		if id.Col >= 0 && id.Row == -1 {
+			l.SetText(headers[id.Col])
+		} else {
+			l.SetText(strconv.Itoa(id.Row + 1))
+		}
+	}
+	table.SetColumnWidth(0, 300)
+	table.SetColumnWidth(1, 700)
+
+	return table
 }
 
 func (s *songsTab) buildSongTable() *widget.Table {

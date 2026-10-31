@@ -14,8 +14,9 @@ import (
 const baseURL = "http://localhost:8080"
 
 type (
-	showPage  = internal.Paginated[internal.ShowMeta]
-	songStats = internal.ListSongStatsRow
+	showPage   = internal.Paginated[internal.ShowMeta]
+	songStats  = internal.ListSongStatsRow
+	venueStats = internal.ListVenueStatsRow
 )
 
 var (
@@ -133,6 +134,12 @@ func getRandomShow() ([]internal.ShowResponse, error) {
 
 func getAllSongStats() ([]songStats, error) {
 	return getJSON[[]songStats](absoluteURL("/stats/all-songs"))
+}
+
+// ----- Venues -----
+
+func getAllVenueStats() ([]venueStats, error) {
+	return getJSON[[]venueStats](absoluteURL("/stats/venues"))
 }
 
 // ----- Helpers -----
