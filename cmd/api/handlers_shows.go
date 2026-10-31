@@ -694,3 +694,21 @@ func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) 
 
 	respondWithJSON(w, http.StatusOK, results)
 }
+
+func (s *server) handleGetVenueStats(w http.ResponseWriter, r *http.Request) {
+	venueStatRows, err := s.queries.ListVenueStats(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get venue stats", err)
+		return
+	}
+	results := []internal.ListVenueStatsRow{}
+	for _, row := range venueStatRows {
+		results = append(results, internal.ListVenueStatsRow{
+			City:        row.City,
+			Location:    row.Location,
+			Venue:       row.Venue,
+			ShowsPlayed: row.ShowsPlayed,
+		})
+	}
+	respondWithJSON(w, http.StatusOK, results)
+}

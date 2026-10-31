@@ -793,6 +793,54 @@ func (q *Queries) GetValidLocations(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
+const listVenueStats = `-- name: ListVenueStats :many
+SELECT
+  s.city,
+  s.state AS location,
+  s.venue,
+  COUNT(s.show_id) AS shows_played
+FROM shows s
+GROUP BY s.city, s.state, s.venue
+ORDER BY
+  CASE WHEN length(s.state) = 2 THEN 0 ELSE 1 END,
+  s.state, s.city, s.venue
+`
+
+type ListVenueStatsRow struct {
+	City        string
+	Location    string
+	Venue       string
+	ShowsPlayed int64
+}
+
+func (q *Queries) ListVenueStats(ctx context.Context) ([]ListVenueStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listVenueStats)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListVenueStatsRow
+	for rows.Next() {
+		var i ListVenueStatsRow
+		if err := rows.Scan(
+			&i.City,
+			&i.Location,
+			&i.Venue,
+			&i.ShowsPlayed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchByVenue = `-- name: SearchByVenue :many
 SELECT
   sh.show_id,

@@ -130,6 +130,13 @@ type ListSongStatsRow struct {
 	Electric    int64     `json:"electric"`
 }
 
+type ListVenueStatsRow struct {
+	City        string `json:"city"`
+	Location    string `json:"location"`
+	Venue       string `json:"venue"`
+	ShowsPlayed int64  `json:"shows_played"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {
@@ -158,4 +165,5 @@ type ShowQuerier interface {
 	GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error)
 	GetValidLocations(ctx context.Context) ([]string, error)
 	ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error)
+	ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error)
 }

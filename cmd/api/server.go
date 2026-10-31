@@ -41,6 +41,7 @@ func (s *server) registerRoutes() {
 
 	s.mux.HandleFunc("GET /stats/songs-per-city", s.handleGetUniqueSongsPerCity)
 	s.mux.HandleFunc("GET /stats/all-songs", s.handleGetAllSongStats)
+	s.mux.HandleFunc("GET /stats/venues", s.handleGetVenueStats)
 
 	s.mux.HandleFunc("GET /all-venues", s.handleGetAllVenues)
 	s.mux.HandleFunc("GET /all-locations", s.handleGetAllLocations)

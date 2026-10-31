@@ -250,3 +250,15 @@ ORDER BY
 
 -- name: GetAllCities :many
 SELECT DISTINCT city FROM shows ORDER BY city;
+
+-- name: ListVenueStats :many
+SELECT
+  s.city,
+  s.state AS location,
+  s.venue,
+  COUNT(s.show_id) AS shows_played
+FROM shows s
+GROUP BY s.city, s.state, s.venue
+ORDER BY
+  CASE WHEN length(s.state) = 2 THEN 0 ELSE 1 END,
+  s.state, s.city, s.venue;

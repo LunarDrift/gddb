@@ -44,6 +44,8 @@ type fakeQuerier struct {
 	showsWithNotesErr            error
 	showsWithoutNotesRows        []database.ShowsWithoutNotesRow
 	showsWithoutNotesErr         error
+	listVenueStats               []database.ListVenueStatsRow
+	listVenueStatsErr            error
 	// Songs
 	songStatsRow            database.SongStatsRow
 	songStatsErr            error
@@ -64,6 +66,10 @@ type fakeQuerier struct {
 	validLocationErr  error
 	footnoteRows      []database.GetFootnotesFromShowIDRow
 	footnoteErr       error
+}
+
+func (f *fakeQuerier) ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error) {
+	return f.listVenueStats, f.listVenueStatsErr
 }
 
 func (f *fakeQuerier) GetAllVenues(ctx context.Context) ([]string, error) {
