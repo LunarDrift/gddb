@@ -257,8 +257,11 @@ func (s *songsTab) buildSongTable() *widget.Table {
 	}
 
 	table.SetColumnWidth(0, 370)
-	for c := 1; c < len(headers); c++ {
+	for c := 1; c <= 3; c++ {
 		table.SetColumnWidth(c, 100)
+	}
+	for c := 4; c < len(headers); c++ {
+		table.SetColumnWidth(c, 80)
 	}
 	return table
 }

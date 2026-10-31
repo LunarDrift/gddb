@@ -86,6 +86,7 @@ func (a *App) showError(err error) {
 func (s *showsTab) searchByID(id string) {
 	id = strings.TrimSpace(id)
 	if id == "" {
+		s.app.showError(errors.New("enter a show ID"))
 		return
 	}
 	async(s.app, func() ([]internal.ShowResponse, error) {
