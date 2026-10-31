@@ -56,9 +56,11 @@ type songsTab struct {
 }
 
 type venuesTab struct {
-	app   *App
-	stats []venueStats
-	table *widget.Table
+	app           *App
+	allVenueStats []venueStats
+	visibleVenues []venueStats
+	venueSearch   *widget.Entry
+	table         *widget.Table
 }
 
 // async runs work off the UI thread, then runs done back on it. Fyne's rule:
@@ -224,11 +226,16 @@ func (s *showsTab) updateButtons() {
 	setEnabled(s.nextBtn, s.results.Next != nil)
 }
 
-// NOTE: not used currently, but probably needed for when table filtering/sorting is implemented
 func (s *songsTab) setVisible(rows []songStats) {
 	s.visibleSongs = rows
 	s.table.Refresh()
 	s.table.ScrollToTop()
+}
+
+func (v *venuesTab) setVisible(rows []venueStats) {
+	v.visibleVenues = rows
+	v.table.Refresh()
+	v.table.ScrollToTop()
 }
 
 func setEnabled(b *widget.Button, on bool) {

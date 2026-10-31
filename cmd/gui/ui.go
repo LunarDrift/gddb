@@ -24,7 +24,7 @@ func newApp() *App {
 	a := &App{}
 	a.shows = &showsTab{app: a, results: &showPage{}}
 	a.songs = &songsTab{app: a, allSongStats: []songStats{}, visibleSongs: []songStats{}}
-	a.venues = &venuesTab{app: a, stats: []venueStats{}}
+	a.venues = &venuesTab{app: a, allVenueStats: []venueStats{}, visibleVenues: []venueStats{}}
 	a.win = app.New().NewWindow("Deadabase")
 	a.win.Resize(fyne.NewSize(1200, 875))
 	a.win.SetContent(a.buildUI())
@@ -76,15 +76,20 @@ func (s *songsTab) buildSongsTab() fyne.CanvasObject {
 }
 
 func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
+	v.venueSearch = widget.NewEntry()
+	v.venueSearch.PlaceHolder = "Search venue..."
+	v.venueSearch.OnChanged = v.venuesFilter
+
 	rows, err := getAllVenueStats()
 	if err != nil {
 		v.app.showError(err)
 		return nil
 	}
-	v.stats = rows
+	v.allVenueStats = rows
+	v.visibleVenues = v.allVenueStats
 	v.table = v.buildVenueTable()
 	content := container.NewBorder(
-		nil,
+		v.venueSearch,
 		nil,
 		nil,
 		nil,
@@ -248,10 +253,10 @@ func (v *venuesTab) buildVenueTable() *widget.Table {
 	}
 
 	table := widget.NewTableWithHeaders(
-		func() (int, int) { return len(v.stats), len(headers) },
+		func() (int, int) { return len(v.visibleVenues), len(headers) },
 		func() fyne.CanvasObject { return widget.NewLabel("") },
 		func(id widget.TableCellID, o fyne.CanvasObject) {
-			o.(*widget.Label).SetText(cell(v.stats[id.Row], id.Col))
+			o.(*widget.Label).SetText(cell(v.visibleVenues[id.Row], id.Col))
 		},
 	)
 
@@ -390,4 +395,15 @@ func (s *songsTab) songsFilter(input string) {
 		}
 	}
 	s.setVisible(filtered)
+}
+
+func (v *venuesTab) venuesFilter(input string) {
+	needle := strings.ToLower(strings.TrimSpace(input))
+	filtered := make([]venueStats, 0, len(v.allVenueStats))
+	for _, venue := range v.allVenueStats {
+		if needle == "" || strings.Contains(strings.ToLower(venue.Venue), needle) {
+			filtered = append(filtered, venue)
+		}
+	}
+	v.setVisible(filtered)
 }
