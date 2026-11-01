@@ -316,7 +316,7 @@ func (s *songsTab) buildSongTable() *widget.Table {
 		if id.Col >= 0 && id.Row == -1 {
 			l.SetText(headers[id.Col])
 		} else {
-			l.SetText(strconv.Itoa(id.Row + 1)) // row numbers
+			l.SetText(strconv.Itoa(id.Row + 1))
 		}
 	}
 

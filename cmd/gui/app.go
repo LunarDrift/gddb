@@ -11,8 +11,7 @@ import (
 )
 
 type App struct {
-	win fyne.Window
-	// player *widget.Label
+	win    fyne.Window
 	shows  *showsTab
 	songs  *songsTab
 	venues *venuesTab
