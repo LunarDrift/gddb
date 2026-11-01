@@ -42,5 +42,5 @@ func main() {
 	if err != nil {
 		log.Fatalf("error running import script on '%s': %v", file, err)
 	}
-	log.Printf("step 7: import finished. took %.1f seconds", time.Since(startTime).Seconds())
+	log.Printf("import finished in %.1f seconds", time.Since(startTime).Seconds())
 }
