@@ -76,6 +76,9 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 		return internal.SetPosition(keys[i]) < internal.SetPosition(keys[j])
 	})
 
+	var songBatch []database.InsertEntrySongParams
+	const totalSongs = 23035
+
 	for i, setName := range keys {
 		songs := show.Setlist[setName]
 		setID, err := q.CreateSet(context.Background(), database.CreateSetParams{
@@ -87,7 +90,6 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 			return fmt.Errorf("error creating set: %w", err)
 		}
 
-		const totalSongs = 23035
 		for j, rawEntry := range songs {
 			entryID, err := q.CreateSetEntry(context.Background(), database.CreateSetEntryParams{
 				SetID:    setID,
@@ -103,13 +105,17 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 			}
 
 			for _, name := range parseEntry(rawEntry) {
-				err = q.InsertEntrySong(context.Background(), database.InsertEntrySongParams{
+				songBatch = append(songBatch, database.InsertEntrySongParams{
 					SetEntryID: int64(entryID),
 					SongName:   name,
 				})
-				if err != nil {
-					return fmt.Errorf("error creating entry song: %w", err)
-				}
+				// err = q.InsertEntrySong(context.Background(), database.InsertEntrySongParams{
+				// 	SetEntryID: int64(entryID),
+				// 	SongName:   name,
+				// })
+				// if err != nil {
+				// 	return fmt.Errorf("error creating entry song: %w", err)
+				// }
 			}
 			*songCounter++
 			currentProgress := *songCounter
@@ -117,6 +123,13 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 			if currentProgress%2500 == 0 || currentProgress == totalSongs {
 				log.Printf("Import progress: %d/%d songs (%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
 			}
+		}
+	}
+
+	if len(songBatch) > 0 {
+		err = InsertEntrySongsBulk(context.Background(), tx, songBatch)
+		if err != nil {
+			return fmt.Errorf("failed to bulk insert song batch: %w", err)
 		}
 	}
 
@@ -146,4 +159,32 @@ func parseEntry(raw string) []string {
 		}
 	}
 	return songs
+}
+
+// InsertEntrySongsBulk The pq SQL driver doesn't support :copyfrom sqlc code generation.
+// Takes an entire show's worth of rawEntrys and inserts them into the database as a batch
+// instead of a single rawEntry at a time.
+func InsertEntrySongsBulk(ctx context.Context, tx *sql.Tx, batch []database.InsertEntrySongParams) error {
+	if len(batch) == 0 {
+		return nil
+	}
+
+	var query strings.Builder
+	fmt.Fprint(&query, "INSERT INTO set_entry_songs (set_entry_id, song_name) VALUES ")
+
+	args := make([]any, 0, len(batch)*2)
+
+	for i, song := range batch {
+		if i > 0 {
+			fmt.Fprint(&query, ", ")
+		}
+		p1 := i*2 + 1
+		p2 := i*2 + 2
+		fmt.Fprintf(&query, "($%d, $%d)", p1, p2)
+
+		args = append(args, song.SetEntryID, song.SongName)
+	}
+
+	_, err := tx.ExecContext(ctx, query.String(), args...)
+	return err
 }
