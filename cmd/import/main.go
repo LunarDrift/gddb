@@ -25,7 +25,7 @@ func main() {
 		log.Fatal("Could not connect to database:", err)
 	}
 	log.Println("step 4: db opened")
-	defer db.Close()
+	defer db.Close() //nolint:errcheck
 
 	// Verify connection works before trying to import anything
 	if err = db.Ping(); err != nil {
@@ -35,6 +35,7 @@ func main() {
 
 	const file string = "data/data.json"
 	log.Printf("step 6: about to run import on %q\n", file)
+
 	err = importer.Run(db, file)
 	if err != nil {
 		log.Fatalf("error running import script on '%s': %v", file, err)

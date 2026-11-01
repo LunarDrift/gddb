@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -24,9 +25,10 @@ func Run(db *sql.DB, filename string) error {
 }
 
 func ImportShows(db *sql.DB, data internal.Dataset) error {
+	var counter int64 = 0
 	for _, shows := range data {
 		for _, show := range shows {
-			err := ImportShow(db, show)
+			err := ImportShow(db, show, &counter)
 			if err != nil {
 				return fmt.Errorf("error importing show: %w", err)
 			}
@@ -35,7 +37,7 @@ func ImportShows(db *sql.DB, data internal.Dataset) error {
 	return nil
 }
 
-func ImportShow(db *sql.DB, show internal.Show) error {
+func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("error starting SQL transaction: %w", err)
@@ -85,6 +87,7 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 			return fmt.Errorf("error creating set: %w", err)
 		}
 
+		const totalSongs = 23035
 		for j, rawEntry := range songs {
 			entryID, err := q.CreateSetEntry(context.Background(), database.CreateSetEntryParams{
 				SetID:    setID,
@@ -108,7 +111,12 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 					return fmt.Errorf("error creating entry song: %w", err)
 				}
 			}
+			*songCounter++
+			currentProgress := *songCounter
 
+			if currentProgress%2500 == 0 || currentProgress == totalSongs {
+				log.Printf("Import progress: %d/%d songs (%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
+			}
 		}
 	}
 
