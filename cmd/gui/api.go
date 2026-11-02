@@ -108,6 +108,10 @@ func searchByYear(year string) (*showPage, error) {
 	return fetchPage[showPage](absoluteURL("/shows?year=") + url.QueryEscape(year))
 }
 
+func getShowsFromTodaysDate() (*showPage, error) {
+	return fetchPage[showPage](absoluteURL("/shows/today"))
+}
+
 // getShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)
 func getShowsByDate(date string) ([]internal.ShowResponse, error) {
 	shows, err := getJSON[[]internal.ShowResponse](absoluteURL("/shows/") + url.PathEscape(date))

@@ -145,6 +145,10 @@ func (s *showsTab) searchShowsByDate(date string) {
 	async(s.app, func() ([]internal.ShowResponse, error) { return getShowsByDate(date) }, s.showShowDetails)
 }
 
+func (s *showsTab) showsFromTodaysDate() {
+	async(s.app, func() (*showPage, error) { return getShowsFromTodaysDate() }, s.setResults)
+}
+
 func (s *showsTab) searchByVenue(venue string) {
 	async(s.app, func() (*showPage, error) { return searchVenues(venue) }, s.setResults)
 	// s.venueSelect.SetText("")

@@ -100,6 +100,7 @@ func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
 
 func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	randShowBtn := widget.NewButton("Random Show", s.randomShow)
+	todayBtn := widget.NewButton("Today in GD History", s.showsFromTodaysDate)
 
 	// By ID
 	s.idEntry = widget.NewEntry()
@@ -171,6 +172,8 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	return container.NewVBox(
 		layout.NewSpacer(),
 		randShowBtn,
+		layout.NewSpacer(),
+		todayBtn,
 		layout.NewSpacer(),
 		s.idEntry, idBtn,
 		layout.NewSpacer(),
