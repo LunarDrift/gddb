@@ -5,6 +5,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -23,9 +25,10 @@ func Run(db *sql.DB, filename string) error {
 }
 
 func ImportShows(db *sql.DB, data internal.Dataset) error {
+	var counter int64 = 0
 	for _, shows := range data {
 		for _, show := range shows {
-			err := ImportShow(db, show)
+			err := ImportShow(db, show, &counter)
 			if err != nil {
 				return fmt.Errorf("error importing show: %w", err)
 			}
@@ -34,12 +37,12 @@ func ImportShows(db *sql.DB, data internal.Dataset) error {
 	return nil
 }
 
-func ImportShow(db *sql.DB, show internal.Show) error {
+func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("error starting SQL transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer tx.Rollback() //nolint:errcheck
 
 	q := database.New(db).WithTx(tx)
 
@@ -73,6 +76,9 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 		return internal.SetPosition(keys[i]) < internal.SetPosition(keys[j])
 	})
 
+	var songBatch []database.InsertEntrySongParams
+	const totalSongs = 23035
+
 	for i, setName := range keys {
 		songs := show.Setlist[setName]
 		setID, err := q.CreateSet(context.Background(), database.CreateSetParams{
@@ -84,15 +90,46 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 			return fmt.Errorf("error creating set: %w", err)
 		}
 
-		for j, song := range songs {
-			err = q.CreateSetEntry(context.Background(), database.CreateSetEntryParams{
+		for j, rawEntry := range songs {
+			entryID, err := q.CreateSetEntry(context.Background(), database.CreateSetEntryParams{
 				SetID:    setID,
-				RawEntry: song,
+				RawEntry: rawEntry,
 				Position: int32(j + 1),
 			})
 			if err != nil {
 				return fmt.Errorf("error creating set entry: %w", err)
 			}
+
+			if err := q.DeleteEntrySongs(context.Background(), int64(entryID)); err != nil {
+				return fmt.Errorf("error clearing entry songs: %w", err)
+			}
+
+			for _, name := range parseEntry(rawEntry) {
+				songBatch = append(songBatch, database.InsertEntrySongParams{
+					SetEntryID: int64(entryID),
+					SongName:   name,
+				})
+				// err = q.InsertEntrySong(context.Background(), database.InsertEntrySongParams{
+				// 	SetEntryID: int64(entryID),
+				// 	SongName:   name,
+				// })
+				// if err != nil {
+				// 	return fmt.Errorf("error creating entry song: %w", err)
+				// }
+			}
+			*songCounter++
+			currentProgress := *songCounter
+
+			if currentProgress%2303 == 0 || currentProgress == totalSongs {
+				log.Printf("%d/%d songs (%.2f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
+			}
+		}
+	}
+
+	if len(songBatch) > 0 {
+		err = InsertEntrySongsBulk(context.Background(), tx, songBatch)
+		if err != nil {
+			return fmt.Errorf("failed to bulk insert song batch: %w", err)
 		}
 	}
 
@@ -108,4 +145,46 @@ func ImportShow(db *sql.DB, show internal.Show) error {
 	}
 
 	return tx.Commit()
+}
+
+var markerRe = regexp.MustCompile(`\s*(\*+)\s*$`)
+
+func parseEntry(raw string) []string {
+	parts := strings.Split(raw, ">")
+	songs := make([]string, 0, len(parts))
+	for _, part := range parts {
+		part = strings.TrimSpace(markerRe.ReplaceAllString(part, ""))
+		if part != "" {
+			songs = append(songs, part)
+		}
+	}
+	return songs
+}
+
+// InsertEntrySongsBulk The pq SQL driver doesn't support :copyfrom sqlc code generation.
+// Takes an entire show's worth of rawEntrys and inserts them into the database as a batch
+// instead of a single rawEntry at a time.
+func InsertEntrySongsBulk(ctx context.Context, tx *sql.Tx, batch []database.InsertEntrySongParams) error {
+	if len(batch) == 0 {
+		return nil
+	}
+
+	var query strings.Builder
+	fmt.Fprint(&query, "INSERT INTO set_entry_songs (set_entry_id, song_name) VALUES ")
+
+	args := make([]any, 0, len(batch)*2)
+
+	for i, song := range batch {
+		if i > 0 {
+			fmt.Fprint(&query, ", ")
+		}
+		p1 := i*2 + 1
+		p2 := i*2 + 2
+		fmt.Fprintf(&query, "($%d, $%d)", p1, p2)
+
+		args = append(args, song.SetEntryID, song.SongName)
+	}
+
+	_, err := tx.ExecContext(ctx, query.String(), args...)
+	return err
 }

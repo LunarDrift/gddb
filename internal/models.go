@@ -58,13 +58,6 @@ type Paginated[T any] struct {
 	Results  []T     `json:"results"`
 }
 
-// type PaginatedShowResponse struct {
-// 	Count    int64      `json:"count"`
-// 	Next     *string    `json:"next"`
-// 	Previous *string    `json:"previous"` // *string: "" = null in JSON response; based on PokeAPI response
-// 	Results  []ShowMeta `json:"results"`
-// }
-
 // SetResponse holds the set name (i.e. set_1, set_2, encore, etc.) and list of songs
 type SetResponse struct {
 	SetName string   `json:"set_name"`
@@ -113,11 +106,46 @@ type UniqueSongsPerCity struct {
 	UniqueSongCount int    `json:"unique_song_count"`
 }
 
+type AllVenues struct {
+	Venues []string `json:"venues"`
+}
+
+type AllLocations struct {
+	Locations []string `json:"locations"`
+}
+
+type AllCities struct {
+	Cities []string `json:"cities"`
+}
+
+type ListSongStatsRow struct {
+	Title       string    `json:"title"`
+	TimesPlayed int64     `json:"times_played"`
+	FirstPlayed time.Time `json:"first_played"`
+	LastPlayed  time.Time `json:"last_played"`
+	Set1        int64     `json:"set_1"`
+	Set23       int64     `json:"set_2_3"`
+	Encore      int64     `json:"encore"`
+	Acoustic    int64     `json:"acoustic"`
+	Electric    int64     `json:"electric"`
+}
+
+type ListVenueStatsRow struct {
+	City        string `json:"city"`
+	Location    string `json:"location"`
+	Venue       string `json:"venue"`
+	ShowsPlayed int64  `json:"shows_played"`
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {
 	GetAllShowIDs(ctx context.Context) ([]int32, error)
+	GetAllVenues(ctx context.Context) ([]string, error)
+	GetAllLocations(ctx context.Context) ([]string, error)
+	GetAllCities(ctx context.Context) ([]string, error)
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
+	GetShowsFromTodaysDate(ctx context.Context, arg database.GetShowsFromTodaysDateParams) ([]database.GetShowsFromTodaysDateRow, error)
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
 	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
@@ -137,4 +165,6 @@ type ShowQuerier interface {
 	UniqueSongsPerCity(ctx context.Context, arg database.UniqueSongsPerCityParams) ([]database.UniqueSongsPerCityRow, error)
 	GetFootnotesFromShowID(ctx context.Context, showID int32) ([]database.GetFootnotesFromShowIDRow, error)
 	GetValidLocations(ctx context.Context) ([]string, error)
+	ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error)
+	ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error)
 }

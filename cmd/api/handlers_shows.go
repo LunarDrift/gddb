@@ -371,6 +371,45 @@ func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Requ
 	respondWithJSON(w, http.StatusOK, results)
 }
 
+func (s *server) handleGetShowsFromTodaysDate(w http.ResponseWriter, r *http.Request) {
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromTodaysDate(r.Context(), database.GetShowsFromTodaysDateParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
+		respondWithError(w, http.StatusNotFound, "No shows found on today's date", nil)
+		return
+	}
+
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+	respondWithJSON(w, http.StatusOK, results)
+}
+
 func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request) {
 	val := r.URL.Query().Get("has_notes")
 
@@ -692,5 +731,23 @@ func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) 
 		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleGetVenueStats(w http.ResponseWriter, r *http.Request) {
+	venueStatRows, err := s.queries.ListVenueStats(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get venue stats", err)
+		return
+	}
+	results := []internal.ListVenueStatsRow{}
+	for _, row := range venueStatRows {
+		results = append(results, internal.ListVenueStatsRow{
+			City:        row.City,
+			Location:    row.Location,
+			Venue:       row.Venue,
+			ShowsPlayed: row.ShowsPlayed,
+		})
+	}
 	respondWithJSON(w, http.StatusOK, results)
 }

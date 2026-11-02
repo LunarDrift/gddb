@@ -1,6 +1,6 @@
 # Deadabase
 
-[![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](https://go.dev/)[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Go](https://img.shields.io/badge/Go-1.27-00ADD8?logo=go&logoColor=white)](https://go.dev/)[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Deadabase is a REST API for browsing and exploring Grateful Dead concert history.
 Search through thousands of shows by date, venue, song, or set name - with full
@@ -30,11 +30,6 @@ Many thanks to them for this wonderful data!
 - **sqlc:** type-safe SQL query generation
 - **Docker:** package dependencies together and make setup a simple command
 
-## ~~Live~~
-
-~~<https://deadabase.onrender.com>~~
-No longer being hosted publicly, sorry. Local-hosting only via Docker.
-
 ## Local Setup
 
 1. Clone the repo
@@ -46,6 +41,11 @@ No longer being hosted publicly, sorry. Local-hosting only via Docker.
 
 2. Edit the `.env.example` file with your own details and rename it to `.env`
 
+   **Note**: The _Today in GD History_ feature uses the database's current date,
+   so set your time zone in `DB_URL` using an IANA name such as `'America/New_York'`
+   or `'Europe/London'` (see the [list of tz database timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
+   If omitted, the database server's default is used (UTC in Docker).
+
    ```text
    # Database Credentials
    POSTGRES_USER=your_user
@@ -53,7 +53,7 @@ No longer being hosted publicly, sorry. Local-hosting only via Docker.
    POSTGRES_DB=your_db_name
 
    # Internal Docker Connection URL
-   DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable
+   DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable&timezone=your_timezone
    ```
 
 3. Run the docker command
@@ -65,6 +65,16 @@ No longer being hosted publicly, sorry. Local-hosting only via Docker.
    Use `--build` on first run or after any change to the Go source or Dockerfile,
    so `docker-compose` rebuilds the `deadabase:local` app image before starting
    the containers.
+
+## GUI Client
+
+GUI built with [Fyne](https://fyne.io/). After spinning up the database + API server
+in Docker, `go run ./cmd/gui` will launch the GUI client with various show search
+methods, a table of all song stats, and a table of all venue stats.
+
+![Example Screenshot](./examples/gddb1.png)
+![Example Screenshot](./examples/gddb2.png)
+![Example Screenshot](./examples/gddb3.png)
 
 ## API Endpoints (GET only)
 
@@ -85,6 +95,7 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 | `/shows?year=&location=`            | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
 | `/shows?city=`                      | List of shows filtered by city                                                                                              |
 | `/shows/random`                     | Get details for a random show                                                                                               |
+| `/shows/today`                      | List of shows played on today's date                                                                                        |
 | `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                        |
 | `/songs?venue=`                     | All songs played at a specific venue                                                                                        |
 | `/songs?played_lt=n`                | Songs played less than `n` times                                                                                            |

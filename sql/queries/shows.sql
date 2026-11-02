@@ -86,6 +86,22 @@ ORDER BY
 	sh.venue
 LIMIT @page_limit OFFSET @page_offset;
 
+-- name: GetShowsFromTodaysDate :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM
+  shows sh
+WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+  AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
+ORDER BY sh.show_date
+LIMIT @page_limit OFFSET @page_offset;
+
 -- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id;
 
@@ -235,3 +251,30 @@ LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetValidLocations :many
 SELECT DISTINCT LOWER(state) AS location FROM shows;
+
+-- name: GetAllVenues :many
+SELECT DISTINCT venue FROM shows ORDER BY venue;
+
+-- name: GetAllLocations :many
+SELECT state AS "location"
+FROM shows
+GROUP BY "location"
+ORDER BY
+  -- states first, then countries
+  CASE WHEN length(shows.state) = 2 THEN 0 ELSE 1 END,
+  "location";
+
+-- name: GetAllCities :many
+SELECT DISTINCT city FROM shows ORDER BY city;
+
+-- name: ListVenueStats :many
+SELECT
+  s.city,
+  s.state AS location,
+  s.venue,
+  COUNT(s.show_id) AS shows_played
+FROM shows s
+GROUP BY s.city, s.state, s.venue
+ORDER BY
+  CASE WHEN length(s.state) = 2 THEN 0 ELSE 1 END,
+  s.state, s.city, s.venue;

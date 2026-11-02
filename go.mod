@@ -1,14 +1,19 @@
 module github.com/LunarDrift/deadabase
 
-go 1.25.7
-
-require github.com/lib/pq v1.12.3
+go 1.27.1
 
 require (
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.12.3
 	github.com/lmittmann/tint v1.2.0
 	github.com/mattn/go-isatty v0.0.23
 	golang.org/x/time v0.15.0
 )
 
-require golang.org/x/sys v0.28.0 // indirect
+require (
+	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
+	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/schollz/progressbar/v3 v3.19.1 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/term v0.47.0 // indirect
+)

@@ -14,10 +14,18 @@ type fakeQuerier struct {
 	// Shows
 	allShowIDs                   []int32
 	allShowIDsErr                error
+	allVenues                    []string
+	allVenuesErr                 error
+	allLocations                 []string
+	allLocationsErr              error
+	allCities                    []string
+	allCitiesErr                 error
 	showFromIDRows               []database.GetShowFromIDRow
 	showFromIDErr                error
 	showFromDateRows             []database.GetShowFromDateRow
 	showFromDateErr              error
+	showsFromTodaysDateRows      []database.GetShowsFromTodaysDateRow
+	showsFromTodaysDateErr       error
 	showsBetweenDatesRows        []database.GetShowsBetweenDatesRow
 	showsBetweenDatesErr         error
 	showsFromSongNameRows        []database.GetShowsFromSongNameRow
@@ -38,6 +46,8 @@ type fakeQuerier struct {
 	showsWithNotesErr            error
 	showsWithoutNotesRows        []database.ShowsWithoutNotesRow
 	showsWithoutNotesErr         error
+	listVenueStats               []database.ListVenueStatsRow
+	listVenueStatsErr            error
 	// Songs
 	songStatsRow            database.SongStatsRow
 	songStatsErr            error
@@ -51,6 +61,8 @@ type fakeQuerier struct {
 	songsUniquePerCityErr   error
 	songsPlayedLessThanRows []database.SongsPlayedLessThanRow
 	songsPlayedLessThanErr  error
+	listSongStatsRow        []database.ListSongStatsRow
+	listSongStatsErr        error
 	// Other
 	validLocationRows []string
 	validLocationErr  error
@@ -58,8 +70,24 @@ type fakeQuerier struct {
 	footnoteErr       error
 }
 
+func (f *fakeQuerier) ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error) {
+	return f.listVenueStats, f.listVenueStatsErr
+}
+
+func (f *fakeQuerier) GetAllVenues(ctx context.Context) ([]string, error) {
+	return f.allVenues, f.allVenuesErr
+}
+
+func (f *fakeQuerier) GetAllLocations(ctx context.Context) ([]string, error) {
+	return f.allLocations, f.allLocationsErr
+}
+
 func (f *fakeQuerier) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 	return f.allShowIDs, f.allShowIDsErr
+}
+
+func (f *fakeQuerier) GetAllCities(ctx context.Context) ([]string, error) {
+	return f.allCities, f.allCitiesErr
 }
 
 func (f *fakeQuerier) GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error) {
@@ -68,6 +96,10 @@ func (f *fakeQuerier) GetShowFromID(ctx context.Context, showID int32) ([]databa
 
 func (f *fakeQuerier) GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error) {
 	return f.showFromDateRows, f.showFromDateErr
+}
+
+func (f *fakeQuerier) GetShowsFromTodaysDate(ctx context.Context, arg database.GetShowsFromTodaysDateParams) ([]database.GetShowsFromTodaysDateRow, error) {
+	return f.showsFromTodaysDateRows, f.showsFromTodaysDateErr
 }
 
 func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error) {
@@ -140,4 +172,8 @@ func (f *fakeQuerier) GetValidLocations(ctx context.Context) ([]string, error) {
 
 func (f *fakeQuerier) GetShowsFromCity(ctx context.Context, arg database.GetShowsFromCityParams) ([]database.GetShowsFromCityRow, error) {
 	return f.showsFromCityRows, f.showsFromCityErr
+}
+
+func (f *fakeQuerier) ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error) {
+	return f.listSongStatsRow, f.listSongStatsErr
 }

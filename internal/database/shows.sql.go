@@ -56,6 +56,66 @@ func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
 	return err
 }
 
+const getAllCities = `-- name: GetAllCities :many
+SELECT DISTINCT city FROM shows ORDER BY city
+`
+
+func (q *Queries) GetAllCities(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllCities)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var city string
+		if err := rows.Scan(&city); err != nil {
+			return nil, err
+		}
+		items = append(items, city)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllLocations = `-- name: GetAllLocations :many
+SELECT state AS "location"
+FROM shows
+GROUP BY "location"
+ORDER BY
+  -- states first, then countries
+  CASE WHEN length(shows.state) = 2 THEN 0 ELSE 1 END,
+  "location"
+`
+
+func (q *Queries) GetAllLocations(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllLocations)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var location string
+		if err := rows.Scan(&location); err != nil {
+			return nil, err
+		}
+		items = append(items, location)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllShowIDs = `-- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id
 `
@@ -73,6 +133,33 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 			return nil, err
 		}
 		items = append(items, show_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getAllVenues = `-- name: GetAllVenues :many
+SELECT DISTINCT venue FROM shows ORDER BY venue
+`
+
+func (q *Queries) GetAllVenues(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getAllVenues)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var venue string
+		if err := rows.Scan(&venue); err != nil {
+			return nil, err
+		}
+		items = append(items, venue)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err
@@ -548,6 +635,69 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, arg GetShowsFromSong
 	return items, nil
 }
 
+const getShowsFromTodaysDate = `-- name: GetShowsFromTodaysDate :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM
+  shows sh
+WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+  AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
+ORDER BY sh.show_date
+LIMIT $2 OFFSET $1
+`
+
+type GetShowsFromTodaysDateParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetShowsFromTodaysDateRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetShowsFromTodaysDate(ctx context.Context, arg GetShowsFromTodaysDateParams) ([]GetShowsFromTodaysDateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromTodaysDate, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromTodaysDateRow
+	for rows.Next() {
+		var i GetShowsFromTodaysDateRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowsFromYear = `-- name: GetShowsFromYear :many
 SELECT
   sh.show_id,
@@ -696,6 +846,54 @@ func (q *Queries) GetValidLocations(ctx context.Context) ([]string, error) {
 			return nil, err
 		}
 		items = append(items, location)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listVenueStats = `-- name: ListVenueStats :many
+SELECT
+  s.city,
+  s.state AS location,
+  s.venue,
+  COUNT(s.show_id) AS shows_played
+FROM shows s
+GROUP BY s.city, s.state, s.venue
+ORDER BY
+  CASE WHEN length(s.state) = 2 THEN 0 ELSE 1 END,
+  s.state, s.city, s.venue
+`
+
+type ListVenueStatsRow struct {
+	City        string
+	Location    string
+	Venue       string
+	ShowsPlayed int64
+}
+
+func (q *Queries) ListVenueStats(ctx context.Context) ([]ListVenueStatsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listVenueStats)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListVenueStatsRow
+	for rows.Next() {
+		var i ListVenueStatsRow
+		if err := rows.Scan(
+			&i.City,
+			&i.Location,
+			&i.Venue,
+			&i.ShowsPlayed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
 	}
 	if err := rows.Close(); err != nil {
 		return nil, err

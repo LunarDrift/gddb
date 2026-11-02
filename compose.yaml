@@ -28,10 +28,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["./goose", "-dir", "sql/schema", "postgres", "${DB_URL}" , "up"]
+    command: ["./goose", "-dir", "sql/schema", "postgres", "${DB_URL}", "up"]
 
   import:
     <<: *app
+    tty: true
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -40,6 +41,7 @@ services:
   api:
     <<: *app
     tty: true
+    command: ["./api"]
     depends_on:
       import:
         condition: service_completed_successfully

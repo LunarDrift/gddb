@@ -298,3 +298,27 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 		LastPlayed:  songStatRow.LastPlayed.Format(time.DateOnly),
 	})
 }
+
+func (s *server) handleGetAllSongStats(w http.ResponseWriter, r *http.Request) {
+	songStatsRows, err := s.queries.ListSongStats(r.Context())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "could not get song stats", err)
+		return
+	}
+	results := []internal.ListSongStatsRow{}
+	for _, row := range songStatsRows {
+		song := internal.ListSongStatsRow{
+			Title:       row.Title,
+			TimesPlayed: row.TimesPlayed,
+			FirstPlayed: row.FirstPlayed,
+			LastPlayed:  row.LastPlayed,
+			Set1:        row.Set1,
+			Set23:       row.Set23,
+			Encore:      row.Encore,
+			Acoustic:    row.Acoustic,
+			Electric:    row.Electric,
+		}
+		results = append(results, song)
+	}
+	respondWithJSON(w, http.StatusOK, results)
+}

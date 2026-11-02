@@ -3,3 +3,6 @@ backups
 *.dump
 .env
 .justfile
+cmd/gui
+go.work
+go.work.sum
