@@ -40,6 +40,7 @@ Many thanks to them for this wonderful data!
    ```
 
 2. Edit the `.env.example` file with your own details and rename it to `.env`
+
    **Note**: The _Today in GD History_ feature uses the database's current date,
    so set your time zone in `DB_URL` using an IANA name such as 'America/New_York'
    or 'Europe/London' (see the [list of tz database timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
