@@ -24,6 +24,8 @@ type fakeQuerier struct {
 	showFromIDErr                error
 	showFromDateRows             []database.GetShowFromDateRow
 	showFromDateErr              error
+	showsFromTodaysDateRows      []database.GetShowsFromTodaysDateRow
+	showsFromTodaysDateErr       error
 	showsBetweenDatesRows        []database.GetShowsBetweenDatesRow
 	showsBetweenDatesErr         error
 	showsFromSongNameRows        []database.GetShowsFromSongNameRow
@@ -94,6 +96,10 @@ func (f *fakeQuerier) GetShowFromID(ctx context.Context, showID int32) ([]databa
 
 func (f *fakeQuerier) GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error) {
 	return f.showFromDateRows, f.showFromDateErr
+}
+
+func (f *fakeQuerier) GetShowsFromTodaysDate(ctx context.Context, arg database.GetShowsFromTodaysDateParams) ([]database.GetShowsFromTodaysDateRow, error) {
+	return f.showsFromTodaysDateRows, f.showsFromTodaysDateErr
 }
 
 func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error) {

@@ -86,6 +86,22 @@ ORDER BY
 	sh.venue
 LIMIT @page_limit OFFSET @page_offset;
 
+-- name: GetShowsFromTodaysDate :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM
+  shows sh
+WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+  AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
+ORDER BY sh.show_date
+LIMIT @page_limit OFFSET @page_offset;
+
 -- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id;
 

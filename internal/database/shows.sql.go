@@ -635,6 +635,69 @@ func (q *Queries) GetShowsFromSongName(ctx context.Context, arg GetShowsFromSong
 	return items, nil
 }
 
+const getShowsFromTodaysDate = `-- name: GetShowsFromTodaysDate :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM
+  shows sh
+WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+  AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
+ORDER BY sh.show_date
+LIMIT $2 OFFSET $1
+`
+
+type GetShowsFromTodaysDateParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetShowsFromTodaysDateRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetShowsFromTodaysDate(ctx context.Context, arg GetShowsFromTodaysDateParams) ([]GetShowsFromTodaysDateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromTodaysDate, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromTodaysDateRow
+	for rows.Next() {
+		var i GetShowsFromTodaysDateRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowsFromYear = `-- name: GetShowsFromYear :many
 SELECT
   sh.show_id,

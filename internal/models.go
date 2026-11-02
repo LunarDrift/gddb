@@ -145,6 +145,7 @@ type ShowQuerier interface {
 	GetAllLocations(ctx context.Context) ([]string, error)
 	GetAllCities(ctx context.Context) ([]string, error)
 	GetShowFromDate(ctx context.Context, showDate time.Time) ([]database.GetShowFromDateRow, error)
+	GetShowsFromTodaysDate(ctx context.Context, arg database.GetShowsFromTodaysDateParams) ([]database.GetShowsFromTodaysDateRow, error)
 	GetShowFromID(ctx context.Context, showID int32) ([]database.GetShowFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
 	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
