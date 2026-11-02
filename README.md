@@ -90,6 +90,7 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 | `/shows?year=&location=`            | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
 | `/shows?city=`                      | List of shows filtered by city                                                                                              |
 | `/shows/random`                     | Get details for a random show                                                                                               |
+| `/shows/today`                      | List of shows played on today's date                                                                                        |
 | `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                        |
 | `/songs?venue=`                     | All songs played at a specific venue                                                                                        |
 | `/songs?played_lt=n`                | Songs played less than `n` times                                                                                            |
