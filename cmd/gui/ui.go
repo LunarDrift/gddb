@@ -12,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	xtheme "fyne.io/x/fyne/theme"
 	xwidget "fyne.io/x/fyne/widget"
 )
 
@@ -20,7 +21,9 @@ func newApp() *App {
 	a.shows = &showsTab{app: a, results: &showPage{}}
 	a.songs = &songsTab{app: a, allSongStats: []songStats{}, visibleSongs: []songStats{}}
 	a.venues = &venuesTab{app: a, allVenueStats: []venueStats{}, visibleVenues: []venueStats{}}
-	a.win = app.New().NewWindow("Deadabase")
+	fyneApp := app.New()
+	fyneApp.Settings().SetTheme(xtheme.AdwaitaTheme())
+	a.win = fyneApp.NewWindow("Deadabase")
 	a.win.Resize(fyne.NewSize(1200, 875))
 	a.win.SetContent(a.buildUI())
 
