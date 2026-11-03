@@ -16,6 +16,11 @@ type App struct {
 	shows  *showsTab
 	songs  *songsTab
 	venues *venuesTab
+
+	allCities    []string
+	allVenues    []string
+	allLocations []string
+	allSongs     []string
 }
 
 type showsTab struct {
@@ -88,6 +93,36 @@ func absoluteURL(u string) string {
 
 func (a *App) showError(err error) {
 	dialog.ShowError(err, a.win)
+}
+
+func (a *App) loadLookups() {
+	venues, err := getAllVenues()
+	if err != nil {
+		fyne.Do(func() { a.showError(err) })
+		return
+	}
+	cities, err := getAllCities()
+	if err != nil {
+		fyne.Do(func() { a.showError(err) })
+		return
+	}
+	locations, err := getAllLocations()
+	if err != nil {
+		fyne.Do(func() { a.showError(err) })
+		return
+	}
+	songs, err := getAllSongNames()
+	if err != nil {
+		fyne.Do(func() { a.showError(err) })
+		return
+	}
+
+	fyne.Do(func() {
+		a.allVenues = venues
+		a.allCities = cities
+		a.allLocations = locations
+		a.allSongs = songs
+	})
 }
 
 // ---------------- Searches ----------------

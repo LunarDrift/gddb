@@ -148,38 +148,38 @@ func getAllVenueStats() ([]venueStats, error) {
 
 // ----- Helpers -----
 
-func getAllVenues() []string {
+func getAllVenues() ([]string, error) {
 	venues, err := getJSON[internal.AllVenues]("/all-venues")
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return venues.Venues
+	return venues.Venues, nil
 }
 
-func getAllLocations() []string {
+func getAllLocations() ([]string, error) {
 	locations, err := getJSON[internal.AllLocations]("/all-locations")
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return locations.Locations
+	return locations.Locations, nil
 }
 
-func getAllCities() []string {
+func getAllCities() ([]string, error) {
 	cities, err := getJSON[internal.AllCities]("/all-cities")
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return cities.Cities
+	return cities.Cities, nil
 }
 
-func getAllSongNames() []string {
+func getAllSongNames() ([]string, error) {
 	songStats, err := getJSON[[]songStats]("/stats/all-songs")
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	songs := make([]string, 0, len(songStats))
 	for _, s := range songStats {
 		songs = append(songs, s.Title)
 	}
-	return songs
+	return songs, nil
 }

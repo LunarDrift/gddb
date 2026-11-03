@@ -15,13 +15,6 @@ import (
 	xwidget "fyne.io/x/fyne/widget"
 )
 
-var (
-	venues    = getAllVenues()
-	locations = getAllLocations()
-	cities    = getAllCities()
-	songs     = getAllSongNames()
-)
-
 func newApp() *App {
 	a := &App{}
 	a.shows = &showsTab{app: a, results: &showPage{}}
@@ -129,7 +122,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	yearBtn := widget.NewButtonWithIcon("Search by year", theme.SearchIcon(), func() { s.searchByYear(s.yearSelect.Selected) })
 
 	// By song
-	s.songSearch = xwidget.NewCompletionEntry(songs)
+	s.songSearch = xwidget.NewCompletionEntry(s.app.allSongs)
 	songClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
 		s.songSearch.SetText("")
 	})
@@ -138,39 +131,54 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.songSearch.SetPlaceHolder("Song...")
 	s.songSearch.OnSubmitted = s.searchBySong
 	s.songSearch.OnChanged = func(input string) {
-		s.songSearch.SetOptions(s.songFilter(input))
+		opts := filterOptions(s.app.allSongs, input)
+		s.songSearch.SetOptions(opts)
+		if len(opts) == 0 {
+			s.songSearch.HideCompletion()
+			return
+		}
 		s.songSearch.ShowCompletion()
 	}
 	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { s.searchBySong(s.songSearch.Text) })
 
 	// By venue
-	s.venueSearch = xwidget.NewCompletionEntry(venues)
+	s.venueSearch = xwidget.NewCompletionEntry(s.app.allVenues)
 	venueClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() { s.venueSearch.SetText("") })
 	venueClearBtn.Importance = widget.LowImportance
 	s.venueSearch.ActionItem = venueClearBtn
 	s.venueSearch.PlaceHolder = "Venue..."
 	s.venueSearch.OnSubmitted = s.searchByVenue
 	s.venueSearch.OnChanged = func(input string) {
-		s.venueSearch.SetOptions(s.venueFilter(input))
+		opts := filterOptions(s.app.allVenues, input)
+		s.venueSearch.SetOptions(opts)
+		if len(opts) == 0 {
+			s.venueSearch.HideCompletion()
+			return
+		}
 		s.venueSearch.ShowCompletion()
 	}
 	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSearch.Text) })
 
 	// By city
-	s.citySearch = xwidget.NewCompletionEntry(cities)
+	s.citySearch = xwidget.NewCompletionEntry(s.app.allCities)
 	cityClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() { s.citySearch.SetText("") })
 	cityClearBtn.Importance = widget.LowImportance
 	s.citySearch.ActionItem = cityClearBtn
 	s.citySearch.SetPlaceHolder("City...")
 	s.citySearch.OnSubmitted = s.searchByCity
 	s.citySearch.OnChanged = func(input string) {
-		s.citySearch.SetOptions(s.cityFilter(input))
+		opts := filterOptions(s.app.allCities, input)
+		s.citySearch.SetOptions(opts)
+		if len(opts) == 0 {
+			s.citySearch.HideCompletion()
+			return
+		}
 		s.citySearch.ShowCompletion()
 	}
 	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.citySearch.Text) })
 
 	// By location
-	s.locationSearch = widget.NewSelect(locations, nil)
+	s.locationSearch = widget.NewSelect(s.app.allLocations, nil)
 	s.locationSearch.PlaceHolder = "Locations (State/Country)"
 	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationSearch.Selected) })
 
@@ -379,44 +387,15 @@ func notesLabels() []string {
 	return []string{"True", "False"}
 }
 
-func (s *showsTab) venueFilter(input string) []string {
+func filterOptions(all []string, input string) []string {
 	if input == "" {
-		s.venueSearch.SetOptions(venues)
-		return nil
+		return all
 	}
+	needle := strings.ToLower(strings.TrimSpace(input))
 	var filtered []string
-	for _, venue := range venues {
-		if strings.Contains(strings.ToLower(venue), strings.ToLower(input)) {
-			filtered = append(filtered, venue)
-		}
-	}
-	// s.venueSearch.SetOptions(filtered)
-	return filtered
-}
-
-func (s *showsTab) cityFilter(input string) []string {
-	if input == "" {
-		s.citySearch.SetOptions(cities)
-		return nil
-	}
-	var filtered []string
-	for _, city := range cities {
-		if strings.Contains(strings.ToLower(city), strings.ToLower(input)) {
-			filtered = append(filtered, city)
-		}
-	}
-	return filtered
-}
-
-func (s *showsTab) songFilter(input string) []string {
-	if input == "" {
-		s.songSearch.SetOptions(songs)
-		return nil
-	}
-	var filtered []string
-	for _, song := range songs {
-		if strings.Contains(strings.ToLower(song), strings.ToLower(input)) {
-			filtered = append(filtered, song)
+	for _, item := range all {
+		if strings.Contains(strings.ToLower(item), needle) {
+			filtered = append(filtered, item)
 		}
 	}
 	return filtered
