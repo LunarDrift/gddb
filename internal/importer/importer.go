@@ -121,7 +121,7 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 			currentProgress := *songCounter
 
 			if currentProgress%2303 == 0 || currentProgress == totalSongs {
-				log.Printf("%d/%d songs (%.2f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
+				log.Printf("%d/%d songs (%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
 			}
 		}
 	}

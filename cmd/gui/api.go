@@ -30,7 +30,7 @@ var (
 // getJSON GETs u and decodes the JSON body into a T
 func getJSON[T any](u string) (T, error) {
 	var out T
-	resp, err := httpClient.Get(u)
+	resp, err := httpClient.Get(absoluteURL(u))
 	if err != nil {
 		return out, err
 	}
@@ -60,61 +60,61 @@ func fetchPage[T any](u string) (*T, error) {
 
 // ----- Shows -----
 
-func searchSongs(song string) (*showPage, error) {
-	if song == "" {
-		return nil, errors.New("enter a song name")
-	}
-	return fetchPage[showPage](absoluteURL("/shows?song=") + url.QueryEscape(song))
-}
-
-func searchVenues(venue string) (*showPage, error) {
-	if venue == "" {
-		return nil, errors.New("enter a venue name")
-	}
-	return fetchPage[showPage](absoluteURL("/shows?venue=") + url.QueryEscape(venue))
-}
-
-func searchCities(city string) (*showPage, error) {
-	if city == "" {
-		return nil, errors.New("enter a city name")
-	}
-	return fetchPage[showPage](absoluteURL("/shows?city=") + url.QueryEscape(city))
-}
-
-func searchLocations(location string) (*showPage, error) {
-	if location == "" {
-		return nil, errors.New("enter a location")
-	}
-	return fetchPage[showPage](absoluteURL("/shows?location=") + url.QueryEscape(location))
-}
-
-func searchSetNames(setName string) (*showPage, error) {
-	return fetchPage[showPage](absoluteURL("/shows?set_name=") + url.QueryEscape(setName))
-}
-
-func searchNotes(option string) (*showPage, error) {
-	return fetchPage[showPage](absoluteURL("/shows?has_notes=") + url.QueryEscape(option))
-}
-
 func getShowByID(id string) (internal.ShowResponse, error) {
-	show, err := getJSON[internal.ShowResponse](absoluteURL("/shows/") + url.PathEscape(id))
+	show, err := getJSON[internal.ShowResponse]("/shows/" + url.PathEscape(id))
 	if errors.Is(err, errNotFound) {
 		return show, fmt.Errorf("no show with ID %s", id)
 	}
 	return show, err
 }
 
+func searchSongs(song string) (*showPage, error) {
+	if song == "" {
+		return nil, errors.New("enter a song name")
+	}
+	return fetchPage[showPage]("/shows?song=" + url.QueryEscape(song))
+}
+
+func searchVenues(venue string) (*showPage, error) {
+	if venue == "" {
+		return nil, errors.New("enter a venue name")
+	}
+	return fetchPage[showPage]("/shows?venue=" + url.QueryEscape(venue))
+}
+
+func searchCities(city string) (*showPage, error) {
+	if city == "" {
+		return nil, errors.New("enter a city name")
+	}
+	return fetchPage[showPage]("/shows?city=" + url.QueryEscape(city))
+}
+
+func searchLocations(location string) (*showPage, error) {
+	if location == "" {
+		return nil, errors.New("enter a location")
+	}
+	return fetchPage[showPage]("/shows?location=" + url.QueryEscape(location))
+}
+
+func searchSetNames(setName string) (*showPage, error) {
+	return fetchPage[showPage]("/shows?set_name=" + url.QueryEscape(setName))
+}
+
+func searchNotes(option string) (*showPage, error) {
+	return fetchPage[showPage]("/shows?has_notes=" + url.QueryEscape(option))
+}
+
 func searchByYear(year string) (*showPage, error) {
-	return fetchPage[showPage](absoluteURL("/shows?year=") + url.QueryEscape(year))
+	return fetchPage[showPage]("/shows?year=" + url.QueryEscape(year))
 }
 
 func getShowsFromTodaysDate() (*showPage, error) {
-	return fetchPage[showPage](absoluteURL("/shows/today"))
+	return fetchPage[showPage]("/shows/today")
 }
 
 // getShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)
 func getShowsByDate(date string) ([]internal.ShowResponse, error) {
-	shows, err := getJSON[[]internal.ShowResponse](absoluteURL("/shows/") + url.PathEscape(date))
+	shows, err := getJSON[[]internal.ShowResponse]("/shows/" + url.PathEscape(date))
 	if errors.Is(err, errNotFound) || (err == nil && len(shows) == 0) {
 		return nil, fmt.Errorf("no show found on %s", date)
 	}
@@ -126,7 +126,7 @@ func getShowsByDate(date string) ([]internal.ShowResponse, error) {
 
 func getRandomShow() ([]internal.ShowResponse, error) {
 	out := []internal.ShowResponse{}
-	show, err := getJSON[internal.ShowResponse](absoluteURL("/shows/random"))
+	show, err := getJSON[internal.ShowResponse]("/shows/random")
 	if err != nil {
 		return nil, err
 	}
@@ -137,19 +137,19 @@ func getRandomShow() ([]internal.ShowResponse, error) {
 // ----- Songs -----
 
 func getAllSongStats() ([]songStats, error) {
-	return getJSON[[]songStats](absoluteURL("/stats/all-songs"))
+	return getJSON[[]songStats]("/stats/all-songs")
 }
 
 // ----- Venues -----
 
 func getAllVenueStats() ([]venueStats, error) {
-	return getJSON[[]venueStats](absoluteURL("/stats/venues"))
+	return getJSON[[]venueStats]("/stats/venues")
 }
 
 // ----- Helpers -----
 
 func getAllVenues() []string {
-	venues, err := getJSON[internal.AllVenues](absoluteURL("/all-venues"))
+	venues, err := getJSON[internal.AllVenues]("/all-venues")
 	if err != nil {
 		return nil
 	}
@@ -157,7 +157,7 @@ func getAllVenues() []string {
 }
 
 func getAllLocations() []string {
-	locations, err := getJSON[internal.AllLocations](absoluteURL("/all-locations"))
+	locations, err := getJSON[internal.AllLocations]("/all-locations")
 	if err != nil {
 		return nil
 	}
@@ -165,7 +165,7 @@ func getAllLocations() []string {
 }
 
 func getAllCities() []string {
-	cities, err := getJSON[internal.AllCities](absoluteURL("/all-cities"))
+	cities, err := getJSON[internal.AllCities]("/all-cities")
 	if err != nil {
 		return nil
 	}
