@@ -12,6 +12,7 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
+	xwidget "fyne.io/x/fyne/widget"
 )
 
 var (
@@ -138,10 +139,17 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { s.searchBySong(s.songEntry.Text) })
 
 	// By venue
-	s.venueSearch = widget.NewSelectEntry(venues)
-	s.venueSearch.PlaceHolder = "Start typing to filter venues"
+	s.venueSearch = xwidget.NewCompletionEntry(venues)
+	s.venueSearch.PlaceHolder = "Venue..."
 	s.venueSearch.OnSubmitted = s.searchByVenue
-	s.venueSearch.OnChanged = s.venueFilter
+	s.venueSearch.OnChanged = func(input string) {
+		if len(input) < 2 {
+			s.venueSearch.HideCompletion()
+			return
+		}
+		s.venueSearch.SetOptions(s.venueFilter(input))
+		s.venueSearch.ShowCompletion()
+	}
 	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSearch.Text) })
 
 	// By city
@@ -361,10 +369,10 @@ func notesLabels() []string {
 	return []string{"True", "False"}
 }
 
-func (s *showsTab) venueFilter(input string) {
+func (s *showsTab) venueFilter(input string) []string {
 	if input == "" {
 		s.venueSearch.SetOptions(venues)
-		return
+		return nil
 	}
 	var filtered []string
 	for _, venue := range venues {
@@ -372,7 +380,8 @@ func (s *showsTab) venueFilter(input string) {
 			filtered = append(filtered, venue)
 		}
 	}
-	s.venueSearch.SetOptions(filtered)
+	// s.venueSearch.SetOptions(filtered)
+	return filtered
 }
 
 func (s *showsTab) cityFilter(input string) {

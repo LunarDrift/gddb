@@ -7,6 +7,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
+	xwidget "fyne.io/x/fyne/widget"
 	"github.com/LunarDrift/deadabase/internal"
 )
 
@@ -25,7 +26,7 @@ type showsTab struct {
 	monthSelect    *widget.Select
 	daySelect      *widget.Select
 	songEntry      *widget.Entry
-	venueSearch    *widget.SelectEntry
+	venueSearch    *xwidget.CompletionEntry
 	citySearch     *widget.SelectEntry
 	locationSearch *widget.Select
 	setNameSelect  *widget.Select
