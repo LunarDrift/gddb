@@ -171,3 +171,15 @@ func getAllCities() []string {
 	}
 	return cities.Cities
 }
+
+func getAllSongNames() []string {
+	songStats, err := getJSON[[]songStats]("/stats/all-songs")
+	if err != nil {
+		return nil
+	}
+	songs := make([]string, 0, len(songStats))
+	for _, s := range songStats {
+		songs = append(songs, s.Title)
+	}
+	return songs
+}
