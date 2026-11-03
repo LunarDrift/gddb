@@ -122,6 +122,7 @@ func (a *App) loadLookups() {
 		a.allCities = cities
 		a.allLocations = locations
 		a.allSongs = songs
+		a.shows.locationSearch.SetOptions(locations)
 	})
 }
 
