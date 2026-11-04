@@ -1,0 +1,2 @@
+ea52854ae1d0f1403ec2f66cb186905e386472f6856531b5958681fbe5b185d7  cmd/gui/Deadabase-linux.tar.xz
+2f3db5956c8351446d4bdd984c6e96bbf2776a58c81f8712e5489c5693e8a477  cmd/gui/Deadabase-windows.exe
