@@ -191,7 +191,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	setNameBtn := widget.NewButtonWithIcon("Search by set", theme.SearchIcon(), s.searchBySetName)
 
 	// By notes
-	s.notesSelect = widget.NewSelect(notesLabels(), nil)
+	s.notesSelect = widget.NewSelect([]string{"True", "False"}, nil)
 	s.notesSelect.PlaceHolder = "Has Notes"
 	notesBtn := widget.NewButtonWithIcon("Search notes", theme.SearchIcon(), s.searchByNotes)
 
@@ -384,10 +384,6 @@ func setLabels() []string {
 		out[i] = formatSetName(name)
 	}
 	return out
-}
-
-func notesLabels() []string {
-	return []string{"True", "False"}
 }
 
 func filterOptions(all []string, input string) []string {
