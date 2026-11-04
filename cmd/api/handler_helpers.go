@@ -93,15 +93,13 @@ func (s *server) buildShowResponse(r *http.Request, parsedShowRows []internal.Sh
 	if len(parsedShowRows) > 0 && parsedShowRows[0].RawEntry == "" {
 		row := parsedShowRows[0]
 		return internal.ShowWithNoSetlist{
-			ShowMeta: internal.ShowMeta{
-				ShowID:   row.ShowID,
-				Date:     row.Date.Format(time.DateOnly),
-				Venue:    row.Venue,
-				City:     row.City,
-				Location: row.Location,
-				Notes:    row.Notes,
-			},
-			Message: "No setlist available for this show",
+			ShowID:   row.ShowID,
+			Date:     row.Date.Format(time.DateOnly),
+			Venue:    row.Venue,
+			City:     row.City,
+			Location: row.Location,
+			Notes:    row.Notes,
+			Message:  "No setlist available for this show",
 		}, nil
 	}
 
