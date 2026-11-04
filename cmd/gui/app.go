@@ -84,13 +84,6 @@ func async[T any](a *App, work func() (T, error), done func(T)) {
 	}()
 }
 
-func absoluteURL(u string) string {
-	if strings.HasPrefix(u, "/") {
-		return baseURL + u
-	}
-	return u
-}
-
 func (a *App) showError(err error) {
 	dialog.ShowError(err, a.win)
 }

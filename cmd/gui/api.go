@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/LunarDrift/deadabase/internal"
@@ -26,6 +27,13 @@ var (
 
 	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 )
+
+func absoluteURL(u string) string {
+	if strings.HasPrefix(u, "/") {
+		return baseURL + u
+	}
+	return u
+}
 
 // getJSON GETs u and decodes the JSON body into a T
 func getJSON[T any](u string) (T, error) {
