@@ -102,14 +102,11 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By ID
 	s.idEntry = widget.NewEntry()
-	idClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-		s.idEntry.SetText("")
-	})
-	idClearBtn.Importance = widget.LowImportance
-	s.idEntry.ActionItem = idClearBtn
+	idSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByID(s.idEntry.Text) })
+	idSearchBtn.Importance = widget.LowImportance
+	s.idEntry.ActionItem = idSearchBtn
 	s.idEntry.SetPlaceHolder("Enter a show ID")
 	s.idEntry.OnSubmitted = s.searchByID
-	idBtn := widget.NewButtonWithIcon("Search ID", theme.SearchIcon(), func() { s.searchByID(s.idEntry.Text) })
 
 	// By date
 	s.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
@@ -126,11 +123,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By song
 	s.songSearch = xwidget.NewCompletionEntry(s.app.allSongs)
-	songClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() {
-		s.songSearch.SetText("")
-	})
-	songClearBtn.Importance = widget.LowImportance
-	s.songSearch.ActionItem = songClearBtn
+	songSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchBySong(s.songSearch.Text) })
+	songSearchBtn.Importance = widget.LowImportance
+	s.songSearch.ActionItem = songSearchBtn
 	s.songSearch.SetPlaceHolder("Song...")
 	s.songSearch.OnSubmitted = s.searchBySong
 	s.songSearch.OnChanged = func(input string) {
@@ -142,13 +137,12 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		}
 		s.songSearch.ShowCompletion()
 	}
-	songBtn := widget.NewButtonWithIcon("Search song", theme.SearchIcon(), func() { s.searchBySong(s.songSearch.Text) })
 
 	// By venue
 	s.venueSearch = xwidget.NewCompletionEntry(s.app.allVenues)
-	venueClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() { s.venueSearch.SetText("") })
-	venueClearBtn.Importance = widget.LowImportance
-	s.venueSearch.ActionItem = venueClearBtn
+	venueSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByVenue(s.venueSearch.Text) })
+	venueSearchBtn.Importance = widget.LowImportance
+	s.venueSearch.ActionItem = venueSearchBtn
 	s.venueSearch.PlaceHolder = "Venue..."
 	s.venueSearch.OnSubmitted = s.searchByVenue
 	s.venueSearch.OnChanged = func(input string) {
@@ -160,13 +154,12 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		}
 		s.venueSearch.ShowCompletion()
 	}
-	venueBtn := widget.NewButtonWithIcon("Search venue", theme.SearchIcon(), func() { s.searchByVenue(s.venueSearch.Text) })
 
 	// By city
 	s.citySearch = xwidget.NewCompletionEntry(s.app.allCities)
-	cityClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() { s.citySearch.SetText("") })
-	cityClearBtn.Importance = widget.LowImportance
-	s.citySearch.ActionItem = cityClearBtn
+	citySearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByCity(s.citySearch.Text) })
+	citySearchBtn.Importance = widget.LowImportance
+	s.citySearch.ActionItem = citySearchBtn
 	s.citySearch.SetPlaceHolder("City...")
 	s.citySearch.OnSubmitted = s.searchByCity
 	s.citySearch.OnChanged = func(input string) {
@@ -178,56 +171,73 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		}
 		s.citySearch.ShowCompletion()
 	}
-	cityBtn := widget.NewButtonWithIcon("Search city", theme.SearchIcon(), func() { s.searchByCity(s.citySearch.Text) })
 
 	// By location
-	s.locationSearch = widget.NewSelect(s.app.allLocations, nil)
+	s.locationSearch = xwidget.NewCompletionEntry(s.app.allLocations)
+	locationSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByLocation(s.locationSearch.Text) })
+	locationSearchBtn.Importance = widget.LowImportance
+	s.locationSearch.ActionItem = locationSearchBtn
 	s.locationSearch.PlaceHolder = "Locations (State/Country)"
-	locBtn := widget.NewButtonWithIcon("Search location", theme.SearchIcon(), func() { s.searchByLocation(s.locationSearch.Selected) })
+	s.locationSearch.OnSubmitted = s.searchByLocation
+	s.locationSearch.OnChanged = func(input string) {
+		opts := filterOptions(s.app.allLocations, input)
+		s.locationSearch.SetOptions(opts)
+		if len(opts) == 0 {
+			s.locationSearch.HideCompletion()
+			return
+		}
+		s.locationSearch.ShowCompletion()
+	}
 
 	// By set name
 	s.setNameSelect = widget.NewSelect(setLabels(), nil)
 	s.setNameSelect.PlaceHolder = "Sets"
-	setNameBtn := widget.NewButtonWithIcon("Search by set", theme.SearchIcon(), s.searchBySetName)
+	s.setNameSelect.OnChanged = func(set string) { s.searchBySetName() }
 
 	// By notes
 	s.notesSelect = widget.NewSelect([]string{"True", "False"}, nil)
 	s.notesSelect.PlaceHolder = "Has Notes"
-	notesBtn := widget.NewButtonWithIcon("Has notes", theme.SearchIcon(), s.searchByNotes)
+	s.notesSelect.OnChanged = func(hasNotes string) { s.searchByNotes() }
 
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
-	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
 
 	s.notesSearch = widget.NewEntry()
-	notesClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() { s.notesSearch.SetText("") })
+	notesClearBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShowNotes(s.notesSearch.Text) })
 	notesClearBtn.Importance = widget.LowImportance
 	s.notesSearch.ActionItem = notesClearBtn
 	s.notesSearch.PlaceHolder = "Search for term in notes..."
 	s.notesSearch.OnSubmitted = s.searchShowNotes
-	notesSearchBtn := widget.NewButton("Search notes", func() { s.searchShowNotes(s.notesSearch.Text) })
+
+	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn)
+	quickActionsAccordion := widget.NewAccordion(widget.NewAccordionItem("Quick Actions", quickActions))
+	quickActionsAccordion.Open(0)
+
+	idDate := container.NewVBox(s.idEntry, datePickers, dateBtn, yearBtn)
+	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date Searches", idDate))
+	idDateAccordion.Open(0)
+
+	songSearch := container.NewVBox(s.songSearch)
+	songAccordion := widget.NewAccordion(widget.NewAccordionItem("Shows From Song Name", songSearch))
+	songAccordion.Open(0)
+
+	venueLocation := container.NewVBox(s.venueSearch, s.locationSearch, s.citySearch)
+	venueLocationAccordion := widget.NewAccordion(widget.NewAccordionItem("Venue & Location", venueLocation))
+	venueLocationAccordion.Open(0)
+
+	otherSearches := container.NewVBox(s.notesSearch, setAndNotes)
+	otherSearchesAccordion := widget.NewAccordion(widget.NewAccordionItem("Other Searches", otherSearches))
+	otherSearchesAccordion.Open(0)
 
 	return container.NewVBox(
+		quickActionsAccordion,
 		layout.NewSpacer(),
-		randShowBtn,
+		idDateAccordion,
 		layout.NewSpacer(),
-		todayBtn,
+		songAccordion,
 		layout.NewSpacer(),
-		s.idEntry, idBtn,
+		venueLocationAccordion,
 		layout.NewSpacer(),
-		datePickers, dateBtn,
-		yearBtn,
-		layout.NewSpacer(),
-		s.songSearch, songBtn,
-		layout.NewSpacer(),
-		s.venueSearch, venueBtn,
-		layout.NewSpacer(),
-		s.citySearch, cityBtn,
-		layout.NewSpacer(),
-		s.locationSearch, locBtn,
-		layout.NewSpacer(),
-		setAndNotes, setAndNotesBtns,
-		layout.NewSpacer(),
-		s.notesSearch, notesSearchBtn,
+		otherSearchesAccordion,
 		layout.NewSpacer(),
 	)
 }

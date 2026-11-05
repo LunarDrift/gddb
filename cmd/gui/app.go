@@ -33,7 +33,7 @@ type showsTab struct {
 	songSearch     *xwidget.CompletionEntry
 	venueSearch    *xwidget.CompletionEntry
 	citySearch     *xwidget.CompletionEntry
-	locationSearch *widget.Select
+	locationSearch *xwidget.CompletionEntry
 	setNameSelect  *widget.Select
 	notesSelect    *widget.Select
 	notesSearch    *widget.Entry

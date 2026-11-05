@@ -23,7 +23,7 @@ type (
 var (
 	httpClient = &http.Client{Timeout: 10 * time.Second}
 
-	errNotFound = errors.New("not found")
+	errNotFound = errors.New("no results found")
 
 	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 )

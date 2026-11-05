@@ -31,7 +31,7 @@ func formatShows(data []internal.ShowResponse) showText {
 	var sets, notes, location strings.Builder
 	for i, show := range data {
 		fmt.Fprintf(&sets, "Show ID: %v\n", show.ShowID)
-		fmt.Fprintf(&location, "Location(s): %v - %v, %v\n", show.Venue, show.City, show.Location)
+		fmt.Fprintf(&location, "Location(s): %v · %v, %v\n", show.Venue, show.City, show.Location)
 		if show.Notes != "" {
 			fmt.Fprintf(&sets, "Notes: %v\n", show.Notes)
 		}
