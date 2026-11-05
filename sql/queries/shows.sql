@@ -278,3 +278,17 @@ GROUP BY s.city, s.state, s.venue
 ORDER BY
   CASE WHEN length(s.state) = 2 THEN 0 ELSE 1 END,
   s.state, s.city, s.venue;
+
+-- name: SearchShowNotes :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+WHERE sh.notes ILIKE @query
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -45,6 +46,9 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 
 	case query.Has("start_date") || query.Has("end_date"):
 		s.handleGetShowsBetweenDates(w, r)
+
+	case query.Has("notes"):
+		s.handleSearchShowNotes(w, r)
 
 	default:
 		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&location", nil)
@@ -675,6 +679,53 @@ func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Reque
 
 	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
 
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleSearchShowNotes(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query().Get("notes")
+	if query == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing 'notes' parameter", nil)
+		return
+	}
+	searchTerm := fuzzyPattern(query)
+
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.SearchShowNotes(r.Context(), database.SearchShowNotesParams{
+		Query:      sql.NullString{String: searchTerm, Valid: searchTerm != ""},
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
+		respondWithError(w, http.StatusNotFound, fmt.Sprintf("No show found with %q in its show notes", searchTerm), nil)
+		return
+	}
+
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
 	results := internal.Paginated[internal.ShowMeta]{
 		Count:    showRows[0].Count,
 		Next:     next,

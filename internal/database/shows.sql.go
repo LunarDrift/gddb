@@ -970,6 +970,68 @@ func (q *Queries) SearchByVenue(ctx context.Context, arg SearchByVenueParams) ([
 	return items, nil
 }
 
+const searchShowNotes = `-- name: SearchShowNotes :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+WHERE sh.notes ILIKE $1
+ORDER BY sh.show_date, sh.show_id
+LIMIT $3 OFFSET $2
+`
+
+type SearchShowNotesParams struct {
+	Query      sql.NullString
+	PageOffset int32
+	PageLimit  int32
+}
+
+type SearchShowNotesRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) SearchShowNotes(ctx context.Context, arg SearchShowNotesParams) ([]SearchShowNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchShowNotes, arg.Query, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchShowNotesRow
+	for rows.Next() {
+		var i SearchShowNotesRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const showsWithShowNotes = `-- name: ShowsWithShowNotes :many
 SELECT 
 	sh.show_id,

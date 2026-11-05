@@ -167,4 +167,5 @@ type ShowQuerier interface {
 	GetValidLocations(ctx context.Context) ([]string, error)
 	ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error)
 	ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error)
+	SearchShowNotes(ctx context.Context, arg database.SearchShowNotesParams) ([]database.SearchShowNotesRow, error)
 }
