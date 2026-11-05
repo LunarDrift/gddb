@@ -120,6 +120,10 @@ func getShowsFromTodaysDate() (*showPage, error) {
 	return fetchPage[showPage]("/shows/today")
 }
 
+func getShowsFromNotesQuery(query string) (*showPage, error) {
+	return fetchPage[showPage]("/shows?notes=" + url.QueryEscape(query))
+}
+
 // getShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)
 func getShowsByDate(date string) ([]internal.ShowResponse, error) {
 	shows, err := getJSON[[]internal.ShowResponse]("/shows/" + url.PathEscape(date))

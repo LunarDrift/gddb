@@ -36,6 +36,7 @@ type showsTab struct {
 	locationSearch *widget.Select
 	setNameSelect  *widget.Select
 	notesSelect    *widget.Select
+	notesSearch    *widget.Entry
 
 	// Results panel
 	results     *showPage
@@ -202,6 +203,14 @@ func (s *showsTab) searchByYear(year string) {
 
 func (s *showsTab) randomShow() {
 	async(s.app, func() ([]internal.ShowResponse, error) { return getRandomShow() }, s.showShowDetails)
+}
+
+func (s *showsTab) searchShowNotes(query string) {
+	if query == "" {
+		s.app.showError(errors.New("enter a search term"))
+		return
+	}
+	async(s.app, func() (*showPage, error) { return getShowsFromNotesQuery(query) }, s.setResults)
 }
 
 // ---------------- Results list ----------------

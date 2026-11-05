@@ -193,10 +193,18 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	// By notes
 	s.notesSelect = widget.NewSelect([]string{"True", "False"}, nil)
 	s.notesSelect.PlaceHolder = "Has Notes"
-	notesBtn := widget.NewButtonWithIcon("Search notes", theme.SearchIcon(), s.searchByNotes)
+	notesBtn := widget.NewButtonWithIcon("Has notes", theme.SearchIcon(), s.searchByNotes)
 
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 	setAndNotesBtns := container.NewGridWithColumns(2, setNameBtn, notesBtn)
+
+	s.notesSearch = widget.NewEntry()
+	notesClearBtn := widget.NewButtonWithIcon("", theme.CancelIcon(), func() { s.notesSearch.SetText("") })
+	notesClearBtn.Importance = widget.LowImportance
+	s.notesSearch.ActionItem = notesClearBtn
+	s.notesSearch.PlaceHolder = "Search for term in notes..."
+	s.notesSearch.OnSubmitted = s.searchShowNotes
+	notesSearchBtn := widget.NewButton("Search notes", func() { s.searchShowNotes(s.notesSearch.Text) })
 
 	return container.NewVBox(
 		layout.NewSpacer(),
@@ -218,6 +226,8 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.locationSearch, locBtn,
 		layout.NewSpacer(),
 		setAndNotes, setAndNotesBtns,
+		layout.NewSpacer(),
+		s.notesSearch, notesSearchBtn,
 		layout.NewSpacer(),
 	)
 }
