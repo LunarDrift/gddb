@@ -961,3 +961,28 @@ func TestHandleSearchShowNotes(t *testing.T) {
 		t.Errorf("got.Results[0].Notes = %q; want %q", got.Results[0].Notes, wantedNote)
 	}
 }
+
+func TestHandleSearchShowNotes_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+		fake       *fakeQuerier
+	}{
+		{"missing notes param", "/shows?notes=", http.StatusBadRequest, &fakeQuerier{}},
+		{"no show results", "/shows?notes=pikachu", http.StatusNotFound, &fakeQuerier{}},
+		{"server error", "/shows?notes=benefit", http.StatusInternalServerError, &fakeQuerier{searchShowNotesErr: errors.New("search show notes: db exploded")}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleSearchShowNotes(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
+			}
+		})
+	}
+}
