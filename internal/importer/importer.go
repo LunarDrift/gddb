@@ -25,10 +25,10 @@ func Run(db *sql.DB, filename string) error {
 }
 
 func ImportShows(db *sql.DB, data internal.Dataset) error {
-	var counter int64 = 0
+	var songCounter, showCounter int64 = 0, 0
 	for _, shows := range data {
 		for _, show := range shows {
-			err := ImportShow(db, show, &counter)
+			err := ImportShow(db, show, &songCounter, &showCounter)
 			if err != nil {
 				return fmt.Errorf("error importing show: %w", err)
 			}
@@ -37,7 +37,7 @@ func ImportShows(db *sql.DB, data internal.Dataset) error {
 	return nil
 }
 
-func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
+func ImportShow(db *sql.DB, show internal.Show, songCounter, showCounter *int64) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return fmt.Errorf("error starting SQL transaction: %w", err)
@@ -75,6 +75,13 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 	sort.Slice(keys, func(i, j int) bool {
 		return internal.SetPosition(keys[i]) < internal.SetPosition(keys[j])
 	})
+	*showCounter++
+	currentShowProgress := *showCounter
+	const totalShows = 2309
+
+	if currentShowProgress%231 == 0 || currentShowProgress == totalShows {
+		log.Printf("%d/%d   shows\t(%.1f%%)", currentShowProgress, totalShows, float64(currentShowProgress)/float64(2309)*100)
+	}
 
 	var songBatch []database.InsertEntrySongParams
 	const totalSongs = 23035
@@ -120,8 +127,8 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter *int64) error {
 			*songCounter++
 			currentProgress := *songCounter
 
-			if currentProgress%2303 == 0 || currentProgress == totalSongs {
-				log.Printf("%d/%d songs (%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
+			if currentProgress%2304 == 0 || currentProgress == totalSongs {
+				log.Printf("%d/%d songs\t(%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
 			}
 		}
 	}
