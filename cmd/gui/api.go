@@ -69,7 +69,7 @@ func fetchPage[T any](u string) (*T, error) {
 // ----- Shows -----
 
 func getShowByID(id string) (internal.ShowResponse, error) {
-	show, err := getJSON[internal.ShowResponse]("/shows/" + url.PathEscape(id))
+	show, err := getJSON[internal.ShowResponse]("/shows?id=" + url.QueryEscape(id))
 	if errors.Is(err, errNotFound) {
 		return show, fmt.Errorf("no show with ID %s", id)
 	}
@@ -113,7 +113,7 @@ func searchNotes(option string) (*showPage, error) {
 }
 
 func searchByYear(year string) (*showPage, error) {
-	return fetchPage[showPage]("/shows?year=" + url.QueryEscape(year))
+	return fetchPage[showPage]("/shows?year=" + url.QueryEscape(year) + "&month=&day=")
 }
 
 func getShowsFromTodaysDate() (*showPage, error) {
@@ -126,7 +126,7 @@ func getShowsFromNotesQuery(query string) (*showPage, error) {
 
 // getShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)
 func getShowsByDate(date string) ([]internal.ShowResponse, error) {
-	shows, err := getJSON[[]internal.ShowResponse]("/shows/" + url.PathEscape(date))
+	shows, err := getJSON[[]internal.ShowResponse]("/shows?date=" + url.QueryEscape(date))
 	if errors.Is(err, errNotFound) || (err == nil && len(shows) == 0) {
 		return nil, fmt.Errorf("no show found on %s", date)
 	}

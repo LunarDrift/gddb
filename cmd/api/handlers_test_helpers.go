@@ -52,6 +52,8 @@ type fakeQuerier struct {
 	searchShowNotesErr           error
 	showsFromDateRows            []database.GetShowsFromDateRow
 	showsFromDateErr             error
+	allShowsRows                 []database.GetAllShowsRow
+	allShowsErr                  error
 	// Songs
 	songStatsRow            database.SongStatsRow
 	songStatsErr            error
@@ -72,6 +74,10 @@ type fakeQuerier struct {
 	validLocationErr  error
 	footnoteRows      []database.GetFootnotesFromShowIDRow
 	footnoteErr       error
+}
+
+func (f *fakeQuerier) GetAllShows(ctx context.Context, arg database.GetAllShowsParams) ([]database.GetAllShowsRow, error) {
+	return f.allShowsRows, f.allShowsErr
 }
 
 func (f *fakeQuerier) GetShowsFromDate(ctx context.Context, arg database.GetShowsFromDateParams) ([]database.GetShowsFromDateRow, error) {

@@ -24,10 +24,13 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		s.handleGetShowsFromYearAndLocation(w, r)
 
 	case query.Has("year") && query.Has("month") && query.Has("day"):
-		s.handleGetShowsFromDate(w, r)
+		s.handleSearchShowsFromDate(w, r)
 
-	case query.Has("year"):
-		s.handleGetShowsFromYear(w, r)
+	case query.Has("date"):
+		s.handleGetShowFromDate(w, r)
+
+	case query.Has("id"):
+		s.handleGetShowFromID(w, r)
 
 	case query.Has("location"):
 		s.handleGetShowsFromLocation(w, r)
@@ -54,30 +57,23 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		s.handleSearchShowNotes(w, r)
 
 	default:
-		respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&location", nil)
-		return
+		s.handleGetAllShows(w, r)
+		// respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&location", nil)
+		// return
 	}
 }
 
-// handleShowsFromPathVal parses the `value` path variable and chooses the appropriate endpoint
-// to send it to
-func (s *server) handleShowsFromPathVal(w http.ResponseWriter, r *http.Request) {
-	value := r.PathValue("value")
-
-	if id, err := strconv.Atoi(value); err == nil {
-		s.getShowFromID(w, r, int32(id))
+func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
+	dateQuery := r.URL.Query().Get("date")
+	if dateQuery == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing date query parameter", nil)
 		return
 	}
-
-	if date, err := time.Parse(time.DateOnly, value); err == nil {
-		s.getShowFromDate(w, r, date)
+	date, err := time.Parse(time.DateOnly, dateQuery)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid date format. Want YYYY-MM-DD", err)
 		return
 	}
-
-	respondWithError(w, http.StatusBadRequest, "Invalid show identifier, expected an ID or YYYY-MM-DD date", nil)
-}
-
-func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date time.Time) {
 	showRows, err := s.queries.GetShowFromDate(r.Context(), date)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
@@ -114,7 +110,18 @@ func (s *server) getShowFromDate(w http.ResponseWriter, r *http.Request, date ti
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) getShowFromID(w http.ResponseWriter, r *http.Request, id int32) {
+func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
+	queryID := r.URL.Query().Get("id")
+	if queryID == "" {
+		respondWithError(w, http.StatusBadRequest, "Missing ID parameter", nil)
+		return
+	}
+	id, err := strconv.Atoi(queryID)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid ID parameter", err)
+		return
+	}
+
 	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
@@ -578,60 +585,6 @@ func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *htt
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleGetShowsFromYear(w http.ResponseWriter, r *http.Request) {
-	yearStr := r.URL.Query().Get("year")
-	if yearStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'year' parameter", nil)
-		return
-	}
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid year value", err)
-		return
-	}
-	if year < 1965 || year > 1995 {
-		respondWithError(w, http.StatusBadRequest, "Year must be between 1965-1995", nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-	}
-
-	showRows, err := s.queries.GetShowsFromYear(r.Context(), database.GetShowsFromYearParams{
-		Year:       int32(year),
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-
-	respondWithJSON(w, http.StatusOK, results)
-}
-
 func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Request) {
 	location := r.URL.Query().Get("location")
 	if location == "" {
@@ -788,7 +741,46 @@ func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleGetShowsFromDate(w http.ResponseWriter, r *http.Request) {
+func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetAllShows(r.Context(), database.GetAllShowsParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", nil)
+		return
+	}
+
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleSearchShowsFromDate(w http.ResponseWriter, r *http.Request) {
 	type dateFilters struct {
 		year  int32
 		month int32

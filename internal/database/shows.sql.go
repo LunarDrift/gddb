@@ -143,6 +143,69 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 	return items, nil
 }
 
+const getAllShows = `-- name: GetAllShows :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM
+  shows sh
+ORDER BY
+  sh.show_date,
+  sh.show_id
+LIMIT $2 OFFSET $1
+`
+
+type GetAllShowsParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetAllShowsRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetAllShows(ctx context.Context, arg GetAllShowsParams) ([]GetAllShowsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAllShows, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllShowsRow
+	for rows.Next() {
+		var i GetAllShowsRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllVenues = `-- name: GetAllVenues :many
 SELECT DISTINCT venue FROM shows ORDER BY venue
 `

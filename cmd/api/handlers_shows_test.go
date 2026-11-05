@@ -13,249 +13,6 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
-func TestHandleShowsFromPathVal_ByID(t *testing.T) {
-	date, err := time.Parse(time.DateOnly, "1965-01-01")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	fake := &fakeQuerier{
-		allShowIDs: []int32{42},
-		showFromIDRows: []database.GetShowFromIDRow{
-			{
-				ShowID:   42,
-				ShowDate: date,
-				Venue:    "Fillmore West",
-				City:     "San Francisco",
-				Location: "CA",
-				Notes:    sql.NullString{},
-				SetName:  sql.NullString{String: "set_1", Valid: true},
-				RawEntry: sql.NullString{String: "Dark Star", Valid: true},
-			},
-		},
-		footnoteRows: []database.GetFootnotesFromShowIDRow{},
-	}
-
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows/42", nil)
-	req.SetPathValue("value", "42")
-	w := httptest.NewRecorder()
-
-	s.handleShowsFromPathVal(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status = %d; want 200", res.StatusCode)
-	}
-
-	got := internal.ShowResponse{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-
-	if got.Venue != "Fillmore West" {
-		t.Errorf("got.Venue = %q; want %q", got.Venue, "Fillmore West")
-	}
-}
-
-func TestHandleShowsFromPathVal_ByID_EmptySetlist(t *testing.T) {
-	date, err := time.Parse(time.DateOnly, "1965-01-01")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	fake := &fakeQuerier{
-		allShowIDs: []int32{42},
-		showFromIDRows: []database.GetShowFromIDRow{
-			{
-				ShowID:   42,
-				ShowDate: date,
-				Venue:    "Fillmore West",
-				City:     "San Francisco",
-				Location: "CA",
-				Notes:    sql.NullString{},
-				SetName:  sql.NullString{},
-				RawEntry: sql.NullString{},
-			},
-		},
-		footnoteRows: []database.GetFootnotesFromShowIDRow{},
-	}
-
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows/42", nil)
-	req.SetPathValue("value", "42")
-	w := httptest.NewRecorder()
-
-	s.handleShowsFromPathVal(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status = %d; want 200", res.StatusCode)
-	}
-
-	got := internal.ShowWithNoSetlist{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-
-	expectedMessage := "No setlist available for this show"
-	if got.Message != expectedMessage {
-		t.Errorf("got.Message = %q; want %q", got.Message, expectedMessage)
-	}
-}
-
-func TestHandleShowsFromPathVal_ByDate(t *testing.T) {
-	date, err := time.Parse(time.DateOnly, "1969-09-30")
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	fake := &fakeQuerier{
-		showFromDateRows: []database.GetShowFromDateRow{
-			{
-				ShowID:   int32(1949),
-				ShowDate: date,
-				Venue:    "Cafe Au Go Go",
-				City:     "New York",
-				Location: "NY",
-				Notes:    sql.NullString{},
-				SetName:  sql.NullString{String: "set_1", Valid: true},
-				RawEntry: sql.NullString{String: "China Cat Sunflower > I Know You Rider", Valid: true},
-			},
-		},
-		footnoteRows: []database.GetFootnotesFromShowIDRow{},
-	}
-
-	s := &server{queries: fake}
-
-	req := httptest.NewRequest(http.MethodGet, "/shows/1969-09-30", nil)
-	req.SetPathValue("value", "1969-09-30")
-	w := httptest.NewRecorder()
-
-	s.handleShowsFromPathVal(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status = %d; want 200", res.StatusCode)
-	}
-
-	got := []internal.ShowResponse{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-
-	if len(got) != 1 {
-		t.Errorf("len(got) = %v; want 1", len(got))
-	}
-
-	if got[0].Date != "1969-09-30" {
-		t.Errorf("got.Date = %v; want 1969-09-30", got[0].Date)
-	}
-}
-
-func TestHandleShowsFromPathVal_ByDate_EarlyLateShows(t *testing.T) {
-	date, _ := time.Parse(time.DateOnly, "1969-09-30")
-
-	fake := &fakeQuerier{
-		showFromDateRows: []database.GetShowFromDateRow{
-			{
-				ShowID: 1949, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", Location: "NY",
-				SetName: sql.NullString{String: "set_1", Valid: true}, RawEntry: sql.NullString{String: "Early show song", Valid: true},
-			},
-			{
-				ShowID: 1950, ShowDate: date, Venue: "Cafe Au Go Go", City: "New York", Location: "NY",
-				SetName: sql.NullString{String: "set_1", Valid: true}, RawEntry: sql.NullString{String: "Late show song", Valid: true},
-			},
-		},
-		footnoteRows: []database.GetFootnotesFromShowIDRow{},
-	}
-
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows/1969-09-30", nil)
-	req.SetPathValue("value", "1969-09-30")
-	w := httptest.NewRecorder()
-
-	s.handleShowsFromPathVal(w, req)
-
-	got := []internal.ShowResponse{}
-	if err := json.NewDecoder(w.Result().Body).Decode(&got); err != nil {
-		t.Fatalf("failed to decode response: %v", err)
-	}
-
-	if len(got) != 2 {
-		t.Errorf("len(got) = %d; want 2 (early + late show)", len(got))
-	}
-
-	if got[0].Date != got[1].Date {
-		t.Errorf("got[0].Date = %q; want %q", got[0].Date, got[1].Date)
-	}
-}
-
-func TestHandleShowsFromPathVal_ServerErr(t *testing.T) {
-	date, _ := time.Parse(time.DateOnly, "1969-09-30")
-	tests := []struct {
-		name string
-		url  string
-		val  string
-		fake *fakeQuerier
-	}{
-		{name: "show query fails (date path)", url: "/shows/1969-09-30", val: "1969-09-30", fake: &fakeQuerier{
-			showFromDateErr: errors.New("db exploded"),
-		}},
-		{name: "footnote query fails (date path)", url: "/shows/1969-09-30", val: "1969-09-30", fake: &fakeQuerier{
-			showFromDateRows: []database.GetShowFromDateRow{
-				{
-					ShowID:   4,
-					ShowDate: date,
-					Venue:    "Soldier Field",
-					City:     "Chicago",
-					Location: "IL",
-					SetName:  sql.NullString{String: "set_1", Valid: true},
-					RawEntry: sql.NullString{String: "Dark Star", Valid: true},
-				},
-			},
-			footnoteErr: errors.New("db exploded"),
-		}},
-		{name: "show query fails (id path)", url: "/shows/42", val: "42", fake: &fakeQuerier{
-			allShowIDs:    []int32{42},
-			showFromIDErr: errors.New("db exploded"),
-		}},
-		{name: "footnote query fails (id path)", url: "/shows/42", val: "42", fake: &fakeQuerier{
-			allShowIDs: []int32{42},
-			showFromIDRows: []database.GetShowFromIDRow{
-				{
-					ShowID:   42,
-					ShowDate: date,
-					Venue:    "Soldier Field",
-					City:     "Chicago",
-					Location: "IL",
-					Notes:    sql.NullString{},
-					SetName:  sql.NullString{String: "set_1", Valid: true},
-					RawEntry: sql.NullString{String: "Dark Star", Valid: true},
-				},
-			},
-			footnoteErr: errors.New("db exploded"),
-		}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: tt.fake}
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-			req.SetPathValue("value", tt.val)
-			w := httptest.NewRecorder()
-
-			s.handleShowsFromPathVal(w, req)
-
-			if got := w.Result().StatusCode; got != http.StatusInternalServerError {
-				t.Errorf("status code = %d; want %d", got, http.StatusInternalServerError)
-			}
-		})
-	}
-}
-
 func TestHandleGetShowsBetweenDates(t *testing.T) {
 	startDate, _ := time.Parse(time.DateOnly, "1970-01-01")
 	endDate, _ := time.Parse(time.DateOnly, "1970-01-31")
@@ -668,69 +425,69 @@ func TestHandleGetShowsFromCity_Errors(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromYear(t *testing.T) {
-	date, _ := time.Parse(time.DateOnly, "1995-01-01")
-	fake := &fakeQuerier{
-		showsFromYearRows: []database.GetShowsFromYearRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
-		},
-	}
-
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromYear(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
-	}
-
-	got := internal.Paginated[internal.ShowMeta]{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("error decoding response: %v", err)
-	}
-
-	if len(got.Results) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got.Results))
-	}
-
-	if got.Results[0].Date[:4] != "1995" {
-		t.Errorf("got.Results[0].Date year %q; want '1995'", got.Results[0].Date[:4])
-	}
-
-	if got.Results[0].Date != "1995-01-01" {
-		t.Errorf("got.Results[0].Date = %q; want '1995-01-01'", got.Results[0].Date)
-	}
-}
-
-func TestHandleGetShowsFromYear_Errors(t *testing.T) {
-	tests := []struct {
-		name       string
-		url        string
-		wantStatus int
-		fake       *fakeQuerier
-	}{
-		{"empty year param", "/shows?year=", http.StatusBadRequest, &fakeQuerier{}},
-		{"invalid year", "/shows?year=1", http.StatusBadRequest, &fakeQuerier{}},
-		{"invalid year string", "/shows?year=hello", http.StatusBadRequest, &fakeQuerier{}},
-		{"server error", "/shows?year=1967", http.StatusInternalServerError, &fakeQuerier{showsFromYearErr: errors.New("db exploded")}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: tt.fake}
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-			w := httptest.NewRecorder()
-			s.handleGetShowsFromYear(w, req)
-			if got := w.Result().StatusCode; got != tt.wantStatus {
-				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
-			}
-		})
-	}
-}
+// func TestHandleGetShowsFromYear(t *testing.T) {
+// 	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+// 	fake := &fakeQuerier{
+// 		showsFromYearRows: []database.GetShowsFromYearRow{
+// 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+// 			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+// 		},
+// 	}
+//
+// 	s := &server{queries: fake}
+// 	req := httptest.NewRequest(http.MethodGet, "/shows?year=1995", nil)
+// 	w := httptest.NewRecorder()
+//
+// 	s.handleGetShowsFromYear(w, req)
+//
+// 	res := w.Result()
+// 	if res.StatusCode != http.StatusOK {
+// 		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+// 	}
+//
+// 	got := internal.Paginated[internal.ShowMeta]{}
+// 	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+// 		t.Fatalf("error decoding response: %v", err)
+// 	}
+//
+// 	if len(got.Results) != 2 {
+// 		t.Errorf("len(got) = %d; want 2", len(got.Results))
+// 	}
+//
+// 	if got.Results[0].Date[:4] != "1995" {
+// 		t.Errorf("got.Results[0].Date year %q; want '1995'", got.Results[0].Date[:4])
+// 	}
+//
+// 	if got.Results[0].Date != "1995-01-01" {
+// 		t.Errorf("got.Results[0].Date = %q; want '1995-01-01'", got.Results[0].Date)
+// 	}
+// }
+//
+// func TestHandleGetShowsFromYear_Errors(t *testing.T) {
+// 	tests := []struct {
+// 		name       string
+// 		url        string
+// 		wantStatus int
+// 		fake       *fakeQuerier
+// 	}{
+// 		{"empty year param", "/shows?year=", http.StatusBadRequest, &fakeQuerier{}},
+// 		{"invalid year", "/shows?year=1", http.StatusBadRequest, &fakeQuerier{}},
+// 		{"invalid year string", "/shows?year=hello", http.StatusBadRequest, &fakeQuerier{}},
+// 		{"server error", "/shows?year=1967", http.StatusInternalServerError, &fakeQuerier{showsFromYearErr: errors.New("db exploded")}},
+// 	}
+//
+// 	for _, tt := range tests {
+// 		t.Run(tt.name, func(t *testing.T) {
+// 			s := &server{queries: tt.fake}
+// 			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+// 			w := httptest.NewRecorder()
+// 			s.handleGetShowsFromYear(w, req)
+// 			if got := w.Result().StatusCode; got != tt.wantStatus {
+// 				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
+// 			}
+// 		})
+// 	}
+// }
 
 func TestHandleGetShowsFromYearAndLocation(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-01-01")

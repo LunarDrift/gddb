@@ -68,6 +68,22 @@ ORDER BY
 	st.position,
 	se.position;
 
+-- name: GetAllShows :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM
+  shows sh
+ORDER BY
+  sh.show_date,
+  sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
+
 -- name: SearchByVenue :many
 SELECT
   sh.show_id,
