@@ -83,16 +83,16 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
 | ENDPOINT                            | DESCRIPTION                                                                                                                 |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/shows/{id}`                       | Search for a specific show by its ID                                                                                        |
-| `/shows/{date}`                     | Search for a show by date (YYYY-MM-DD format)                                                                               |
+| `/shows?id=`                        | Search for a specific show by its ID                                                                                        |
+| `/shows?date=`                      | Search for a show by date (YYYY-MM-DD format)                                                                               |
 | `/shows?song=`                      | Search for shows where a specific song was played. Returns a list of shows                                                  |
 | `/shows?set_name=`                  | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric)                                              |
 | `/shows?venue=`                     | Search for shows by venue. Returns a list of shows with their IDs                                                           |
 | `/shows?has_notes=true/false`       | Search for shows with/without notes attached                                                                                |
 | `/shows?start_date=&end_date=`      | List of shows between two dates (YYYY-MM-DD format)                                                                         |
-| `/shows?year=`                      | List of shows filtered by year                                                                                              |
-| `/shows?location=`                  | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations)          |
+| `/shows?year=&month=&day=`          | List of shows filtered by date. E.g. all shows played in March                                                              |
 | `/shows?year=&location=`            | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
+| `/shows?location=`                  | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations)          |
 | `/shows?city=`                      | List of shows filtered by city                                                                                              |
 | `/shows?notes=`                     | List of shows filtered by show notes query                                                                                  |
 | `/shows/random`                     | Get details for a random show                                                                                               |
