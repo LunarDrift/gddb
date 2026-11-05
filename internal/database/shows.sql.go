@@ -446,6 +446,78 @@ func (q *Queries) GetShowsFromCity(ctx context.Context, arg GetShowsFromCityPara
 	return items, nil
 }
 
+const getShowsFromDate = `-- name: GetShowsFromDate :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+WHERE ($1::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = $1)
+  AND ($2::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = $2)
+  AND ($3::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = $3)
+ORDER BY sh.show_date, sh.show_id
+LIMIT $5 OFFSET $4
+`
+
+type GetShowsFromDateParams struct {
+	Year       sql.NullInt32
+	Month      sql.NullInt32
+	Day        sql.NullInt32
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetShowsFromDateRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetShowsFromDate(ctx context.Context, arg GetShowsFromDateParams) ([]GetShowsFromDateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsFromDate,
+		arg.Year,
+		arg.Month,
+		arg.Day,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsFromDateRow
+	for rows.Next() {
+		var i GetShowsFromDateRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getShowsFromLocation = `-- name: GetShowsFromLocation :many
 SELECT
   sh.show_id,

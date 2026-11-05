@@ -152,3 +152,10 @@ func (r SearchShowNotesRow) GetVenue() string         { return r.Venue }
 func (r SearchShowNotesRow) GetCity() string          { return r.City }
 func (r SearchShowNotesRow) GetLocation() string      { return r.Location }
 func (r SearchShowNotesRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r GetShowsFromDateRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsFromDateRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsFromDateRow) GetVenue() string         { return r.Venue }
+func (r GetShowsFromDateRow) GetCity() string          { return r.City }
+func (r GetShowsFromDateRow) GetLocation() string      { return r.Location }
+func (r GetShowsFromDateRow) GetNotes() sql.NullString { return r.Notes }

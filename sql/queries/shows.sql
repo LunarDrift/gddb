@@ -292,3 +292,19 @@ FROM shows sh
 WHERE sh.notes ILIKE @query
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
+
+-- name: GetShowsFromDate :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+WHERE (sqlc.narg('year')::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = sqlc.narg('year'))
+  AND (sqlc.narg('month')::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = sqlc.narg('month'))
+  AND (sqlc.narg('day')::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = sqlc.narg('day'))
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;

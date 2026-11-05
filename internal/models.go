@@ -168,4 +168,5 @@ type ShowQuerier interface {
 	ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error)
 	ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error)
 	SearchShowNotes(ctx context.Context, arg database.SearchShowNotesParams) ([]database.SearchShowNotesRow, error)
+	GetShowsFromDate(ctx context.Context, arg database.GetShowsFromDateParams) ([]database.GetShowsFromDateRow, error)
 }

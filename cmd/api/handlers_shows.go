@@ -23,6 +23,9 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	case query.Has("year") && query.Has("location"):
 		s.handleGetShowsFromYearAndLocation(w, r)
 
+	case query.Has("year") && query.Has("month") && query.Has("day"):
+		s.handleGetShowsFromDate(w, r)
+
 	case query.Has("year"):
 		s.handleGetShowsFromYear(w, r)
 
@@ -768,6 +771,82 @@ func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) 
 	}
 	if len(showRows) == 0 && offset == 0 {
 		respondWithError(w, http.StatusNotFound, "City not found", nil)
+		return
+	}
+
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
+func (s *server) handleGetShowsFromDate(w http.ResponseWriter, r *http.Request) {
+	type dateFilters struct {
+		year  int32
+		month int32
+		day   int32
+	}
+	filters := dateFilters{}
+
+	if r.URL.Query().Get("year") != "" {
+		year, err := strconv.ParseInt(r.URL.Query().Get("year"), 10, 32)
+		if err != nil || year < 1965 || year > 1995 {
+			respondWithError(w, http.StatusBadRequest, "Invalid year query parameter", err)
+			return
+		}
+		filters.year = int32(year)
+	}
+
+	if r.URL.Query().Get("month") != "" {
+		month, err := strconv.ParseInt(r.URL.Query().Get("month"), 10, 32)
+		if err != nil || month <= 0 || month > 12 {
+			respondWithError(w, http.StatusBadRequest, "Invalid month query parameter", err)
+			return
+		}
+		filters.month = int32(month)
+	}
+
+	if r.URL.Query().Get("day") != "" {
+		day, err := strconv.ParseInt(r.URL.Query().Get("day"), 10, 32)
+		if err != nil || day <= 0 || day > 31 {
+			respondWithError(w, http.StatusBadRequest, "Invalid day query parameter", err)
+			return
+		}
+		filters.day = int32(day)
+	}
+
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetShowsFromDate(r.Context(), database.GetShowsFromDateParams{
+		Year:       sql.NullInt32{Int32: filters.year, Valid: filters.year > 0},
+		Month:      sql.NullInt32{Int32: filters.month, Valid: filters.month > 0},
+		Day:        sql.NullInt32{Int32: filters.day, Valid: filters.day > 0},
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
+		respondWithError(w, http.StatusNotFound, "No shows found", nil)
 		return
 	}
 
