@@ -41,10 +41,10 @@ Many thanks to them for this wonderful data!
 
 2. Edit the `.env.example` file with your own details and rename it to `.env`
 
-   **Note**: The _Today in GD History_ feature uses the database's current date,
-   so set your time zone in `DB_URL` using an IANA name such as `'America/New_York'`
-   or `'Europe/London'` (see the [list of tz database timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
-   If omitted, the database server's default is used (UTC in Docker).
+    **Note**: The _Today in GD History_ feature uses the database's current date,
+    so set your time zone in `DB_URL` using an IANA name such as `America/New_York`
+    or `Europe/London` (see the [list of tz database timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
+    If omitted, the database server's default is used (UTC in Docker).
 
    ```text
    # Database Credentials
@@ -94,6 +94,7 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 | `/shows?location=`                  | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations)          |
 | `/shows?year=&location=`            | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
 | `/shows?city=`                      | List of shows filtered by city                                                                                              |
+| `/shows?notes=`                     | List of shows filtered by show notes query                                                                                  |
 | `/shows/random`                     | Get details for a random show                                                                                               |
 | `/shows/today`                      | List of shows played on today's date                                                                                        |
 | `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                        |
