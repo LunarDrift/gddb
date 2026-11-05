@@ -928,3 +928,36 @@ func TestHandleGetShowsFromNotes_Errors(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleSearchShowNotes(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-09-04")
+	wantedNote := "This is a show note..."
+	fake := &fakeQuerier{
+		searchShowNotesRows: []database.SearchShowNotesRow{
+			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{String: wantedNote, Valid: true}},
+		},
+	}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?notes=this", nil)
+	w := httptest.NewRecorder()
+
+	s.handleSearchShowNotes(w, req)
+
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	got := internal.Paginated[internal.ShowMeta]{}
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got.Results) != 1 {
+		t.Errorf("len(got.Results) = %d; want 1", len(got.Results))
+	}
+
+	if got.Results[0].Notes != wantedNote {
+		t.Errorf("got.Results[0].Notes = %q; want %q", got.Results[0].Notes, wantedNote)
+	}
+}
