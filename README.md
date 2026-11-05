@@ -24,7 +24,7 @@ Many thanks to them for this wonderful data!
 
 ## Tech Stack
 
-- **Go:** HTTP server
+- **Go:** HTTP server + [Fyne](https://fyne.io) GUI
 - **PostgreSQL:** persistent data storage
 - **goose:** database migrations
 - **sqlc:** type-safe SQL query generation
@@ -41,10 +41,10 @@ Many thanks to them for this wonderful data!
 
 2. Edit the `.env.example` file with your own details and rename it to `.env`
 
-    **Note**: The _Today in GD History_ feature uses the database's current date,
-    so set your time zone in `DB_URL` using an IANA name such as `America/New_York`
-    or `Europe/London` (see the [list of tz database timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
-    If omitted, the database server's default is used (UTC in Docker).
+   **Note**: The _Today in GD History_ feature uses the database's current date.
+   Set your time zone in the `DB_URL` using an IANA name such as `America/New_York`
+   or `Europe/London` (see the [list of tz database timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)).
+   If omitted, the database server's default is used (UTC in Docker).
 
    ```text
    # Database Credentials
@@ -68,9 +68,9 @@ Many thanks to them for this wonderful data!
 
 ## GUI Client
 
-GUI built with [Fyne](https://fyne.io/). After spinning up the database + API server
-in Docker, `go run ./cmd/gui` will launch the GUI client with various show search
-methods, a table of all song stats, and a table of all venue stats.
+After spinning up the database + API server in Docker, `go run ./cmd/gui` will
+launch the GUI client with various show search methods, a table of all song stats,
+and a table of all venue stats.
 
 ![Example Screenshot](./examples/gddb1.png)
 ![Example Screenshot](./examples/gddb2.png)
