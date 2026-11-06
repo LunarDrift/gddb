@@ -227,23 +227,23 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn, acousticShowsBtn, songDebutsBtn)
 	quickActionsAccordion := widget.NewAccordion(widget.NewAccordionItem("Quick Actions", quickActions))
-	quickActionsAccordion.Open(0)
 
 	idDate := container.NewVBox(s.idEntry, datePickers, dateClearBtn)
 	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date", idDate))
-	idDateAccordion.Open(0)
 
 	songSearch := container.NewVBox(s.songSearch)
 	songAccordion := widget.NewAccordion(widget.NewAccordionItem("Shows From Song Name", songSearch))
-	songAccordion.Open(0)
 
 	venueLocation := container.NewVBox(s.venueSearch, s.locationSearch, s.citySearch)
 	venueLocationAccordion := widget.NewAccordion(widget.NewAccordionItem("Venue & Location", venueLocation))
-	venueLocationAccordion.Open(0)
 
 	otherSearches := container.NewVBox(s.notesSearch, setAndNotes)
 	otherSearchesAccordion := widget.NewAccordion(widget.NewAccordionItem("Other Searches", otherSearches))
-	otherSearchesAccordion.Open(0)
+
+	accordions := []*widget.Accordion{quickActionsAccordion, idDateAccordion, songAccordion, venueLocationAccordion, otherSearchesAccordion}
+	for _, a := range accordions {
+		a.OpenAll()
+	}
 
 	return container.NewVBox(
 		quickActionsAccordion,
