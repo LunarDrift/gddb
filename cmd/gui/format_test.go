@@ -12,10 +12,10 @@ func TestFormatSetName(t *testing.T) {
 		input string
 		want  string
 	}{
-		{"set name with underscore", "set_1", "Set 1"},
-		{"no underscore", "acoustic", "Acoustic"},
-		{"extra whitespace", "   encore ", "Encore"},
-		{"empty input", "", ""},
+		{name: "set name with underscore", input: "set_1", want: "Set 1"},
+		{name: "no underscore", input: "acoustic", want: "Acoustic"},
+		{name: "extra whitespace", input: "   encore ", want: "Encore"},
+		{name: "empty input", input: "", want: ""},
 	}
 
 	for _, tt := range tests {
@@ -29,7 +29,7 @@ func TestFormatSetName(t *testing.T) {
 }
 
 func TestFormatShows(t *testing.T) {
-	normalInput := []internal.ShowResponse{
+	withSongs := []internal.ShowResponse{
 		{
 			ShowID:   1,
 			Date:     "1990-07-09",
@@ -66,7 +66,7 @@ func TestFormatShows(t *testing.T) {
 		in   []internal.ShowResponse
 		want showText
 	}{
-		{name: "typical show input", in: normalInput, want: showText{
+		{name: "typical show input", in: withSongs, want: showText{
 			date:      "Date: 1990-07-09",
 			location:  "Location(s): Soldier Field · Chicago, IL",
 			sets:      "Show ID: 1\nNotes: Last show\n\nSet 1:\nsong 1\nsong 2\nsong 3\n\nSet 2:\nsong 4\nsong 5\nsong 6 > song 7 > song 6",
