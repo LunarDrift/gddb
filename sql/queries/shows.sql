@@ -181,6 +181,21 @@ WHERE s.set_name = $1
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
+-- name: GetAcousticShows :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+JOIN "sets" st ON st.show_id = sh.show_id
+WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
+ORDER BY sh.show_date, sh.show_id
+LIMIT @page_limit OFFSET @page_offset;
+
 -- name: ShowsWithShowNotes :many
 SELECT 
 	sh.show_id,

@@ -99,6 +99,7 @@ func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
 func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	randShowBtn := widget.NewButton("Random Show", s.randomShow)
 	todayBtn := widget.NewButton("Today in GD History", s.showsFromTodaysDate)
+	acousticShowsBtn := widget.NewButton("Acoustic Shows", s.getAcousticShows)
 
 	// By ID
 	s.idEntry = widget.NewEntry()
@@ -219,7 +220,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.notesSearch.PlaceHolder = "Search for term in notes..."
 	s.notesSearch.OnSubmitted = s.searchShowNotes
 
-	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn)
+	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn, acousticShowsBtn)
 	quickActionsAccordion := widget.NewAccordion(widget.NewAccordionItem("Quick Actions", quickActions))
 	quickActionsAccordion.Open(0)
 

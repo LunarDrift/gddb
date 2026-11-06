@@ -170,4 +170,5 @@ type ShowQuerier interface {
 	SearchShowNotes(ctx context.Context, arg database.SearchShowNotesParams) ([]database.SearchShowNotesRow, error)
 	GetShowsFromDate(ctx context.Context, arg database.GetShowsFromDateParams) ([]database.GetShowsFromDateRow, error)
 	GetAllShows(ctx context.Context, arg database.GetAllShowsParams) ([]database.GetAllShowsRow, error)
+	GetAcousticShows(ctx context.Context, arg database.GetAcousticShowsParams) ([]database.GetAcousticShowsRow, error)
 }

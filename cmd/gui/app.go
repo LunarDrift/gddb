@@ -196,6 +196,10 @@ func (s *showsTab) searchShowNotes(query string) {
 	async(s.app, func() (*showPage, error) { return getShowsFromNotesQuery(query) }, s.setResults)
 }
 
+func (s *showsTab) getAcousticShows() {
+	async(s.app, func() (*showPage, error) { return getAcousticShows() }, s.setResults)
+}
+
 // ---------------- Results list ----------------
 
 func (s *showsTab) onResultSelected(id widget.ListItemID) {

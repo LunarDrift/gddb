@@ -112,10 +112,6 @@ func searchNotes(option string) (*showPage, error) {
 	return fetchPage[showPage]("/shows?has_notes=" + url.QueryEscape(option))
 }
 
-// func searchByYear(year string) (*showPage, error) {
-// 	return fetchPage[showPage]("/shows?year=" + url.QueryEscape(year) + "&month=&day=")
-// }
-
 func getShowsFromTodaysDate() (*showPage, error) {
 	return fetchPage[showPage]("/shows/today")
 }
@@ -126,6 +122,10 @@ func getShowsFromNotesQuery(query string) (*showPage, error) {
 
 func getShowsFromDate(year, month, day string) (*showPage, error) {
 	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s", year, month, day))
+}
+
+func getAcousticShows() (*showPage, error) {
+	return fetchPage[showPage]("/shows/acoustic")
 }
 
 // getShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)

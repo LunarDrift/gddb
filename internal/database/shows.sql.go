@@ -56,6 +56,68 @@ func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
 	return err
 }
 
+const getAcousticShows = `-- name: GetAcousticShows :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+JOIN "sets" st ON st.show_id = sh.show_id
+WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
+`
+
+type GetAcousticShowsParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetAcousticShowsRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetAcousticShows(ctx context.Context, arg GetAcousticShowsParams) ([]GetAcousticShowsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getAcousticShows, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAcousticShowsRow
+	for rows.Next() {
+		var i GetAcousticShowsRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getAllCities = `-- name: GetAllCities :many
 SELECT DISTINCT city FROM shows ORDER BY city
 `
