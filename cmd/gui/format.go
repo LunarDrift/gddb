@@ -1,13 +1,10 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"maps"
 	"slices"
-	"strconv"
 	"strings"
-	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -80,16 +77,33 @@ func formatSetName(s string) string {
 	return strings.Join(words, " ")
 }
 
-// buildDate validates the date picker values and returns YYYY-MM-DD.
-// month and day are 1-based; pass 0 (or less) for "nothing selected".
-func buildDate(yearStr string, month, day int) (string, error) {
-	year, err := strconv.Atoi(yearStr)
-	if err != nil || month < 1 || day < 1 {
-		return "", errors.New("choose a year, month, and day")
+func monthToNumString(name string) string {
+	switch name {
+	case "January":
+		return "1"
+	case "February":
+		return "2"
+	case "March":
+		return "3"
+	case "April":
+		return "4"
+	case "May":
+		return "5"
+	case "June":
+		return "6"
+	case "July":
+		return "7"
+	case "August":
+		return "8"
+	case "September":
+		return "9"
+	case "October":
+		return "10"
+	case "November":
+		return "11"
+	case "December":
+		return "12"
+	default:
+		return ""
 	}
-	t := time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
-	if t.Day() != day { // Feb 31 silently rolls over to Mar 3
-		return "", errors.New("that date doesn't exist")
-	}
-	return t.Format(time.DateOnly), nil
 }

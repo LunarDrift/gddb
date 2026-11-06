@@ -134,19 +134,6 @@ func (s *showsTab) searchByID(id string) {
 	}, s.showShowDetails)
 }
 
-func (s *showsTab) searchByDate() {
-	date, err := buildDate(
-		s.yearSelect.Selected,
-		s.monthSelect.SelectedIndex()+1,
-		s.daySelect.SelectedIndex()+1,
-	)
-	if err != nil {
-		s.app.showError(err)
-		return
-	}
-	s.searchShowsByDate(date)
-}
-
 func (s *showsTab) searchBySetName() {
 	i := s.setNameSelect.SelectedIndex()
 	if i < 0 {
@@ -193,12 +180,8 @@ func (s *showsTab) searchByLocation(location string) {
 	async(s.app, func() (*showPage, error) { return searchLocations(location) }, s.setResults)
 }
 
-func (s *showsTab) searchByYear(year string) {
-	if year == "" {
-		s.app.showError(errors.New("choose a year"))
-		return
-	}
-	async(s.app, func() (*showPage, error) { return searchByYear(year) }, s.setResults)
+func (s *showsTab) searchByDate(year, month, day string) {
+	async(s.app, func() (*showPage, error) { return getShowsFromDate(year, month, day) }, s.setResults)
 }
 
 func (s *showsTab) randomShow() {
