@@ -115,17 +115,22 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.monthSelect.PlaceHolder = "Month"
 	s.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
 	s.daySelect.PlaceHolder = "Day"
-
-	dateBtn := widget.NewButtonWithIcon("Search date", theme.SearchIcon(), func() {
+	s.yearSelect.OnChanged = func(input string) {
 		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
+	}
+	s.monthSelect.OnChanged = func(input string) {
+		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
+	}
+	s.daySelect.OnChanged = func(input string) {
+		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
+	}
+
+	dateClearBtn := widget.NewButtonWithIcon("Clear Date Selections", theme.CancelIcon(), func() {
 		s.yearSelect.ClearSelected()
 		s.monthSelect.ClearSelected()
 		s.daySelect.ClearSelected()
 	})
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
-
-	// By year
-	// yearBtn := widget.NewButtonWithIcon("Search by year", theme.SearchIcon(), func() { s.searchByYear(s.yearSelect.Selected) })
 
 	// By song
 	s.songSearch = xwidget.NewCompletionEntry(s.app.allSongs)
@@ -218,7 +223,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	quickActionsAccordion := widget.NewAccordion(widget.NewAccordionItem("Quick Actions", quickActions))
 	quickActionsAccordion.Open(0)
 
-	idDate := container.NewVBox(s.idEntry, datePickers, dateBtn)
+	idDate := container.NewVBox(s.idEntry, datePickers, dateClearBtn)
 	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date Searches", idDate))
 	idDateAccordion.Open(0)
 
