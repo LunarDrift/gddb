@@ -162,6 +162,36 @@ func TestHandleGetShowFromID_Errors(t *testing.T) {
 	}
 }
 
+func TestHandleGetShowsFromTodaysDate(t *testing.T) {
+	date1, _ := time.Parse(time.DateOnly, "1973-11-05")
+	date2, _ := time.Parse(time.DateOnly, "1978-11-05")
+
+	fake := &fakeQuerier{
+		showsFromTodaysDateRows: []database.GetShowsFromTodaysDateRow{
+			{ShowID: 1, ShowDate: date1, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}},
+			{ShowID: 2, ShowDate: date2, Venue: "Another venue", City: "New York", Location: "NY", Notes: sql.NullString{}},
+		},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows/today", nil)
+	w := httptest.NewRecorder()
+	s.handleGetShowsFromTodaysDate(w, req)
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	got := internal.Paginated[internal.ShowMeta]{}
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got.Results) != 2 {
+		t.Errorf("len(got.Results) = %d; want 2", len(got.Results))
+	}
+}
+
 func TestHandleGetShowsBetweenDates(t *testing.T) {
 	startDate, _ := time.Parse(time.DateOnly, "1970-01-01")
 	endDate, _ := time.Parse(time.DateOnly, "1970-01-31")
