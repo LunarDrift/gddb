@@ -112,6 +112,56 @@ func TestHandleSearchShowsFromDate_Errors(t *testing.T) {
 	}
 }
 
+func TestHandleGetShowFromID(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1970-04-20")
+	fake := &fakeQuerier{
+		showFromIDRows: []database.GetShowFromIDRow{{ShowID: 1, ShowDate: date, Venue: "venue", City: "city", Location: "location", Notes: sql.NullString{}}},
+	}
+
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows?id=1", nil)
+	w := httptest.NewRecorder()
+	s.handleGetShowFromID(w, req)
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	got := internal.ShowResponse{}
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if got.ShowID != 1 {
+		t.Errorf("got.ShowID = %d; want 1", got.ShowID)
+	}
+}
+
+func TestHandleGetShowFromID_Error(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+		fake       *fakeQuerier
+	}{
+		{"missing id", "/shows?id=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid id", "/shows?id=six", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?id=555", http.StatusInternalServerError, &fakeQuerier{showFromIDErr: errors.New("db exploded")}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowFromID(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
+	}
+}
+
 func TestHandleGetShowsBetweenDates(t *testing.T) {
 	startDate, _ := time.Parse(time.DateOnly, "1970-01-01")
 	endDate, _ := time.Parse(time.DateOnly, "1970-01-31")
