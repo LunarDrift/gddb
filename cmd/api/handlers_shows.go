@@ -790,29 +790,54 @@ func (s *server) handleSearchShowsFromDate(w http.ResponseWriter, r *http.Reques
 
 	if r.URL.Query().Get("year") != "" {
 		year, err := strconv.ParseInt(r.URL.Query().Get("year"), 10, 32)
-		if err != nil || year < 1965 || year > 1995 {
+		if err != nil {
 			respondWithError(w, http.StatusBadRequest, "Invalid year query parameter", err)
+			return
+		}
+		if year < 1965 || year > 1995 {
+			respondWithError(w, http.StatusBadRequest, "Year must be between 1965 and 1995", nil)
 			return
 		}
 		filters.year = int32(year)
 	}
-
 	if r.URL.Query().Get("month") != "" {
 		month, err := strconv.ParseInt(r.URL.Query().Get("month"), 10, 32)
-		if err != nil || month <= 0 || month > 12 {
+		if err != nil {
 			respondWithError(w, http.StatusBadRequest, "Invalid month query parameter", err)
+			return
+		}
+		if month <= 0 || month > 12 {
+			respondWithError(w, http.StatusBadRequest, "Month must be between 1 and 12", nil)
 			return
 		}
 		filters.month = int32(month)
 	}
-
 	if r.URL.Query().Get("day") != "" {
 		day, err := strconv.ParseInt(r.URL.Query().Get("day"), 10, 32)
-		if err != nil || day <= 0 || day > 31 {
+		if err != nil {
 			respondWithError(w, http.StatusBadRequest, "Invalid day query parameter", err)
 			return
 		}
+		if day <= 0 || day > 31 {
+			respondWithError(w, http.StatusBadRequest, "Day must be between 1 and 31", nil)
+			return
+		}
 		filters.day = int32(day)
+	}
+	date := time.Date(
+		int(filters.year),
+		time.Month(filters.month),
+		int(filters.day),
+		0, 0, 0, 0,
+		time.UTC,
+	)
+	if filters.year > 0 && filters.month > 0 && filters.day > 0 {
+		if date.Year() != int(filters.year) ||
+			date.Month() != time.Month(filters.month) ||
+			date.Day() != int(filters.day) {
+			respondWithError(w, http.StatusBadRequest, "Invalid date", nil)
+			return
+		}
 	}
 
 	limit, offset, err := parsePagination(r)

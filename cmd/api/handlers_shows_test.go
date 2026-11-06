@@ -96,6 +96,7 @@ func TestHandleSearchShowsFromDate_Errors(t *testing.T) {
 		{"invalid year parameter", "/shows?year=abc&month=&day=", http.StatusBadRequest, &fakeQuerier{}},
 		{"invalid month parameter", "/shows?year=&month=15&day=", http.StatusBadRequest, &fakeQuerier{}},
 		{"invalid day parameter", "/shows?year=&month=&day=420", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid full date", "/shows?year=1965&month=2&day=31", http.StatusBadRequest, &fakeQuerier{}},
 		{"server error", "/shows?year=1970&month=&day=", http.StatusInternalServerError, &fakeQuerier{showsFromDateErr: errors.New("db exploded")}},
 	}
 
