@@ -13,6 +13,105 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
+func TestHandleSearchShowsFromDate(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-01-01")
+	tests := []struct {
+		name string
+		url  string
+		fake *fakeQuerier
+	}{
+		{
+			"full date", "/shows?year=1995&month=1&day=1", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+		{
+			"year only", "/shows?year=1995&month=&date=", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+		{
+			"month only", "/shows?year=&month=1&day=", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+		{
+			"day only", "/shows?year=&month=&day=1", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+		{
+			"year and month", "/shows?year=1995&month=1&day=", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+		{
+			"year and day", "/shows?year=1995&month=&day=1", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+		{
+			"month and day", "/shows?year=&month=1&day=1", &fakeQuerier{
+				showsFromDateRows: []database.GetShowsFromDateRow{{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{}}},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleSearchShowsFromDate(w, req)
+
+			res := w.Result()
+			if res.StatusCode != http.StatusOK {
+				t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+			}
+
+			got := internal.Paginated[internal.ShowMeta]{}
+			if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+				t.Fatalf("error decoding response: %v", err)
+			}
+
+			if len(got.Results) != len(tt.fake.showsFromDateRows) {
+				t.Errorf("len(got) = %d; want %d", len(got.Results), len(tt.fake.showsFromDateRows))
+			}
+
+			show := got.Results[0]
+			if show.Date != "1995-01-01" {
+				t.Errorf("show.Date = %q; want '1995-01-01", show.Date)
+			}
+		})
+	}
+}
+
+func TestHandleSearchShowsFromDate_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+		fake       *fakeQuerier
+	}{
+		{"invalid year parameter", "/shows?year=abc&month=&day=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid month parameter", "/shows?year=&month=15&day=", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid day parameter", "/shows?year=&month=&day=420", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?year=1970&month=&day=", http.StatusInternalServerError, &fakeQuerier{showsFromDateErr: errors.New("db exploded")}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleSearchShowsFromDate(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
+	}
+}
+
 func TestHandleGetShowsBetweenDates(t *testing.T) {
 	startDate, _ := time.Parse(time.DateOnly, "1970-01-01")
 	endDate, _ := time.Parse(time.DateOnly, "1970-01-31")

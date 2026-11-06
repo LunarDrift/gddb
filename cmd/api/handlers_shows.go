@@ -822,9 +822,9 @@ func (s *server) handleSearchShowsFromDate(w http.ResponseWriter, r *http.Reques
 	}
 
 	showRows, err := s.queries.GetShowsFromDate(r.Context(), database.GetShowsFromDateParams{
-		Year:       sql.NullInt32{Int32: filters.year, Valid: filters.year > 0},
-		Month:      sql.NullInt32{Int32: filters.month, Valid: filters.month > 0},
-		Day:        sql.NullInt32{Int32: filters.day, Valid: filters.day > 0},
+		Year:       sql.NullInt32{Int32: filters.year, Valid: filters.year >= 1965 && filters.year <= 1995},
+		Month:      sql.NullInt32{Int32: filters.month, Valid: filters.month > 0 && filters.month <= 12},
+		Day:        sql.NullInt32{Int32: filters.day, Valid: filters.day > 0 && filters.day <= 31},
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
