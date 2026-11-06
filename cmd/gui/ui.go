@@ -111,26 +111,30 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.idEntry.OnSubmitted = s.searchByID
 
 	// By date
+	var suppressDateFetch bool
+	dateSelect := func(_ string) {
+		if suppressDateFetch {
+			return
+		}
+		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
+	}
 	s.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
 	s.yearSelect.PlaceHolder = "Year"
 	s.monthSelect = widget.NewSelect(monthNames(), nil)
 	s.monthSelect.PlaceHolder = "Month"
 	s.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
 	s.daySelect.PlaceHolder = "Day"
-	s.yearSelect.OnChanged = func(input string) {
-		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
-	}
-	s.monthSelect.OnChanged = func(input string) {
-		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
-	}
-	s.daySelect.OnChanged = func(input string) {
-		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
-	}
+	s.yearSelect.OnChanged = dateSelect
+	s.monthSelect.OnChanged = dateSelect
+	s.daySelect.OnChanged = dateSelect
 
 	dateClearBtn := widget.NewButtonWithIcon("Clear Date Selections", theme.CancelIcon(), func() {
+		// don't send a new API request if we're just clearing buttons
+		suppressDateFetch = true
 		s.yearSelect.ClearSelected()
 		s.monthSelect.ClearSelected()
 		s.daySelect.ClearSelected()
+		suppressDateFetch = false
 	})
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
 
@@ -226,7 +230,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	quickActionsAccordion.Open(0)
 
 	idDate := container.NewVBox(s.idEntry, datePickers, dateClearBtn)
-	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date Searches", idDate))
+	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date", idDate))
 	idDateAccordion.Open(0)
 
 	songSearch := container.NewVBox(s.songSearch)
