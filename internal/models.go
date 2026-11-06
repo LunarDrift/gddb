@@ -171,4 +171,5 @@ type ShowQuerier interface {
 	GetShowsFromDate(ctx context.Context, arg database.GetShowsFromDateParams) ([]database.GetShowsFromDateRow, error)
 	GetAllShows(ctx context.Context, arg database.GetAllShowsParams) ([]database.GetAllShowsRow, error)
 	GetAcousticShows(ctx context.Context, arg database.GetAcousticShowsParams) ([]database.GetAcousticShowsRow, error)
+	GetSongDebuts(ctx context.Context, arg database.GetSongDebutsParams) ([]database.GetSongDebutsRow, error)
 }

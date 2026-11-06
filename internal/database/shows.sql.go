@@ -1026,6 +1026,70 @@ func (q *Queries) GetShowsFromYearAndLocation(ctx context.Context, arg GetShowsF
 	return items, nil
 }
 
+const getSongDebuts = `-- name: GetSongDebuts :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+JOIN show_footnotes sf ON sf.show_id = sh.show_id
+WHERE sf.note_text ILIKE '%first%time%played%'
+  AND sf.note_text NOT ILIKE '%since%'
+  AND sf.note_text NOT ILIKE '%electric%'
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
+`
+
+type GetSongDebutsParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetSongDebutsRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetSongDebuts(ctx context.Context, arg GetSongDebutsParams) ([]GetSongDebutsRow, error) {
+	rows, err := q.db.QueryContext(ctx, getSongDebuts, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetSongDebutsRow
+	for rows.Next() {
+		var i GetSongDebutsRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getValidLocations = `-- name: GetValidLocations :many
 SELECT DISTINCT LOWER(state) AS location FROM shows
 `

@@ -200,6 +200,10 @@ func (s *showsTab) getAcousticShows() {
 	async(s.app, func() (*showPage, error) { return getAcousticShows() }, s.setResults)
 }
 
+func (s *showsTab) showsWithSongDebuts() {
+	async(s.app, func() (*showPage, error) { return getShowsWithSongDebuts() }, s.setResults)
+}
+
 // ---------------- Results list ----------------
 
 func (s *showsTab) onResultSelected(id widget.ListItemID) {

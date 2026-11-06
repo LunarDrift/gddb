@@ -128,6 +128,10 @@ func getAcousticShows() (*showPage, error) {
 	return fetchPage[showPage]("/shows/acoustic")
 }
 
+func getShowsWithSongDebuts() (*showPage, error) {
+	return fetchPage[showPage]("/shows/song-debuts")
+}
+
 // getShowsByDate returns every show on a YYY-MM-DD date (some dates have 2 shows)
 func getShowsByDate(date string) ([]internal.ShowResponse, error) {
 	shows, err := getJSON[[]internal.ShowResponse]("/shows?date=" + url.QueryEscape(date))

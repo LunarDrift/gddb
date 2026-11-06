@@ -173,3 +173,10 @@ func (r GetAcousticShowsRow) GetVenue() string         { return r.Venue }
 func (r GetAcousticShowsRow) GetCity() string          { return r.City }
 func (r GetAcousticShowsRow) GetLocation() string      { return r.Location }
 func (r GetAcousticShowsRow) GetNotes() sql.NullString { return r.Notes }
+
+func (r GetSongDebutsRow) GetShowID() int32         { return r.ShowID }
+func (r GetSongDebutsRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetSongDebutsRow) GetVenue() string         { return r.Venue }
+func (r GetSongDebutsRow) GetCity() string          { return r.City }
+func (r GetSongDebutsRow) GetLocation() string      { return r.Location }
+func (r GetSongDebutsRow) GetNotes() sql.NullString { return r.Notes }

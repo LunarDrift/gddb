@@ -779,6 +779,44 @@ func (s *server) handleGetAcousticShows(w http.ResponseWriter, r *http.Request) 
 	respondWithJSON(w, http.StatusOK, results)
 }
 
+func (s *server) handleGetShowsWithSongDebuts(w http.ResponseWriter, r *http.Request) {
+	limit, offset, err := parsePagination(r)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		return
+	}
+
+	showRows, err := s.queries.GetSongDebuts(r.Context(), database.GetSongDebutsParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		return
+	}
+	if len(showRows) == 0 && offset > 0 {
+		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		return
+	}
+	if len(showRows) == 0 && offset == 0 {
+		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
+		return
+	}
+
+	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
+	results := internal.Paginated[internal.ShowMeta]{
+		Count:    showRows[0].Count,
+		Next:     next,
+		Previous: prev,
+		Results:  make([]internal.ShowMeta, 0, len(showRows)),
+	}
+	for _, row := range showRows {
+		results.Results = append(results.Results, internal.RowToShowMeta(row))
+	}
+
+	respondWithJSON(w, http.StatusOK, results)
+}
+
 func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {
