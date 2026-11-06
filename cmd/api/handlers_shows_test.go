@@ -137,7 +137,7 @@ func TestHandleGetShowFromID(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowFromID_Error(t *testing.T) {
+func TestHandleGetShowFromID_Errors(t *testing.T) {
 	tests := []struct {
 		name       string
 		url        string
@@ -197,19 +197,29 @@ func TestHandleGetShowsBetweenDates(t *testing.T) {
 	}
 }
 
-func TestHandleShowsBetweenDates_StartDateAfterEndDate(t *testing.T) {
-	// empty querier - validation should reject the request before ever getting to query step
-	fake := &fakeQuerier{}
+func TestHandleGetShowsBetweenDates_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+		fake       *fakeQuerier
+	}{
+		{"start date after end date", "/shows?start_date=1980-09-09&end_date=1965-06-03", http.StatusBadRequest, &fakeQuerier{}},
+		{"missing start date", "/shows?start_date=&end_date=1990-01-01", http.StatusBadRequest, &fakeQuerier{}},
+		{"missing end date", "/shows?start_date=1970-01-01&end_date=", http.StatusBadRequest, &fakeQuerier{}},
+		{"server error", "/shows?start_date=1990-01-01&end_date=1990-05-01", http.StatusInternalServerError, &fakeQuerier{showsBetweenDatesErr: errors.New("db exploded")}},
+	}
 
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?start_date=1980-09-01&end_date=1980-02-01", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsBetweenDates(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusBadRequest {
-		t.Errorf("status code = %d; want %d", res.StatusCode, http.StatusBadRequest)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &server{queries: tt.fake}
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			w := httptest.NewRecorder()
+			s.handleGetShowsBetweenDates(w, req)
+			if got := w.Result().StatusCode; got != tt.wantStatus {
+				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
+			}
+		})
 	}
 }
 
