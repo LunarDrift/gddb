@@ -100,7 +100,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	randShowBtn := widget.NewButton("Random Show", s.randomShow)
 	todayBtn := widget.NewButton("Today in GD History", s.showsFromTodaysDate)
 	acousticShowsBtn := widget.NewButton("Acoustic Shows", s.getAcousticShows)
-	songDebutsBtn := widget.NewButton("Shows w/ Song Debuts", s.showsWithSongDebuts)
+	songDebutsBtn := widget.NewButton("Song Debuts", s.showsWithSongDebuts)
 
 	// By ID
 	s.idEntry = widget.NewEntry()
