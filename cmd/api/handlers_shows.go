@@ -15,6 +15,12 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
+type dateFilters struct {
+	year  int32
+	month int32
+	day   int32
+}
+
 // handlerShows parses the query parameter and chooses the appropriate endpoint
 func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
@@ -58,8 +64,6 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 
 	default:
 		s.handleGetAllShows(w, r)
-		// respondWithError(w, http.StatusBadRequest, "Must provide a valid query parameter: song, set_name, venue, has_notes, start_date&end_date, year, year&location", nil)
-		// return
 	}
 }
 
@@ -857,63 +861,10 @@ func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) handleSearchShowsFromDate(w http.ResponseWriter, r *http.Request) {
-	type dateFilters struct {
-		year  int32
-		month int32
-		day   int32
-	}
-	filters := dateFilters{}
-
-	if r.URL.Query().Get("year") != "" {
-		year, err := strconv.ParseInt(r.URL.Query().Get("year"), 10, 32)
-		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid year query parameter", err)
-			return
-		}
-		if year < 1965 || year > 1995 {
-			respondWithError(w, http.StatusBadRequest, "Year must be between 1965 and 1995", nil)
-			return
-		}
-		filters.year = int32(year)
-	}
-	if r.URL.Query().Get("month") != "" {
-		month, err := strconv.ParseInt(r.URL.Query().Get("month"), 10, 32)
-		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid month query parameter", err)
-			return
-		}
-		if month <= 0 || month > 12 {
-			respondWithError(w, http.StatusBadRequest, "Month must be between 1 and 12", nil)
-			return
-		}
-		filters.month = int32(month)
-	}
-	if r.URL.Query().Get("day") != "" {
-		day, err := strconv.ParseInt(r.URL.Query().Get("day"), 10, 32)
-		if err != nil {
-			respondWithError(w, http.StatusBadRequest, "Invalid day query parameter", err)
-			return
-		}
-		if day <= 0 || day > 31 {
-			respondWithError(w, http.StatusBadRequest, "Day must be between 1 and 31", nil)
-			return
-		}
-		filters.day = int32(day)
-	}
-	date := time.Date(
-		int(filters.year),
-		time.Month(filters.month),
-		int(filters.day),
-		0, 0, 0, 0,
-		time.UTC,
-	)
-	if filters.year > 0 && filters.month > 0 && filters.day > 0 {
-		if date.Year() != int(filters.year) ||
-			date.Month() != time.Month(filters.month) ||
-			date.Day() != int(filters.day) {
-			respondWithError(w, http.StatusBadRequest, "Invalid date", nil)
-			return
-		}
+	filters, err := validateDate(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
 	}
 
 	limit, offset, err := parsePagination(r)
@@ -973,4 +924,53 @@ func (s *server) handleGetVenueStats(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	respondWithJSON(w, http.StatusOK, results)
+}
+
+func validateDate(r *http.Request) (dateFilters, error) {
+	filters := dateFilters{}
+	if r.URL.Query().Get("year") != "" {
+		year, err := strconv.ParseInt(r.URL.Query().Get("year"), 10, 32)
+		if err != nil {
+			return dateFilters{}, errors.New("invalid year parameter")
+		}
+		if year < 1965 || year > 1995 {
+			return dateFilters{}, errors.New("year must be between 1965 and 1995")
+		}
+		filters.year = int32(year)
+	}
+	if r.URL.Query().Get("month") != "" {
+		month, err := strconv.ParseInt(r.URL.Query().Get("month"), 10, 32)
+		if err != nil {
+			return dateFilters{}, errors.New("invalid month parameter")
+		}
+		if month <= 0 || month > 12 {
+			return dateFilters{}, errors.New("month must be between 1 and 12")
+		}
+		filters.month = int32(month)
+	}
+	if r.URL.Query().Get("day") != "" {
+		day, err := strconv.ParseInt(r.URL.Query().Get("day"), 10, 32)
+		if err != nil {
+			return dateFilters{}, errors.New("invalid day parameter")
+		}
+		if day <= 0 || day > 31 {
+			return dateFilters{}, errors.New("day must be between 1 and 31")
+		}
+		filters.day = int32(day)
+	}
+	date := time.Date(
+		int(filters.year),
+		time.Month(filters.month),
+		int(filters.day),
+		0, 0, 0, 0,
+		time.UTC,
+	)
+	if filters.year > 0 && filters.month > 0 && filters.day > 0 {
+		if date.Year() != int(filters.year) ||
+			date.Month() != time.Month(filters.month) ||
+			date.Day() != int(filters.day) {
+			return dateFilters{}, errors.New("invalid date")
+		}
+	}
+	return filters, nil
 }
