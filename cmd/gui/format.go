@@ -25,26 +25,32 @@ func formatShows(data []internal.ShowResponse) showText {
 		return showText{}
 	}
 
-	var sets, notes, location strings.Builder
+	var date, sets, notes, location strings.Builder
+	first := data[0]
+	fmt.Fprintf(&date, "## Date: %v\n\n", first.Date)
+
 	for i, show := range data {
-		fmt.Fprintf(&sets, "Show ID: %v\n", show.ShowID)
-		fmt.Fprintf(&location, "Location(s): %v · %v, %v\n", show.Venue, show.City, show.Location)
+		fmt.Fprintf(&date, "##### Show ID: %v\n", show.ShowID)
+		// fmt.Fprintf(&sets, "### Show ID: %v\n\n", show.ShowID)
+		fmt.Fprint(&location, "## Location(s):\n\n")
+		fmt.Fprintf(&location, "**%v · %v, %v**\n\n", show.Venue, show.City, show.Location)
 		if show.Notes != "" {
-			fmt.Fprintf(&sets, "Notes: %v\n", show.Notes)
+			fmt.Fprintf(&location, "\n\n\n**Notes:** %v\n\n", show.Notes)
 		}
-		sets.WriteString("\n")
+		fmt.Fprintf(&date, "[Listen on archive.org](%s)\n\n", buildArchiveOrgLink(first.Date))
+		sets.WriteString("\n\n")
 
 		if len(show.Sets) == 0 {
-			sets.WriteString("No setlist available for this show\n")
+			sets.WriteString("*No setlist available for this show*\n")
 		}
 		for _, set := range show.Sets {
-			fmt.Fprintf(&sets, "%s:\n%s\n\n", formatSetName(set.SetName), strings.Join(set.Songs, "\n"))
+			fmt.Fprintf(&sets, "**%s:**\n\n%s\n\n", formatSetName(set.SetName), strings.Join(formatSongs(set), "\n\n\n"))
 		}
 
 		if len(show.Footnotes) > 0 {
-			fmt.Fprintf(&notes, "━━━ Show %v Footnotes ━━━\n", show.ShowID)
+			fmt.Fprintf(&notes, "#### Show %v Footnotes\n\n", show.ShowID)
 			for _, k := range slices.Sorted(maps.Keys(show.Footnotes)) {
-				fmt.Fprintf(&notes, "[%s] %v\n", k, show.Footnotes[k])
+				fmt.Fprintf(&notes, "[%s]: *%v*\n\n", k, show.Footnotes[k])
 			}
 			notes.WriteString("\n")
 		}
@@ -54,9 +60,8 @@ func formatShows(data []internal.ShowResponse) showText {
 		}
 	}
 
-	first := data[0]
 	return showText{
-		date:     fmt.Sprintf("Date: %v", first.Date),
+		date:     strings.TrimSpace(date.String()),
 		location: strings.TrimSpace(location.String()),
 		// location:  fmt.Sprintf("Location: %v - %v, %v", first.Venue, first.City, first.Location),
 		sets:      strings.TrimSpace(sets.String()),
@@ -106,4 +111,22 @@ func monthToNumString(name string) string {
 	default:
 		return ""
 	}
+}
+
+func buildArchiveOrgLink(date string) string {
+	if date == "" {
+		return ""
+	}
+	return fmt.Sprintf("https://archive.org/details/GratefulDead?tab=collection&query=%s", date)
+}
+
+func formatSongs(data internal.SetResponse) []string {
+	if len(data.Songs) == 0 {
+		return nil
+	}
+	out := []string{}
+	for i, song := range data.Songs {
+		out = append(out, fmt.Sprintf("%d. %s\n\n", i+1, song))
+	}
+	return out
 }

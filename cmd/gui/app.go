@@ -47,10 +47,10 @@ type showsTab struct {
 	// Details panel
 	placeholder    *fyne.Container
 	details        *fyne.Container
-	dateLabel      *widget.Label
-	locationLabel  *widget.Label
-	setsLabel      *widget.Label
-	footnotesLabel *widget.Label
+	dateLabel      *widget.RichText
+	locationLabel  *widget.RichText
+	setsLabel      *widget.RichText
+	footnotesLabel *widget.RichText
 }
 
 type songsTab struct {
@@ -286,10 +286,10 @@ func (s *showsTab) showShowDetails(data []internal.ShowResponse) {
 		return
 	}
 	t := formatShows(data)
-	s.dateLabel.SetText(t.date)
-	s.locationLabel.SetText(t.location)
-	s.setsLabel.SetText(t.sets)
-	s.footnotesLabel.SetText(t.footnotes)
+	s.dateLabel.ParseMarkdown(t.date)
+	s.locationLabel.ParseMarkdown(t.location)
+	s.setsLabel.ParseMarkdown(t.sets)
+	s.footnotesLabel.ParseMarkdown(t.footnotes)
 	s.placeholder.Hide()
 	s.details.Show()
 }

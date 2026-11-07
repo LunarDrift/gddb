@@ -283,16 +283,12 @@ func (s *showsTab) buildShowsResultsPanel() fyne.CanvasObject {
 func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 	s.placeholder = container.NewCenter(widget.NewLabel("Select an item to see details"))
 
-	s.dateLabel = widget.NewLabel("")
-	s.dateLabel.Selectable = true
-	s.locationLabel = widget.NewLabel("")
-	s.locationLabel.Selectable = true
-	s.setsLabel = widget.NewLabel("")
+	s.dateLabel = widget.NewRichText()
+	s.locationLabel = widget.NewRichText()
+	s.setsLabel = widget.NewRichText()
 	s.setsLabel.Wrapping = fyne.TextWrapWord
-	s.setsLabel.Selectable = true
-	s.footnotesLabel = widget.NewLabel("")
+	s.footnotesLabel = widget.NewRichText()
 	s.footnotesLabel.Wrapping = fyne.TextWrapWord
-	s.footnotesLabel.Selectable = true
 
 	footnotes := container.NewVScroll(s.footnotesLabel)
 	footnotes.SetMinSize(fyne.NewSize(0, 100))

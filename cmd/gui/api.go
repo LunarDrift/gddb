@@ -23,7 +23,8 @@ type (
 var (
 	httpClient = &http.Client{Timeout: 10 * time.Second}
 
-	errNotFound = errors.New("no results found")
+	errNotFound   = errors.New("no results found")
+	errBadRequest = errors.New("invalid request")
 
 	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 )
@@ -47,6 +48,8 @@ func getJSON[T any](u string) (T, error) {
 	switch {
 	case resp.StatusCode == http.StatusNotFound:
 		return out, errNotFound
+	case resp.StatusCode == http.StatusBadRequest:
+		return out, errBadRequest
 	case resp.StatusCode != http.StatusOK:
 		return out, fmt.Errorf("api returned %s", resp.Status)
 	}
