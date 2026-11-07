@@ -933,3 +933,59 @@ func TestHandleSearchShowNotes_Errors(t *testing.T) {
 		})
 	}
 }
+
+func TestHandleGetShowsWithSongDebuts(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-09-04")
+	fake := &fakeQuerier{
+		getSongDebutsRows: []database.GetSongDebutsRow{
+			{ShowID: 1, ShowDate: date, Venue: "Venue", City: "New York", Location: "NY", Notes: sql.NullString{}},
+		},
+	}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows/song-debuts", nil)
+	w := httptest.NewRecorder()
+	s.handleGetShowsWithSongDebuts(w, req)
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	got := internal.Paginated[internal.ShowMeta]{}
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got.Results) != 1 {
+		t.Errorf("len(got.Results) = %d; want 1", len(got.Results))
+	}
+
+	if got.Results[0].ShowID != 1 {
+		t.Errorf("got.Results[0].ShowID = %d; want 1", got.Results[0].ShowID)
+	}
+}
+
+func TestHandleGetAllAcousticShows(t *testing.T) {
+	date, _ := time.Parse(time.DateOnly, "1995-09-04")
+	fake := &fakeQuerier{
+		getAcousticShowsRows: []database.GetAcousticShowsRow{
+			{ShowID: 1, ShowDate: date, Venue: "Venue", City: "New York", Location: "NY", Notes: sql.NullString{}},
+		},
+	}
+	s := &server{queries: fake}
+	req := httptest.NewRequest(http.MethodGet, "/shows/acoustic", nil)
+	w := httptest.NewRecorder()
+	s.handleGetAcousticShows(w, req)
+	res := w.Result()
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
+	}
+
+	got := internal.Paginated[internal.ShowMeta]{}
+	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
+		t.Fatalf("error decoding response: %v", err)
+	}
+
+	if len(got.Results) != 1 {
+		t.Errorf("len(got.Results) = %d; want 1", len(got.Results))
+	}
+}
