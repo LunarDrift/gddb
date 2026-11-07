@@ -157,7 +157,7 @@ func getRandomShow() ([]internal.ShowResponse, error) {
 // ----- Songs -----
 
 func getAllSongStats() ([]songStats, error) {
-	return getJSON[[]songStats]("/stats/all-songs")
+	return getJSON[[]songStats]("/stats/songs")
 }
 
 // ----- Venues -----
@@ -169,7 +169,7 @@ func getAllVenueStats() ([]venueStats, error) {
 // ----- Helpers -----
 
 func getAllVenues() ([]string, error) {
-	venues, err := getJSON[internal.AllVenues]("/all-venues")
+	venues, err := getJSON[internal.AllVenues]("/references/venues")
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func getAllVenues() ([]string, error) {
 }
 
 func getAllLocations() ([]string, error) {
-	locations, err := getJSON[internal.AllLocations]("/all-locations")
+	locations, err := getJSON[internal.AllLocations]("/references/locations")
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ func getAllLocations() ([]string, error) {
 }
 
 func getAllCities() ([]string, error) {
-	cities, err := getJSON[internal.AllCities]("/all-cities")
+	cities, err := getJSON[internal.AllCities]("/references/cities")
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +193,7 @@ func getAllCities() ([]string, error) {
 }
 
 func getAllSongNames() ([]string, error) {
-	songStats, err := getJSON[[]songStats]("/stats/all-songs")
+	songStats, err := getJSON[[]songStats]("/stats/songs")
 	if err != nil {
 		return nil, err
 	}

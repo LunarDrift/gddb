@@ -101,12 +101,20 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 | `/shows/today`                      | List of shows played on today's date                                                                                        |
 | `/shows/acoustic`                   | List of all acoustic shows                                                                                                  |
 | `/shows/song-debuts`                | List of shows with song debuts                                                                                              |
+| &nbsp;                              | &nbsp;                                                                                                                      |
 | `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                        |
 | `/songs?venue=`                     | All songs played at a specific venue                                                                                        |
 | `/songs?played_lt=n`                | Songs played less than `n` times                                                                                            |
 | `/songs?sort=most_played&set_name=` | Most played songs by set name (set_1, set_2, set_3, encore, acoustic, electric)                                             |
 | `/songs/{name}`                     | Stats for a song (times played, first/last time played)                                                                     |
+| &nbsp;                              | &nbsp;                                                                                                                      |
 | `/stats/songs-per-city`             | Unique song count per city                                                                                                  |
+| `/stats/songs`                      | List of all songs and how many times they were played in each set                                                           |
+| `/stats/venues`                     | List of all venues and how many shows were played there                                                                     |
+| &nbsp;                              | &nbsp;                                                                                                                      |
+| `/references/locations`             | List of all valid locations (state abbreviations & country names)                                                           |
+| `/references/cities`                | List of all valid cities                                                                                                    |
+| `/references/venues`                | List of all valid venues                                                                                                    |
 
 ## Rate Limiting
 
