@@ -79,7 +79,7 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid date format. Want YYYY-MM-DD", err)
 		return
 	}
-	showRows, err := s.queries.GetShowFromDate(r.Context(), date)
+	showRows, err := s.queries.GetShowDetailsFromDate(r.Context(), date)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
 		return
@@ -127,7 +127,7 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
+	showRows, err := s.queries.GetShowDetailsFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
 		return
@@ -164,7 +164,7 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 	}
 	id := allIDs[rand.Intn(len(allIDs))]
 
-	showRows, err := s.queries.GetShowFromID(r.Context(), int32(id))
+	showRows, err := s.queries.GetShowDetailsFromID(r.Context(), int32(id))
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
 		return

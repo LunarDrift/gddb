@@ -116,7 +116,7 @@ func TestHandleSearchShowsFromDate_Errors(t *testing.T) {
 func TestHandleGetShowFromID(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1970-04-20")
 	fake := &fakeQuerier{
-		showFromIDRows: []database.GetShowFromIDRow{{ShowID: 1, ShowDate: date, Venue: "venue", City: "city", Location: "location", Notes: sql.NullString{}}},
+		showFromIDRows: []database.GetShowDetailsFromIDRow{{ShowID: 1, ShowDate: date, Venue: "venue", City: "city", Location: "location", Notes: sql.NullString{}}},
 	}
 
 	s := &server{queries: fake}

@@ -19,7 +19,7 @@ VALUES (
 )
 ON CONFLICT (show_id) DO NOTHING;
 
--- name: GetShowFromDate :many
+-- name: GetShowDetailsFromDate :many
 SELECT 
   sh.show_id,
 	sh.show_date,
@@ -44,7 +44,7 @@ ORDER BY
 	st."position",
 	se."position";
 
--- name: GetShowFromID :many
+-- name: GetShowDetailsFromID :many
 SELECT
   sh.show_id,
 	sh.show_date,

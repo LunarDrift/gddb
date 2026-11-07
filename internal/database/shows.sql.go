@@ -295,7 +295,7 @@ func (q *Queries) GetAllVenues(ctx context.Context) ([]string, error) {
 	return items, nil
 }
 
-const getShowFromDate = `-- name: GetShowFromDate :many
+const getShowDetailsFromDate = `-- name: GetShowDetailsFromDate :many
 SELECT 
   sh.show_id,
 	sh.show_date,
@@ -321,7 +321,7 @@ ORDER BY
 	se."position"
 `
 
-type GetShowFromDateRow struct {
+type GetShowDetailsFromDateRow struct {
 	ShowID       int32
 	ShowDate     time.Time
 	Venue        string
@@ -334,15 +334,15 @@ type GetShowFromDateRow struct {
 	SongPosition sql.NullInt32
 }
 
-func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]GetShowFromDateRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowFromDate, showDate)
+func (q *Queries) GetShowDetailsFromDate(ctx context.Context, showDate time.Time) ([]GetShowDetailsFromDateRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowDetailsFromDate, showDate)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetShowFromDateRow
+	var items []GetShowDetailsFromDateRow
 	for rows.Next() {
-		var i GetShowFromDateRow
+		var i GetShowDetailsFromDateRow
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
@@ -368,7 +368,7 @@ func (q *Queries) GetShowFromDate(ctx context.Context, showDate time.Time) ([]Ge
 	return items, nil
 }
 
-const getShowFromID = `-- name: GetShowFromID :many
+const getShowDetailsFromID = `-- name: GetShowDetailsFromID :many
 SELECT
   sh.show_id,
 	sh.show_date,
@@ -393,7 +393,7 @@ ORDER BY
 	se.position
 `
 
-type GetShowFromIDRow struct {
+type GetShowDetailsFromIDRow struct {
 	ShowID   int32
 	ShowDate time.Time
 	Venue    string
@@ -404,15 +404,15 @@ type GetShowFromIDRow struct {
 	RawEntry sql.NullString
 }
 
-func (q *Queries) GetShowFromID(ctx context.Context, showID int32) ([]GetShowFromIDRow, error) {
-	rows, err := q.db.QueryContext(ctx, getShowFromID, showID)
+func (q *Queries) GetShowDetailsFromID(ctx context.Context, showID int32) ([]GetShowDetailsFromIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowDetailsFromID, showID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetShowFromIDRow
+	var items []GetShowDetailsFromIDRow
 	for rows.Next() {
-		var i GetShowFromIDRow
+		var i GetShowDetailsFromIDRow
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,

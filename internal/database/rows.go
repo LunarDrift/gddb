@@ -24,23 +24,23 @@ type ShowRow interface {
 	GetRawEntry() sql.NullString
 }
 
-func (r GetShowFromIDRow) GetShowID() int32            { return r.ShowID }
-func (r GetShowFromIDRow) GetShowDate() time.Time      { return r.ShowDate }
-func (r GetShowFromIDRow) GetVenue() string            { return r.Venue }
-func (r GetShowFromIDRow) GetCity() string             { return r.City }
-func (r GetShowFromIDRow) GetLocation() string         { return r.Location }
-func (r GetShowFromIDRow) GetNotes() sql.NullString    { return r.Notes }
-func (r GetShowFromIDRow) GetSetName() sql.NullString  { return r.SetName }
-func (r GetShowFromIDRow) GetRawEntry() sql.NullString { return r.RawEntry }
+func (r GetShowDetailsFromIDRow) GetShowID() int32            { return r.ShowID }
+func (r GetShowDetailsFromIDRow) GetShowDate() time.Time      { return r.ShowDate }
+func (r GetShowDetailsFromIDRow) GetVenue() string            { return r.Venue }
+func (r GetShowDetailsFromIDRow) GetCity() string             { return r.City }
+func (r GetShowDetailsFromIDRow) GetLocation() string         { return r.Location }
+func (r GetShowDetailsFromIDRow) GetNotes() sql.NullString    { return r.Notes }
+func (r GetShowDetailsFromIDRow) GetSetName() sql.NullString  { return r.SetName }
+func (r GetShowDetailsFromIDRow) GetRawEntry() sql.NullString { return r.RawEntry }
 
-func (r GetShowFromDateRow) GetShowID() int32            { return r.ShowID }
-func (r GetShowFromDateRow) GetShowDate() time.Time      { return r.ShowDate }
-func (r GetShowFromDateRow) GetVenue() string            { return r.Venue }
-func (r GetShowFromDateRow) GetCity() string             { return r.City }
-func (r GetShowFromDateRow) GetLocation() string         { return r.Location }
-func (r GetShowFromDateRow) GetNotes() sql.NullString    { return r.Notes }
-func (r GetShowFromDateRow) GetSetName() sql.NullString  { return r.SetName }
-func (r GetShowFromDateRow) GetRawEntry() sql.NullString { return r.RawEntry }
+func (r GetShowDetailsFromDateRow) GetShowID() int32            { return r.ShowID }
+func (r GetShowDetailsFromDateRow) GetShowDate() time.Time      { return r.ShowDate }
+func (r GetShowDetailsFromDateRow) GetVenue() string            { return r.Venue }
+func (r GetShowDetailsFromDateRow) GetCity() string             { return r.City }
+func (r GetShowDetailsFromDateRow) GetLocation() string         { return r.Location }
+func (r GetShowDetailsFromDateRow) GetNotes() sql.NullString    { return r.Notes }
+func (r GetShowDetailsFromDateRow) GetSetName() sql.NullString  { return r.SetName }
+func (r GetShowDetailsFromDateRow) GetRawEntry() sql.NullString { return r.RawEntry }
 
 //------------------------------------------------------------------------------------
 
