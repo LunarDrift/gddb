@@ -38,8 +38,6 @@ type fakeQuerier struct {
 	showsFromLocationErr         error
 	showsFromCityRows            []database.GetShowsFromCityRow
 	showsFromCityErr             error
-	showsFromYearRows            []database.GetShowsFromYearRow
-	showsFromYearErr             error
 	showsFromYearAndLocationRows []database.GetShowsFromYearAndLocationRow
 	showsFromYearAndLocationErr  error
 	showsWithNotesRows           []database.ShowsWithShowNotesRow
@@ -146,10 +144,6 @@ func (f *fakeQuerier) GetShowsFromSongName(ctx context.Context, arg database.Get
 
 func (f *fakeQuerier) GetShowsFromLocation(ctx context.Context, arg database.GetShowsFromLocationParams) ([]database.GetShowsFromLocationRow, error) {
 	return f.showsFromLocationRows, f.showsFromLocationErr
-}
-
-func (f *fakeQuerier) GetShowsFromYear(ctx context.Context, arg database.GetShowsFromYearParams) ([]database.GetShowsFromYearRow, error) {
-	return f.showsFromYearRows, f.showsFromYearErr
 }
 
 func (f *fakeQuerier) GetShowsFromYearAndLocation(ctx context.Context, arg database.GetShowsFromYearAndLocationParams) ([]database.GetShowsFromYearAndLocationRow, error) {

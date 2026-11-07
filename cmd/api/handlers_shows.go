@@ -15,6 +15,7 @@ import (
 	"github.com/LunarDrift/deadabase/internal/database"
 )
 
+// dateFilters holds the optional values for the handleSearchShowsFromDate endpoint
 type dateFilters struct {
 	year  int32
 	month int32

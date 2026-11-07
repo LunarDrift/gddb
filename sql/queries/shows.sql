@@ -238,20 +238,6 @@ AND LOWER(sh.state) = LOWER(@location)
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
--- name: GetShowsFromYear :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-WHERE EXTRACT(YEAR FROM sh.show_date) = @year::int
-ORDER BY sh.show_date, show_id
-LIMIT @page_limit OFFSET @page_offset;
-
 -- name: GetShowsFromLocation :many
 SELECT
   sh.show_id,

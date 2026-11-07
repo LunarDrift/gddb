@@ -118,13 +118,6 @@ func (r GetShowsFromYearAndLocationRow) GetCity() string          { return r.Cit
 func (r GetShowsFromYearAndLocationRow) GetLocation() string      { return r.Location }
 func (r GetShowsFromYearAndLocationRow) GetNotes() sql.NullString { return r.Notes }
 
-func (r GetShowsFromYearRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsFromYearRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsFromYearRow) GetVenue() string         { return r.Venue }
-func (r GetShowsFromYearRow) GetCity() string          { return r.City }
-func (r GetShowsFromYearRow) GetLocation() string      { return r.Location }
-func (r GetShowsFromYearRow) GetNotes() sql.NullString { return r.Notes }
-
 func (r GetShowsFromLocationRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsFromLocationRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsFromLocationRow) GetVenue() string         { return r.Venue }
