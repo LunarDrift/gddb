@@ -21,6 +21,8 @@ type showText struct {
 
 // formatShows renders one or more shows (same date) for display.
 func formatShows(data []internal.ShowResponse) showText {
+	// TODO: Look into RichTextSegments - they could probably be used
+	// here to help clean things up?
 	if len(data) == 0 {
 		return showText{}
 	}
