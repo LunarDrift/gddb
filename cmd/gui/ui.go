@@ -248,12 +248,16 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	return container.NewVBox(
 		quickActionsAccordion,
 		layout.NewSpacer(),
+		widget.NewSeparator(),
 		idDateAccordion,
 		layout.NewSpacer(),
+		widget.NewSeparator(),
 		songAccordion,
 		layout.NewSpacer(),
+		widget.NewSeparator(),
 		venueLocationAccordion,
 		layout.NewSpacer(),
+		widget.NewSeparator(),
 		otherSearchesAccordion,
 		layout.NewSpacer(),
 	)
@@ -284,7 +288,9 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 	s.placeholder = container.NewCenter(widget.NewLabel("Select an item to see details"))
 
 	s.dateLabel = widget.NewRichText()
+	s.dateLabel.Wrapping = fyne.TextWrapWord
 	s.locationLabel = widget.NewRichText()
+	s.locationLabel.Wrapping = fyne.TextWrapWord
 	s.setsLabel = widget.NewRichText()
 	s.setsLabel.Wrapping = fyne.TextWrapWord
 	s.footnotesLabel = widget.NewRichText()

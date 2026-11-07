@@ -13,10 +13,10 @@ import (
 
 // showText is everything the details panel needs, already formatted.
 type showText struct {
-	date      string
-	location  string
-	sets      string
-	footnotes string
+	header    string
+	showNotes string
+	setlist   string
+	songNotes string
 }
 
 // formatShows renders one or more shows (same date) for display.
@@ -27,47 +27,44 @@ func formatShows(data []internal.ShowResponse) showText {
 		return showText{}
 	}
 
-	var date, sets, notes, location strings.Builder
+	var header, setlist, songNotes, showNotes strings.Builder
 	first := data[0]
-	fmt.Fprintf(&date, "## Date: %v\n\n", first.Date)
+	fmt.Fprintf(&header, "# %v\n\n", first.Date)
 
 	for i, show := range data {
-		fmt.Fprintf(&date, "##### Show ID: %v\n", show.ShowID)
-		// fmt.Fprintf(&sets, "### Show ID: %v\n\n", show.ShowID)
-		fmt.Fprint(&location, "## Location(s):\n\n")
-		fmt.Fprintf(&location, "**%v · %v, %v**\n\n", show.Venue, show.City, show.Location)
+		fmt.Fprintf(&header, "**%v · %v, %v**\n\n", show.Venue, show.City, show.Location)
+		fmt.Fprintf(&header, "**Show ID:** %v\n\n", show.ShowID)
 		if show.Notes != "" {
-			fmt.Fprintf(&location, "\n\n\n**Notes:** %v\n\n", show.Notes)
+			fmt.Fprintf(&showNotes, "\n\n%v\n\n", show.Notes)
 		}
-		fmt.Fprintf(&date, "[Listen on archive.org](%s)\n\n", buildArchiveOrgLink(first.Date))
-		sets.WriteString("\n\n")
+		fmt.Fprintf(&header, "[Listen on archive.org](%s)\n\n", buildArchiveOrgLink(first.Date))
+		setlist.WriteString("\n")
 
 		if len(show.Sets) == 0 {
-			sets.WriteString("*No setlist available for this show*\n")
+			setlist.WriteString("*No setlist available for this show*\n")
 		}
 		for _, set := range show.Sets {
-			fmt.Fprintf(&sets, "**%s:**\n\n%s\n\n", formatSetName(set.SetName), strings.Join(formatSongs(set), "\n\n\n"))
+			fmt.Fprintf(&setlist, "**%s:**\n\n%s\n\n", formatSetName(set.SetName), strings.Join(formatSongs(set), "\n\n"))
 		}
 
 		if len(show.Footnotes) > 0 {
-			fmt.Fprintf(&notes, "#### Show %v Footnotes\n\n", show.ShowID)
+			fmt.Fprintf(&songNotes, "#### Show %v Footnotes\n\n", show.ShowID)
 			for _, k := range slices.Sorted(maps.Keys(show.Footnotes)) {
-				fmt.Fprintf(&notes, "[%s]: *%v*\n\n", k, show.Footnotes[k])
+				fmt.Fprintf(&songNotes, "[%s]: *%v*\n\n", k, show.Footnotes[k])
 			}
-			notes.WriteString("\n")
+			songNotes.WriteString("\n")
 		}
 
 		if i < len(data)-1 {
-			fmt.Fprintln(&sets, strings.Repeat("━", 60)+"\n")
+			fmt.Fprintln(&setlist, strings.Repeat("━", 60)+"\n")
 		}
 	}
 
 	return showText{
-		date:     strings.TrimSpace(date.String()),
-		location: strings.TrimSpace(location.String()),
-		// location:  fmt.Sprintf("Location: %v - %v, %v", first.Venue, first.City, first.Location),
-		sets:      strings.TrimSpace(sets.String()),
-		footnotes: strings.TrimSpace(notes.String()),
+		header:    strings.TrimSpace(header.String()),
+		showNotes: strings.TrimSpace(showNotes.String()),
+		setlist:   strings.TrimSpace(setlist.String()),
+		songNotes: strings.TrimSpace(songNotes.String()),
 	}
 }
 

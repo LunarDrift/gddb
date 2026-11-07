@@ -286,10 +286,10 @@ func (s *showsTab) showShowDetails(data []internal.ShowResponse) {
 		return
 	}
 	t := formatShows(data)
-	s.dateLabel.ParseMarkdown(t.date)
-	s.locationLabel.ParseMarkdown(t.location)
-	s.setsLabel.ParseMarkdown(t.sets)
-	s.footnotesLabel.ParseMarkdown(t.footnotes)
+	s.dateLabel.ParseMarkdown(t.header)
+	s.locationLabel.ParseMarkdown(t.showNotes)
+	s.setsLabel.ParseMarkdown(t.setlist)
+	s.footnotesLabel.ParseMarkdown(t.songNotes)
 	s.placeholder.Hide()
 	s.details.Show()
 }
