@@ -21,30 +21,29 @@ type showText struct {
 
 // formatShows renders one or more shows (same date) for display.
 func formatShows(data []internal.ShowResponse) showText {
-	// TODO: Look into RichTextSegments - they could probably be used
-	// here to help clean things up?
 	if len(data) == 0 {
 		return showText{}
 	}
 
 	var header, setlist, songNotes, showNotes strings.Builder
 	first := data[0]
-	fmt.Fprintf(&header, "# %v\n\n", first.Date)
+	fmt.Fprintf(&header, "# %v\n", first.Date)
 
-	for i, show := range data {
-		fmt.Fprintf(&header, "**%v · %v, %v**\n\n", show.Venue, show.City, show.Location)
+	for _, show := range data {
 		fmt.Fprintf(&header, "**Show ID:** %v\n\n", show.ShowID)
 		if show.Notes != "" {
-			fmt.Fprintf(&showNotes, "\n\n%v\n\n", show.Notes)
+			fmt.Fprintf(&showNotes, "%v\n", show.Notes)
 		}
-		fmt.Fprintf(&header, "[Listen on archive.org](%s)\n\n", buildArchiveOrgLink(first.Date))
-		setlist.WriteString("\n")
 
 		if len(show.Sets) == 0 {
-			setlist.WriteString("*No setlist available for this show*\n")
+			setlist.WriteString("\n*No setlist available for this show*\n")
 		}
 		for _, set := range show.Sets {
-			fmt.Fprintf(&setlist, "**%s:**\n\n%s\n\n", formatSetName(set.SetName), strings.Join(formatSongs(set), "\n\n"))
+			fmt.Fprintf(&setlist, "### **%s:**\n\n", formatSetName(set.SetName))
+			fmt.Fprintf(&setlist, "%s\n", strings.Join(formatSongs(set), "\n"))
+		}
+		if len(show.Sets) > 0 && len(data) == 2 {
+			fmt.Fprint(&setlist, "\n---\n")
 		}
 
 		if len(show.Footnotes) > 0 {
@@ -52,13 +51,10 @@ func formatShows(data []internal.ShowResponse) showText {
 			for _, k := range slices.Sorted(maps.Keys(show.Footnotes)) {
 				fmt.Fprintf(&songNotes, "[%s]: *%v*\n\n", k, show.Footnotes[k])
 			}
-			songNotes.WriteString("\n")
-		}
-
-		if i < len(data)-1 {
-			fmt.Fprintln(&setlist, strings.Repeat("━", 60)+"\n")
 		}
 	}
+	fmt.Fprintf(&header, "**%v · %v, %v**\n\n", first.Venue, first.City, first.Location)
+	fmt.Fprintf(&header, "[Listen on archive.org](%s)", buildArchiveOrgLink(first.Date))
 
 	return showText{
 		header:    strings.TrimSpace(header.String()),
