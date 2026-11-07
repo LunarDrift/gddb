@@ -80,7 +80,7 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter, showCounter *int64)
 	const totalShows = 2309
 
 	if currentShowProgress%231 == 0 || currentShowProgress == totalShows {
-		log.Printf("%d/%d   shows\t(%.1f%%)", currentShowProgress, totalShows, float64(currentShowProgress)/float64(2309)*100)
+		log.Printf("shows: %d/%d\t(%.1f%%)", currentShowProgress, totalShows, float64(currentShowProgress)/float64(2309)*100)
 	}
 
 	var songBatch []database.InsertEntrySongParams
@@ -128,7 +128,7 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter, showCounter *int64)
 			currentProgress := *songCounter
 
 			if currentProgress%2304 == 0 || currentProgress == totalSongs {
-				log.Printf("%d/%d songs\t(%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
+				log.Printf("songs: %d/%d\t(%.1f%%)", currentProgress, totalSongs, float64(currentProgress)/float64(totalSongs)*100)
 			}
 		}
 	}
