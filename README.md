@@ -82,6 +82,7 @@ Fyne to build/compile.
 Many query parameters can be combined to filter shows in a single search.
 For example, `/shows?year=1978&location=NY&has_notes=true` returns a filtered
 list of shows from 1978 played in New York, that has show notes attached.
+
 _Note: `/shows?date=`, `/shows?id=`, `/shows?start_date=&end_date=` cannot be combined
 with anything._
 
