@@ -79,42 +79,48 @@ Fyne to build/compile.
 
 ## API Endpoints (GET only)
 
+Many query parameters can be combined to filter shows in a single search.
+For example, `/shows?year=1978&location=NY&has_notes=true` returns a filtered
+list of shows from 1978 played in New York, that has show notes attached.
+_Note: `/shows?date=`, `/shows?id=`, `/shows?start_date=&end_date=` cannot be combined
+with anything._
+
 For further details about each endpoint and their response shapes,
 take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 
-| ENDPOINT                            | DESCRIPTION                                                                                                                 |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `/shows`                            | Paginated list of all shows played                                                                                          |
-| `/shows?id=`                        | Search for a specific show by its ID                                                                                        |
-| `/shows?date=`                      | Search for a show by date (YYYY-MM-DD format)                                                                               |
-| `/shows?song=`                      | Search for shows where a specific song was played. Returns a list of shows                                                  |
-| `/shows?set_name=`                  | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric)                                              |
-| `/shows?venue=`                     | Search for shows by venue. Returns a list of shows with their IDs                                                           |
-| `/shows?has_notes=true/false`       | Search for shows with/without notes attached                                                                                |
-| `/shows?start_date=&end_date=`      | List of shows between two dates (YYYY-MM-DD format)                                                                         |
-| `/shows?year=&month=&day=`          | List of shows filtered by date. E.g. all shows played on the 15th in 1978                                                   |
-| `/shows?year=&location=`            | List of shows filtered by year and location (states or country names. states should be the standard 2 letter abbreviations) |
-| `/shows?location=`                  | List of shows filtered by location (states or country names. states should be the standard 2 letter abbreviations)          |
-| `/shows?city=`                      | List of shows filtered by city                                                                                              |
-| `/shows?notes=`                     | List of shows filtered by show notes query                                                                                  |
-| `/shows/random`                     | Get details for a random show                                                                                               |
-| `/shows/today`                      | List of shows played on today's date                                                                                        |
-| `/shows/acoustic`                   | List of all acoustic shows                                                                                                  |
-| `/shows/song-debuts`                | List of shows with song debuts                                                                                              |
-| &nbsp;                              | &nbsp;                                                                                                                      |
-| `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                        |
-| `/songs?venue=`                     | All songs played at a specific venue                                                                                        |
-| `/songs?played_lt=n`                | Songs played less than `n` times                                                                                            |
-| `/songs?sort=most_played&set_name=` | Most played songs by set name (set_1, set_2, set_3, encore, acoustic, electric)                                             |
-| `/songs/{name}`                     | Stats for a song (times played, first/last time played)                                                                     |
-| &nbsp;                              | &nbsp;                                                                                                                      |
-| `/stats/songs-per-city`             | Unique song count per city                                                                                                  |
-| `/stats/songs`                      | List of all songs and how many times they were played in each set                                                           |
-| `/stats/venues`                     | List of all venues and how many shows were played there                                                                     |
-| &nbsp;                              | &nbsp;                                                                                                                      |
-| `/references/locations`             | List of all valid locations (state abbreviations & country names)                                                           |
-| `/references/cities`                | List of all valid cities                                                                                                    |
-| `/references/venues`                | List of all valid venues                                                                                                    |
+| ENDPOINT                            | DESCRIPTION                                                                                                                    |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `/shows`                            | Paginated list of all shows played                                                                                             |
+| `/shows?id=`                        | Search for a specific show by its ID                                                                                           |
+| `/shows?date=`                      | Search for a show by date (YYYY-MM-DD format)                                                                                  |
+| `/shows?song=`                      | Search for shows where a specific song was played. Returns a list of shows                                                     |
+| `/shows?set_name=`                  | Search for shows by set name (set_1, set_2, set_3, encore, acoustic, electric)                                                 |
+| `/shows?venue=`                     | Search for shows by venue. Returns a list of shows with their IDs                                                              |
+| `/shows?has_notes=true/false`       | Search for shows with/without notes attached                                                                                   |
+| `/shows?start_date=&end_date=`      | List of shows between two dates (YYYY-MM-DD format)                                                                            |
+| `/shows?year=&month=&day=`          | List of shows filtered by date. E.g. all shows played on the 15th in 1978                                                      |
+| `/shows?year=&location=`            | List of shows filtered by year and location<br>(states or country names. states should be the standard 2 letter abbreviations) |
+| `/shows?location=`                  | List of shows filtered by location<br>(states or country names. states should be the standard 2 letter abbreviations)          |
+| `/shows?city=`                      | List of shows filtered by city                                                                                                 |
+| `/shows?notes=`                     | List of shows filtered by show notes query                                                                                     |
+| `/shows/random`                     | Get details for a random show                                                                                                  |
+| `/shows/today`                      | List of shows played on today's date                                                                                           |
+| `/shows/acoustic`                   | List of all acoustic shows                                                                                                     |
+| `/shows/song-debuts`                | List of shows with song debuts                                                                                                 |
+| &nbsp;                              | &nbsp;                                                                                                                         |
+| `/songs?sort=most_played`           | Returns a list of all songs and the amount of times they were played                                                           |
+| `/songs?venue=`                     | All songs played at a specific venue                                                                                           |
+| `/songs?played_lt=n`                | Songs played less than `n` times                                                                                               |
+| `/songs?sort=most_played&set_name=` | Most played songs by set name (set_1, set_2, set_3, encore, acoustic, electric)                                                |
+| `/songs/{name}`                     | Stats for a song (times played, first/last time played)                                                                        |
+| &nbsp;                              | &nbsp;                                                                                                                         |
+| `/stats/songs-per-city`             | Unique song count per city                                                                                                     |
+| `/stats/songs`                      | List of all songs and how many times they were played in each set                                                              |
+| `/stats/venues`                     | List of all venues and how many shows were played there                                                                        |
+| &nbsp;                              | &nbsp;                                                                                                                         |
+| `/references/locations`             | List of all valid locations (state abbreviations & country names)                                                              |
+| `/references/cities`                | List of all valid cities                                                                                                       |
+| `/references/venues`                | List of all valid venues                                                                                                       |
 
 ## Rate Limiting
 

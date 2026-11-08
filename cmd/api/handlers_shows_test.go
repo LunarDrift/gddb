@@ -195,6 +195,7 @@ func TestHandleSearchShows(t *testing.T) {
 		{"set name", "/shows?set_name=acoustic", http.StatusOK, fake},
 		{"has_notes=true", "/shows?has_notes=true", http.StatusOK, fake},
 		{"has_notes=false", "/shows?has_notes=false", http.StatusOK, fake},
+		{"no parameters given", "/shows?year=&month=&day=&location=&city=&song=&venue=&notes=&set_name=&has_notes=", http.StatusOK, fake},
 	}
 
 	for _, tt := range tests {
