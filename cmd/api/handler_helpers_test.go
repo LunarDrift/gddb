@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"database/sql"
+	"testing"
+)
 
 func TestFuzzyPattern(t *testing.T) {
 	tests := []struct {
@@ -32,7 +35,7 @@ func TestValidateDateParts(t *testing.T) {
 		day   string
 		want  dateFilters
 	}{
-		{name: "valid date", year: "1970", month: "09", day: "24", want: dateFilters{year: 1970, month: 9, day: 24}},
+		{name: "full date", year: "1970", month: "09", day: "24", want: dateFilters{year: 1970, month: 9, day: 24}},
 		{name: "year only", year: "1970", month: "", day: "", want: dateFilters{year: 1970}},
 		{name: "month only", year: "", month: "12", day: "", want: dateFilters{month: 12}},
 		{name: "day only", year: "", month: "", day: "31", want: dateFilters{day: 31}},
@@ -46,7 +49,7 @@ func TestValidateDateParts(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := validateDateParts(tt.year, tt.month, tt.day)
 			if err != nil {
-				t.Errorf("error: %v", err)
+				t.Fatalf("error: %v", err)
 			}
 			if got.year != tt.want.year {
 				t.Errorf("got.year = %d; want %d", got.year, tt.want.year)
@@ -56,6 +59,33 @@ func TestValidateDateParts(t *testing.T) {
 			}
 			if got.day != tt.want.day {
 				t.Errorf("got.day = %d; want %d", got.day, tt.want.day)
+			}
+		})
+	}
+}
+
+func TestStrToNullBool(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  sql.NullBool
+	}{
+		{name: "empty input", input: "", want: sql.NullBool{}},
+		{name: "true", input: "true", want: sql.NullBool{Bool: true, Valid: true}},
+		{name: "false", input: "false", want: sql.NullBool{Bool: false, Valid: true}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := strToNullBool(tt.input)
+			if err != nil {
+				t.Fatalf("error: %v", err)
+			}
+			if got.Bool != tt.want.Bool {
+				t.Errorf("got.Bool = %v; want %v", got.Bool, tt.want.Bool)
+			}
+			if got.Valid != tt.want.Valid {
+				t.Errorf("got.Valid = %v; want %v", got.Valid, tt.want.Valid)
 			}
 		})
 	}
