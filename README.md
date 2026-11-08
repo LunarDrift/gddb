@@ -83,8 +83,18 @@ Many query parameters can be combined to filter shows in a single search.
 For example, `/shows?year=1978&location=NY&has_notes=true` returns a filtered
 list of shows from 1978 played in New York, that has show notes attached.
 
-_Note: `/shows?date=`, `/shows?id=`, `/shows?start_date=&end_date=` cannot be combined
-with anything._
+These parameters can be combined together in a single request:
+
+- `year`
+- `month`
+- `day`
+- `location`
+- `city`
+- `venue`
+- `song`
+- `notes`
+- `set_name`
+- `has_notes`
 
 For further details about each endpoint and their response shapes,
 take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
