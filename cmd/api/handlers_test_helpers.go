@@ -32,9 +32,9 @@ type fakeQuerier struct {
 	showsBetweenDatesErr    error
 	showsFromSetNameRows    []database.GetShowsFromSetNameRow
 	showsFromSetNameErr     error
-	showsWithNotesRows      []database.ShowsWithShowNotesRow
+	showsWithNotesRows      []database.GetShowsWithShowNotesRow
 	showsWithNotesErr       error
-	showsWithoutNotesRows   []database.ShowsWithoutNotesRow
+	showsWithoutNotesRows   []database.GetShowsWithoutNotesRow
 	showsWithoutNotesErr    error
 	listVenueStats          []database.ListVenueStatsRow
 	listVenueStatsErr       error
@@ -45,7 +45,7 @@ type fakeQuerier struct {
 	getSongDebutsRows       []database.GetSongDebutsRow
 	getSongDebutsErr        error
 	// Songs
-	songStatsRow            database.SongStatsRow
+	songStatsRow            database.GetSongStatsRow
 	songStatsErr            error
 	songsPlayedAtVenueRows  []database.AllSongsPlayedAtVenueRow
 	songsPlayedAtVenueErr   error
@@ -122,15 +122,15 @@ func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, arg database.GetS
 	return f.showsFromSetNameRows, f.showsFromSetNameErr
 }
 
-func (f *fakeQuerier) ShowsWithShowNotes(ctx context.Context, arg database.ShowsWithShowNotesParams) ([]database.ShowsWithShowNotesRow, error) {
+func (f *fakeQuerier) GetShowsWithShowNotes(ctx context.Context, arg database.GetShowsWithShowNotesParams) ([]database.GetShowsWithShowNotesRow, error) {
 	return f.showsWithNotesRows, f.showsWithNotesErr
 }
 
-func (f *fakeQuerier) ShowsWithoutNotes(ctx context.Context, arg database.ShowsWithoutNotesParams) ([]database.ShowsWithoutNotesRow, error) {
+func (f *fakeQuerier) GetShowsWithoutNotes(ctx context.Context, arg database.GetShowsWithoutNotesParams) ([]database.GetShowsWithoutNotesRow, error) {
 	return f.showsWithoutNotesRows, f.showsWithoutNotesErr
 }
 
-func (f *fakeQuerier) SongStats(ctx context.Context, songName sql.NullString) (database.SongStatsRow, error) {
+func (f *fakeQuerier) GetSongStats(ctx context.Context, songName sql.NullString) (database.GetSongStatsRow, error) {
 	return f.songStatsRow, f.songStatsErr
 }
 

@@ -122,7 +122,7 @@ ORDER BY
 	sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
--- name: SongStats :one
+-- name: GetSongStats :one
 SELECT
   count(*) AS times_played,
   min(sh.show_date)::date AS first_played,
@@ -162,7 +162,7 @@ WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
--- name: ShowsWithShowNotes :many
+-- name: GetShowsWithShowNotes :many
 SELECT 
 	sh.show_id,
 	sh.show_date,
@@ -176,7 +176,7 @@ WHERE sh.notes IS NOT NULL AND sh.notes != ''
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
--- name: ShowsWithoutNotes :many
+-- name: GetShowsWithoutNotes :many
 SELECT
   sh.show_id,
   sh.show_date,

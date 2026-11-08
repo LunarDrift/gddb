@@ -228,7 +228,7 @@ func TestHandleGetShowsFromSetName_Errors(t *testing.T) {
 func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-07-09")
 	fake := &fakeQuerier{
-		showsWithNotesRows: []database.ShowsWithShowNotesRow{
+		showsWithNotesRows: []database.GetShowsWithShowNotesRow{
 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{String: "Final show", Valid: true}},
 		},
 	}
@@ -261,7 +261,7 @@ func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
 func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1995-07-09")
 	fake := &fakeQuerier{
-		showsWithoutNotesRows: []database.ShowsWithoutNotesRow{
+		showsWithoutNotesRows: []database.GetShowsWithoutNotesRow{
 			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL"},
 			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Wembly", City: "London", Location: "England"},
 		},

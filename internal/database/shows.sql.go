@@ -635,6 +635,125 @@ func (q *Queries) GetShowsFromTodaysDate(ctx context.Context, arg GetShowsFromTo
 	return items, nil
 }
 
+const getShowsWithShowNotes = `-- name: GetShowsWithShowNotes :many
+SELECT 
+	sh.show_id,
+	sh.show_date,
+	sh.venue,
+	sh.city,
+	sh.state AS location,
+	sh.notes,
+  COUNT(*) OVER ()
+FROM shows sh
+WHERE sh.notes IS NOT NULL AND sh.notes != ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
+`
+
+type GetShowsWithShowNotesParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetShowsWithShowNotesRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Notes    sql.NullString
+	Count    int64
+}
+
+func (q *Queries) GetShowsWithShowNotes(ctx context.Context, arg GetShowsWithShowNotesParams) ([]GetShowsWithShowNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsWithShowNotes, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsWithShowNotesRow
+	for rows.Next() {
+		var i GetShowsWithShowNotesRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Notes,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getShowsWithoutNotes = `-- name: GetShowsWithoutNotes :many
+SELECT
+  sh.show_id,
+  sh.show_date,
+  sh.venue,
+  sh.city,
+  sh.state AS location,
+  COUNT(*) OVER ()
+FROM shows sh
+WHERE sh.notes IS NULL OR sh.notes = ''
+ORDER BY sh.show_date, sh.show_id
+LIMIT $2 OFFSET $1
+`
+
+type GetShowsWithoutNotesParams struct {
+	PageOffset int32
+	PageLimit  int32
+}
+
+type GetShowsWithoutNotesRow struct {
+	ShowID   int32
+	ShowDate time.Time
+	Venue    string
+	City     string
+	Location string
+	Count    int64
+}
+
+func (q *Queries) GetShowsWithoutNotes(ctx context.Context, arg GetShowsWithoutNotesParams) ([]GetShowsWithoutNotesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getShowsWithoutNotes, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetShowsWithoutNotesRow
+	for rows.Next() {
+		var i GetShowsWithoutNotesRow
+		if err := rows.Scan(
+			&i.ShowID,
+			&i.ShowDate,
+			&i.Venue,
+			&i.City,
+			&i.Location,
+			&i.Count,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getSongDebuts = `-- name: GetSongDebuts :many
 SELECT
   sh.show_id,
@@ -697,6 +816,30 @@ func (q *Queries) GetSongDebuts(ctx context.Context, arg GetSongDebutsParams) ([
 		return nil, err
 	}
 	return items, nil
+}
+
+const getSongStats = `-- name: GetSongStats :one
+SELECT
+  count(*) AS times_played,
+  min(sh.show_date)::date AS first_played,
+  max(sh.show_date)::date AS last_played
+FROM shows sh 
+JOIN "sets" st ON st.show_id = sh.show_id
+JOIN set_entries se ON se.set_id = st.id
+WHERE se.song_name ILIKE $1
+`
+
+type GetSongStatsRow struct {
+	TimesPlayed int64
+	FirstPlayed time.Time
+	LastPlayed  time.Time
+}
+
+func (q *Queries) GetSongStats(ctx context.Context, songName sql.NullString) (GetSongStatsRow, error) {
+	row := q.db.QueryRowContext(ctx, getSongStats, songName)
+	var i GetSongStatsRow
+	err := row.Scan(&i.TimesPlayed, &i.FirstPlayed, &i.LastPlayed)
+	return i, err
 }
 
 const getValidLocations = `-- name: GetValidLocations :many
@@ -862,147 +1005,4 @@ func (q *Queries) SearchShowsWithFilters(ctx context.Context, arg SearchShowsWit
 		return nil, err
 	}
 	return items, nil
-}
-
-const showsWithShowNotes = `-- name: ShowsWithShowNotes :many
-SELECT 
-	sh.show_id,
-	sh.show_date,
-	sh.venue,
-	sh.city,
-	sh.state AS location,
-	sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-WHERE sh.notes IS NOT NULL AND sh.notes != ''
-ORDER BY sh.show_date, sh.show_id
-LIMIT $2 OFFSET $1
-`
-
-type ShowsWithShowNotesParams struct {
-	PageOffset int32
-	PageLimit  int32
-}
-
-type ShowsWithShowNotesRow struct {
-	ShowID   int32
-	ShowDate time.Time
-	Venue    string
-	City     string
-	Location string
-	Notes    sql.NullString
-	Count    int64
-}
-
-func (q *Queries) ShowsWithShowNotes(ctx context.Context, arg ShowsWithShowNotesParams) ([]ShowsWithShowNotesRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsWithShowNotes, arg.PageOffset, arg.PageLimit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ShowsWithShowNotesRow
-	for rows.Next() {
-		var i ShowsWithShowNotesRow
-		if err := rows.Scan(
-			&i.ShowID,
-			&i.ShowDate,
-			&i.Venue,
-			&i.City,
-			&i.Location,
-			&i.Notes,
-			&i.Count,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const showsWithoutNotes = `-- name: ShowsWithoutNotes :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  COUNT(*) OVER ()
-FROM shows sh
-WHERE sh.notes IS NULL OR sh.notes = ''
-ORDER BY sh.show_date, sh.show_id
-LIMIT $2 OFFSET $1
-`
-
-type ShowsWithoutNotesParams struct {
-	PageOffset int32
-	PageLimit  int32
-}
-
-type ShowsWithoutNotesRow struct {
-	ShowID   int32
-	ShowDate time.Time
-	Venue    string
-	City     string
-	Location string
-	Count    int64
-}
-
-func (q *Queries) ShowsWithoutNotes(ctx context.Context, arg ShowsWithoutNotesParams) ([]ShowsWithoutNotesRow, error) {
-	rows, err := q.db.QueryContext(ctx, showsWithoutNotes, arg.PageOffset, arg.PageLimit)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ShowsWithoutNotesRow
-	for rows.Next() {
-		var i ShowsWithoutNotesRow
-		if err := rows.Scan(
-			&i.ShowID,
-			&i.ShowDate,
-			&i.Venue,
-			&i.City,
-			&i.Location,
-			&i.Count,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const songStats = `-- name: SongStats :one
-SELECT
-  count(*) AS times_played,
-  min(sh.show_date)::date AS first_played,
-  max(sh.show_date)::date AS last_played
-FROM shows sh 
-JOIN "sets" st ON st.show_id = sh.show_id
-JOIN set_entries se ON se.set_id = st.id
-WHERE se.song_name ILIKE $1
-`
-
-type SongStatsRow struct {
-	TimesPlayed int64
-	FirstPlayed time.Time
-	LastPlayed  time.Time
-}
-
-func (q *Queries) SongStats(ctx context.Context, songName sql.NullString) (SongStatsRow, error) {
-	row := q.db.QueryRowContext(ctx, songStats, songName)
-	var i SongStatsRow
-	err := row.Scan(&i.TimesPlayed, &i.FirstPlayed, &i.LastPlayed)
-	return i, err
 }

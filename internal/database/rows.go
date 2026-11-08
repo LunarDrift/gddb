@@ -69,19 +69,19 @@ type ShowSummaryRow interface {
 	GetNotes() sql.NullString
 }
 
-func (r ShowsWithShowNotesRow) GetShowID() int32         { return r.ShowID }
-func (r ShowsWithShowNotesRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r ShowsWithShowNotesRow) GetVenue() string         { return r.Venue }
-func (r ShowsWithShowNotesRow) GetCity() string          { return r.City }
-func (r ShowsWithShowNotesRow) GetLocation() string      { return r.Location }
-func (r ShowsWithShowNotesRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetShowsWithShowNotesRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsWithShowNotesRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsWithShowNotesRow) GetVenue() string         { return r.Venue }
+func (r GetShowsWithShowNotesRow) GetCity() string          { return r.City }
+func (r GetShowsWithShowNotesRow) GetLocation() string      { return r.Location }
+func (r GetShowsWithShowNotesRow) GetNotes() sql.NullString { return r.Notes }
 
-func (r ShowsWithoutNotesRow) GetShowID() int32         { return r.ShowID }
-func (r ShowsWithoutNotesRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r ShowsWithoutNotesRow) GetVenue() string         { return r.Venue }
-func (r ShowsWithoutNotesRow) GetCity() string          { return r.City }
-func (r ShowsWithoutNotesRow) GetLocation() string      { return r.Location }
-func (r ShowsWithoutNotesRow) GetNotes() sql.NullString { return sql.NullString{} }
+func (r GetShowsWithoutNotesRow) GetShowID() int32         { return r.ShowID }
+func (r GetShowsWithoutNotesRow) GetShowDate() time.Time   { return r.ShowDate }
+func (r GetShowsWithoutNotesRow) GetVenue() string         { return r.Venue }
+func (r GetShowsWithoutNotesRow) GetCity() string          { return r.City }
+func (r GetShowsWithoutNotesRow) GetLocation() string      { return r.Location }
+func (r GetShowsWithoutNotesRow) GetNotes() sql.NullString { return sql.NullString{} }
 
 func (r GetShowsFromSetNameRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsFromSetNameRow) GetShowDate() time.Time   { return r.ShowDate }

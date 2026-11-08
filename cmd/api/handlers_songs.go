@@ -286,7 +286,7 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	searchPattern := fuzzyPattern(song)
-	songStatRow, err := s.queries.SongStats(r.Context(), sql.NullString{String: searchPattern, Valid: true})
+	songStatRow, err := s.queries.GetSongStats(r.Context(), sql.NullString{String: searchPattern, Valid: true})
 	if err != nil {
 		respondWithError(w, http.StatusNotFound, "Song not found", err)
 		return

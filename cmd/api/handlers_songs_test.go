@@ -17,7 +17,7 @@ func TestHandleGetSongStats(t *testing.T) {
 	firstPlayed, _ := time.Parse(time.DateOnly, "1990-01-01")
 	lastPlayed := firstPlayed.Add(time.Hour * 24)
 	fake := &fakeQuerier{
-		songStatsRow: database.SongStatsRow{
+		songStatsRow: database.GetSongStatsRow{
 			TimesPlayed: 10, FirstPlayed: firstPlayed, LastPlayed: lastPlayed,
 		},
 	}

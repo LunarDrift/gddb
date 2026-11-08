@@ -359,7 +359,7 @@ func (s *server) showsWithNotes(r *http.Request) (internal.Paginated[internal.Sh
 	if err != nil {
 		return internal.Paginated[internal.ShowMeta]{}, err
 	}
-	showRows, err := s.queries.ShowsWithShowNotes(r.Context(), database.ShowsWithShowNotesParams{
+	showRows, err := s.queries.GetShowsWithShowNotes(r.Context(), database.GetShowsWithShowNotesParams{
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
@@ -390,7 +390,7 @@ func (s *server) showsNoNotes(r *http.Request) (internal.Paginated[internal.Show
 	if err != nil {
 		return internal.Paginated[internal.ShowMeta]{}, err
 	}
-	showRows, err := s.queries.ShowsWithoutNotes(r.Context(), database.ShowsWithoutNotesParams{
+	showRows, err := s.queries.GetShowsWithoutNotes(r.Context(), database.GetShowsWithoutNotesParams{
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
