@@ -75,15 +75,17 @@ func respondWithJSON(w http.ResponseWriter, status int, payload any) {
 	}
 }
 
-func respondWithError(w http.ResponseWriter, status int, message string, err error) {
+func respondWithError(w http.ResponseWriter, statusCode int, message string, err error) {
 	if err != nil {
 		slog.SetLogLoggerLevel(slog.LevelError)
 		log.Println(err)
 	}
 	type errorResponse struct {
-		Error string `json:"error"`
+		Status string `json:"status"`
+		Code   int    `json:"code"`
+		Error  string `json:"error"`
 	}
-	respondWithJSON(w, status, errorResponse{Error: message})
+	respondWithJSON(w, statusCode, errorResponse{Status: strings.ToUpper(http.StatusText(statusCode)), Code: statusCode, Error: message})
 }
 
 // buildShowResponse takes a slice of ShowSortInput rows for a single show and returns

@@ -404,7 +404,7 @@ func (s *server) isValidLocation(ctx context.Context, location string) (bool, er
 		return false, errors.New("valid locations list empty")
 	}
 	if !slices.Contains(validLocations, location) {
-		return false, errors.New("invalid location")
+		return false, nil
 	}
 	return true, nil
 }
@@ -485,7 +485,7 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "no shows found", err)
+		respondWithError(w, http.StatusNotFound, "no shows found; adjust your filters", err)
 		return
 	}
 
