@@ -1,12 +1,9 @@
 package main
 
 import (
-	"context"
 	"database/sql"
-	"errors"
 	"math/rand"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -391,24 +388,6 @@ func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) isValidLocation(ctx context.Context, location string) (bool, error) {
-	if location == "" {
-		return true, nil
-	}
-	location = strings.ToLower(location)
-	validLocations, err := s.queries.GetValidLocations(ctx)
-	if err != nil {
-		return false, err
-	}
-	if len(validLocations) == 0 {
-		return false, errors.New("valid locations list empty")
-	}
-	if !slices.Contains(validLocations, location) {
-		return false, nil
-	}
-	return true, nil
-}
-
 func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
@@ -438,20 +417,19 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !ok {
-		respondWithError(w, http.StatusBadRequest, "invalid location", nil)
+		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
 		return
 	}
 
 	setName := strings.TrimSpace(strings.ToLower(filters.SetName))
-	validSetName, err := isValidSetName(setName)
-	if !validSetName || err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+	if validSetName := isValidSetName(setName); !validSetName {
+		respondWithError(w, http.StatusBadRequest, "Invalid set name", err)
 		return
 	}
 
 	hasNotes, err := strToNullBool(filters.HasNotes)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "invalid has_notes parameter", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid has_notes parameter", err)
 		return
 	}
 

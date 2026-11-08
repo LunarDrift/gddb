@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -179,16 +180,13 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 	return df, nil
 }
 
-func isValidSetName(setName string) (bool, error) {
+func isValidSetName(setName string) bool {
+	// no set_name parameter is still valid - becomes NULL in SQL query and doesn't filter based on set name
 	if setName == "" {
-		return true, nil
+		return true
 	}
-	setName = strings.ToLower(setName)
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric", "acoustic_1", "acoustic_2"}
-	if !slices.Contains(validSetNames, setName) {
-		return false, errors.New("invalid set name")
-	}
-	return true, nil
+	return slices.Contains(validSetNames, setName)
 }
 
 func strToNullBool(input string) (sql.NullBool, error) {
@@ -202,4 +200,23 @@ func strToNullBool(input string) (sql.NullBool, error) {
 	}
 
 	return sql.NullBool{Bool: b, Valid: true}, nil
+}
+
+func (s *server) isValidLocation(ctx context.Context, location string) (bool, error) {
+	// no location parameter is still valid - becomes NULL in SQL query and doesn't filter based on location
+	if location == "" {
+		return true, nil
+	}
+	location = strings.ToLower(location)
+	validLocations, err := s.queries.GetValidLocations(ctx)
+	if err != nil {
+		return false, err
+	}
+	if len(validLocations) == 0 {
+		return false, errors.New("valid locations list empty")
+	}
+	if !slices.Contains(validLocations, location) {
+		return false, nil
+	}
+	return true, nil
 }

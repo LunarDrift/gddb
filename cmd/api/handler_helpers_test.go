@@ -90,3 +90,31 @@ func TestStrToNullBool(t *testing.T) {
 		})
 	}
 }
+
+func TestIsValidSetName(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{name: "set_1", input: "set_1", want: true},
+		{name: "set_2", input: "set_2", want: true},
+		{name: "set_3", input: "set_3", want: true},
+		{name: "encore", input: "encore", want: true},
+		{name: "acoustic", input: "acoustic", want: true},
+		{name: "electric", input: "electric", want: true},
+		{name: "acoustic_1", input: "acoustic_1", want: true},
+		{name: "acoustic_2", input: "acoustic_2", want: true},
+		{name: "empty input", input: "", want: true},
+		{name: "space in set name", input: "set 1", want: false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := isValidSetName(tt.input)
+			if got != tt.want {
+				t.Errorf("got = %v; want %v", got, tt.want)
+			}
+		})
+	}
+}
