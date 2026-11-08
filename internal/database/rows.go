@@ -69,27 +69,6 @@ type ShowSummaryRow interface {
 	GetNotes() sql.NullString
 }
 
-func (r GetShowsWithShowNotesRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsWithShowNotesRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsWithShowNotesRow) GetVenue() string         { return r.Venue }
-func (r GetShowsWithShowNotesRow) GetCity() string          { return r.City }
-func (r GetShowsWithShowNotesRow) GetLocation() string      { return r.Location }
-func (r GetShowsWithShowNotesRow) GetNotes() sql.NullString { return r.Notes }
-
-func (r GetShowsWithoutNotesRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsWithoutNotesRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsWithoutNotesRow) GetVenue() string         { return r.Venue }
-func (r GetShowsWithoutNotesRow) GetCity() string          { return r.City }
-func (r GetShowsWithoutNotesRow) GetLocation() string      { return r.Location }
-func (r GetShowsWithoutNotesRow) GetNotes() sql.NullString { return sql.NullString{} }
-
-func (r GetShowsFromSetNameRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsFromSetNameRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsFromSetNameRow) GetVenue() string         { return r.Venue }
-func (r GetShowsFromSetNameRow) GetCity() string          { return r.City }
-func (r GetShowsFromSetNameRow) GetLocation() string      { return r.Location }
-func (r GetShowsFromSetNameRow) GetNotes() sql.NullString { return r.Notes }
-
 func (r GetShowsBetweenDatesRow) GetShowID() int32         { return r.ShowID }
 func (r GetShowsBetweenDatesRow) GetShowDate() time.Time   { return r.ShowDate }
 func (r GetShowsBetweenDatesRow) GetVenue() string         { return r.Venue }

@@ -146,6 +146,8 @@ type ShowSearchFilters struct {
 	Song     string
 	Venue    string
 	Notes    string
+	SetName  string
+	HasNotes string
 }
 
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
@@ -161,9 +163,6 @@ type ShowQuerier interface {
 	GetShowDetailsFromID(ctx context.Context, showID int32) ([]database.GetShowDetailsFromIDRow, error)
 	GetShowsFromTodaysDate(ctx context.Context, arg database.GetShowsFromTodaysDateParams) ([]database.GetShowsFromTodaysDateRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
-	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
-	GetShowsWithShowNotes(ctx context.Context, arg database.GetShowsWithShowNotesParams) ([]database.GetShowsWithShowNotesRow, error)
-	GetShowsWithoutNotes(ctx context.Context, arg database.GetShowsWithoutNotesParams) ([]database.GetShowsWithoutNotesRow, error)
 	GetAcousticShows(ctx context.Context, arg database.GetAcousticShowsParams) ([]database.GetAcousticShowsRow, error)
 	GetSongDebuts(ctx context.Context, arg database.GetSongDebutsParams) ([]database.GetSongDebutsRow, error)
 	SearchShowsWithFilters(ctx context.Context, arg database.SearchShowsWithFiltersParams) ([]database.SearchShowsWithFiltersRow, error)

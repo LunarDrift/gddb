@@ -171,153 +171,6 @@ func TestHandleGetRandomShow_NoShowsAvailable(t *testing.T) {
 	}
 }
 
-func TestHandleGetShowsFromSetName(t *testing.T) {
-	date, _ := time.Parse(time.DateOnly, "1995-01-01")
-	fake := &fakeQuerier{
-		showsFromSetNameRows: []database.GetShowsFromSetNameRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "test location", Notes: sql.NullString{}},
-		},
-	}
-
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?set_name=encore", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromSetName(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
-	}
-
-	got := internal.Paginated[internal.ShowMeta]{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("error decoding response: %v", err)
-	}
-
-	if got.Results[0].ShowID != 1 {
-		t.Errorf("got.Results[0].ShowID = %q; want 1", got.Results[0].ShowID)
-	}
-}
-
-func TestHandleGetShowsFromSetName_Errors(t *testing.T) {
-	tests := []struct {
-		name       string
-		url        string
-		wantStatus int
-		fake       *fakeQuerier
-	}{
-		{"missing set name", "/shows?set_name=", http.StatusBadRequest, &fakeQuerier{}},
-		{"invalid set name", "/shows?set_name=hello", http.StatusBadRequest, &fakeQuerier{}},
-		{"server error", "/shows?set_name=set_1", http.StatusInternalServerError, &fakeQuerier{showsFromSetNameErr: errors.New("db exploded")}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: tt.fake}
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-			w := httptest.NewRecorder()
-			s.handleGetShowsFromSetName(w, req)
-			if got := w.Result().StatusCode; got != tt.wantStatus {
-				t.Errorf("status code = %d; want %d", got, tt.wantStatus)
-			}
-		})
-	}
-}
-
-func TestHandleGetShowsFromNotes_WithNotes(t *testing.T) {
-	date, _ := time.Parse(time.DateOnly, "1995-07-09")
-	fake := &fakeQuerier{
-		showsWithNotesRows: []database.GetShowsWithShowNotesRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL", Notes: sql.NullString{String: "Final show", Valid: true}},
-		},
-	}
-
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?has_notes=true", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromNotes(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
-	}
-
-	got := internal.Paginated[internal.ShowMeta]{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("error decoding response: %v", err)
-	}
-
-	if len(got.Results) != 1 {
-		t.Errorf("len(got) = %d; want 1", len(got.Results))
-	}
-
-	if got.Results[0].Notes != "Final show" {
-		t.Errorf("got.Results[0].Notes = %q; want 'Final show'", got.Results[0].Notes)
-	}
-}
-
-func TestHandleGetShowsFromNotes_WithoutNotes(t *testing.T) {
-	date, _ := time.Parse(time.DateOnly, "1995-07-09")
-	fake := &fakeQuerier{
-		showsWithoutNotesRows: []database.GetShowsWithoutNotesRow{
-			{ShowID: 1, ShowDate: date, Venue: "Soldier Field", City: "Chicago", Location: "IL"},
-			{ShowID: 2, ShowDate: date.Add(time.Hour * 24), Venue: "Wembly", City: "London", Location: "England"},
-		},
-	}
-
-	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?has_notes=false", nil)
-	w := httptest.NewRecorder()
-
-	s.handleGetShowsFromNotes(w, req)
-
-	res := w.Result()
-	if res.StatusCode != http.StatusOK {
-		t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
-	}
-
-	got := internal.Paginated[internal.ShowMeta]{}
-	if err := json.NewDecoder(res.Body).Decode(&got); err != nil {
-		t.Fatalf("error decoding response: %v", err)
-	}
-
-	if len(got.Results) != 2 {
-		t.Errorf("len(got) = %d; want 2", len(got.Results))
-	}
-
-	if got.Results[0].Notes != "" {
-		t.Errorf("got.Results[0].Notes = %q; want ''", got.Results[0].Notes)
-	}
-}
-
-func TestHandleGetShowsFromNotes_Errors(t *testing.T) {
-	tests := []struct {
-		name       string
-		url        string
-		wantStatus int
-		fake       *fakeQuerier
-	}{
-		{"missing notes param", "/shows?has_notes=", http.StatusBadRequest, &fakeQuerier{}},
-		{"invalid notes param", "/shows?has_notes=yes", http.StatusBadRequest, &fakeQuerier{}},
-		{"server error", "/shows?has_notes=false", http.StatusInternalServerError, &fakeQuerier{showsWithoutNotesErr: errors.New("without notes: db exploded")}},
-		{"server error", "/shows?has_notes=true", http.StatusInternalServerError, &fakeQuerier{showsWithNotesErr: errors.New("with notes: db exploded")}},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			s := &server{queries: tt.fake}
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-			w := httptest.NewRecorder()
-			s.handleGetShowsFromNotes(w, req)
-			if got := w.Result().StatusCode; got != tt.wantStatus {
-				t.Errorf("%q: status code = %d; want %d", tt.name, got, tt.wantStatus)
-			}
-		})
-	}
-}
-
 func TestHandleSearchShows(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1970-03-10")
 	show := []database.SearchShowsWithFiltersRow{{ShowID: 1, ShowDate: date, Venue: "Venue", City: "New York", Location: "NY", Notes: sql.NullString{String: "Mime Troupe Benefit", Valid: true}}}
@@ -339,6 +192,9 @@ func TestHandleSearchShows(t *testing.T) {
 		{"notes search", "/shows?notes=benefit", http.StatusOK, fake},
 		{"year and city", "/shows?year=1970&city=york", http.StatusOK, fake},
 		{"song and city", "/shows?city=york&song=althea", http.StatusOK, fake},
+		{"set name", "/shows?set_name=acoustic", http.StatusOK, fake},
+		{"has_notes=true", "/shows?has_notes=true", http.StatusOK, fake},
+		{"has_notes=false", "/shows?has_notes=false", http.StatusOK, fake},
 	}
 
 	for _, tt := range tests {

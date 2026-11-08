@@ -132,21 +132,6 @@ JOIN "sets" st ON st.show_id = sh.show_id
 JOIN set_entries se ON se.set_id = st.id
 WHERE se.song_name ILIKE @song_name;
 
--- name: GetShowsFromSetName :many
-SELECT
-	sh.show_id,
-	sh.show_date,
-	sh.venue,
-	sh.city,
-	sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN "sets" s ON s.show_id = sh.show_id 
-WHERE s.set_name = $1
-ORDER BY sh.show_date, sh.show_id
-LIMIT @page_limit OFFSET @page_offset;
-
 -- name: GetAcousticShows :many
 SELECT
   sh.show_id,
@@ -159,33 +144,6 @@ SELECT
 FROM shows sh
 JOIN "sets" st ON st.show_id = sh.show_id
 WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
-ORDER BY sh.show_date, sh.show_id
-LIMIT @page_limit OFFSET @page_offset;
-
--- name: GetShowsWithShowNotes :many
-SELECT 
-	sh.show_id,
-	sh.show_date,
-	sh.venue,
-	sh.city,
-	sh.state AS location,
-	sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-WHERE sh.notes IS NOT NULL AND sh.notes != ''
-ORDER BY sh.show_date, sh.show_id
-LIMIT @page_limit OFFSET @page_offset;
-
--- name: GetShowsWithoutNotes :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  COUNT(*) OVER ()
-FROM shows sh
-WHERE sh.notes IS NULL OR sh.notes = ''
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;
 
@@ -256,6 +214,14 @@ WHERE (sqlc.narg('year')::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = sqlc.
   AND (sqlc.narg('song')::text IS NULL OR se.song_name ILIKE sqlc.narg('song'))
   AND (sqlc.narg('venue')::text IS NULL OR sh.venue ILIKE sqlc.narg('venue'))
   AND (sqlc.narg('notes')::text IS NULL OR sh.notes ILIKE sqlc.narg('notes'))
+  AND (sqlc.narg('set_name')::text IS NULL OR LOWER(st.set_name) = LOWER(sqlc.narg('set_name')))
+  AND CASE
+    WHEN sqlc.narg('has_notes')::boolean IS NULL THEN TRUE
+    WHEN sqlc.narg('has_notes')::boolean = TRUE
+      THEN sh.notes IS NOT NULL AND sh.notes != ''
+    WHEN sqlc.narg('has_notes')::boolean = FALSE
+      THEN sh.notes IS NULL OR sh.notes = ''
+  END
 GROUP BY sh.show_id
 ORDER BY sh.show_date, sh.show_id
 LIMIT @page_limit OFFSET @page_offset;

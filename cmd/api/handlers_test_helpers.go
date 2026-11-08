@@ -30,12 +30,6 @@ type fakeQuerier struct {
 	showsFromTodaysDateErr  error
 	showsBetweenDatesRows   []database.GetShowsBetweenDatesRow
 	showsBetweenDatesErr    error
-	showsFromSetNameRows    []database.GetShowsFromSetNameRow
-	showsFromSetNameErr     error
-	showsWithNotesRows      []database.GetShowsWithShowNotesRow
-	showsWithNotesErr       error
-	showsWithoutNotesRows   []database.GetShowsWithoutNotesRow
-	showsWithoutNotesErr    error
 	listVenueStats          []database.ListVenueStatsRow
 	listVenueStatsErr       error
 	allShowsRows            []database.GetAllShowsRow
@@ -116,18 +110,6 @@ func (f *fakeQuerier) GetShowsFromTodaysDate(ctx context.Context, arg database.G
 
 func (f *fakeQuerier) GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error) {
 	return f.showsBetweenDatesRows, f.showsBetweenDatesErr
-}
-
-func (f *fakeQuerier) GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error) {
-	return f.showsFromSetNameRows, f.showsFromSetNameErr
-}
-
-func (f *fakeQuerier) GetShowsWithShowNotes(ctx context.Context, arg database.GetShowsWithShowNotesParams) ([]database.GetShowsWithShowNotesRow, error) {
-	return f.showsWithNotesRows, f.showsWithNotesErr
-}
-
-func (f *fakeQuerier) GetShowsWithoutNotes(ctx context.Context, arg database.GetShowsWithoutNotesParams) ([]database.GetShowsWithoutNotesRow, error) {
-	return f.showsWithoutNotesRows, f.showsWithoutNotesErr
 }
 
 func (f *fakeQuerier) GetSongStats(ctx context.Context, songName sql.NullString) (database.GetSongStatsRow, error) {

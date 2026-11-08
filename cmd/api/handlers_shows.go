@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"slices"
@@ -35,7 +34,9 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 		query.Has("city") ||
 		query.Has("song") ||
 		query.Has("venue") ||
-		query.Has("notes"):
+		query.Has("notes") ||
+		query.Has("set_name") ||
+		query.Has("has_notes"):
 		s.handleSearchShows(w, r)
 
 	case query.Has("date"):
@@ -43,12 +44,6 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 
 	case query.Has("id"):
 		s.handleGetShowFromID(w, r)
-
-	case query.Has("set_name"):
-		s.handleGetShowsFromSetName(w, r)
-
-	case query.Has("has_notes"):
-		s.handleGetShowsFromNotes(w, r)
 
 	case query.Has("start_date") || query.Has("end_date"):
 		s.handleGetShowsBetweenDates(w, r)
@@ -242,53 +237,6 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	respondWithJSON(w, http.StatusOK, showResults)
 }
 
-func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
-	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
-	setName := r.URL.Query().Get("set_name")
-	if !slices.Contains(validSetNames, setName) {
-		respondWithError(w, http.StatusBadRequest, fmt.Sprintf("Invalid set_name %q. Valid options: %s", setName, strings.Join(validSetNames, ", ")), nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-	}
-
-	showRows, err := s.queries.GetShowsFromSetName(r.Context(), database.GetShowsFromSetNameParams{
-		SetName:    setName,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-
-	respondWithJSON(w, http.StatusOK, results)
-}
-
 func (s *server) handleGetShowsFromTodaysDate(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {
@@ -326,93 +274,6 @@ func (s *server) handleGetShowsFromTodaysDate(w http.ResponseWriter, r *http.Req
 		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 	respondWithJSON(w, http.StatusOK, results)
-}
-
-func (s *server) handleGetShowsFromNotes(w http.ResponseWriter, r *http.Request) {
-	val := r.URL.Query().Get("has_notes")
-
-	hasNotes, err := strconv.ParseBool(val)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "has_notes must be true or false", nil)
-		return
-	}
-
-	if hasNotes {
-		results, err := s.showsWithNotes(r)
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-			return
-		}
-		respondWithJSON(w, http.StatusOK, results)
-	} else {
-		results, err := s.showsNoNotes(r)
-		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-			return
-		}
-		respondWithJSON(w, http.StatusOK, results)
-	}
-}
-
-func (s *server) showsWithNotes(r *http.Request) (internal.Paginated[internal.ShowMeta], error) {
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		return internal.Paginated[internal.ShowMeta]{}, err
-	}
-	showRows, err := s.queries.GetShowsWithShowNotes(r.Context(), database.GetShowsWithShowNotesParams{
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("showsWithNotes: %w", err)
-	}
-
-	if len(showRows) == 0 {
-		return internal.Paginated[internal.ShowMeta]{}, errors.New("malformed show data: len(showRows) = 0")
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-	return results, nil
-}
-
-func (s *server) showsNoNotes(r *http.Request) (internal.Paginated[internal.ShowMeta], error) {
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		return internal.Paginated[internal.ShowMeta]{}, err
-	}
-	showRows, err := s.queries.GetShowsWithoutNotes(r.Context(), database.GetShowsWithoutNotesParams{
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		return internal.Paginated[internal.ShowMeta]{}, fmt.Errorf("showsNoNotes: %w", err)
-	}
-
-	if len(showRows) == 0 {
-		return internal.Paginated[internal.ShowMeta]{}, errors.New("malformed show data: len(showRows) = 0")
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-	return results, nil
 }
 
 func (s *server) handleGetAcousticShows(w http.ResponseWriter, r *http.Request) {
@@ -560,7 +421,10 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		Song:     query.Get("song"),
 		Venue:    query.Get("venue"),
 		Notes:    query.Get("notes"),
+		SetName:  query.Get("set_name"),
+		HasNotes: query.Get("has_notes"),
 	}
+
 	dateParts, err := validateDateParts(filters.Year, filters.Month, filters.Day)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error(), err)
@@ -575,6 +439,19 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 	}
 	if !ok {
 		respondWithError(w, http.StatusBadRequest, "invalid location", nil)
+		return
+	}
+
+	setName := strings.TrimSpace(strings.ToLower(filters.SetName))
+	validSetName, err := isValidSetName(setName)
+	if !validSetName || err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	hasNotes, err := strToNullBool(filters.HasNotes)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid has_notes parameter", err)
 		return
 	}
 
@@ -593,6 +470,8 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		Song:       sql.NullString{String: fuzzyPattern(filters.Song), Valid: filters.Song != ""},
 		Venue:      sql.NullString{String: fuzzyPattern(filters.Venue), Valid: filters.Venue != ""},
 		Notes:      sql.NullString{String: fuzzyPattern(filters.Notes), Valid: filters.Notes != ""},
+		SetName:    sql.NullString{String: setName, Valid: filters.SetName != ""},
+		HasNotes:   hasNotes,
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
@@ -691,4 +570,29 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 		}
 	}
 	return df, nil
+}
+
+func isValidSetName(setName string) (bool, error) {
+	if setName == "" {
+		return true, nil
+	}
+	setName = strings.ToLower(setName)
+	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric", "acoustic_1", "acoustic_2"}
+	if !slices.Contains(validSetNames, setName) {
+		return false, errors.New("invalid set name")
+	}
+	return true, nil
+}
+
+func strToNullBool(input string) (sql.NullBool, error) {
+	if input == "" {
+		return sql.NullBool{}, nil
+	}
+
+	b, err := strconv.ParseBool(input)
+	if err != nil {
+		return sql.NullBool{}, err
+	}
+
+	return sql.NullBool{Bool: b, Valid: true}, nil
 }
