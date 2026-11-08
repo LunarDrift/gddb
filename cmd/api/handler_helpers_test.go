@@ -23,3 +23,40 @@ func TestFuzzyPattern(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateDateParts(t *testing.T) {
+	tests := []struct {
+		name  string
+		year  string
+		month string
+		day   string
+		want  dateFilters
+	}{
+		{name: "valid date", year: "1970", month: "09", day: "24", want: dateFilters{year: 1970, month: 9, day: 24}},
+		{name: "year only", year: "1970", month: "", day: "", want: dateFilters{year: 1970}},
+		{name: "month only", year: "", month: "12", day: "", want: dateFilters{month: 12}},
+		{name: "day only", year: "", month: "", day: "31", want: dateFilters{day: 31}},
+		{name: "year & month", year: "1980", month: "5", day: "", want: dateFilters{year: 1980, month: 5}},
+		{name: "year & day", year: "1980", month: "", day: "10", want: dateFilters{year: 1980, day: 10}},
+		{name: "month & day", year: "", month: "09", day: "24", want: dateFilters{month: 9, day: 24}},
+		{name: "empty input", year: "", month: "", day: "", want: dateFilters{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := validateDateParts(tt.year, tt.month, tt.day)
+			if err != nil {
+				t.Errorf("error: %v", err)
+			}
+			if got.year != tt.want.year {
+				t.Errorf("got.year = %d; want %d", got.year, tt.want.year)
+			}
+			if got.month != tt.want.month {
+				t.Errorf("got.month = %d; want %d", got.month, tt.want.month)
+			}
+			if got.day != tt.want.day {
+				t.Errorf("got.day = %d; want %d", got.day, tt.want.day)
+			}
+		})
+	}
+}
