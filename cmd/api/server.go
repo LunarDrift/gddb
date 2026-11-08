@@ -48,6 +48,8 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /references/venues", s.handleGetAllVenues)
 	s.mux.HandleFunc("GET /references/locations", s.handleGetAllLocations)
 	s.mux.HandleFunc("GET /references/cities", s.handleGetAllCities)
+
+	s.mux.HandleFunc("GET /testing", s.handleSearchShows)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {

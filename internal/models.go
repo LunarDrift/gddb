@@ -137,6 +137,17 @@ type ListVenueStatsRow struct {
 	ShowsPlayed int64  `json:"shows_played"`
 }
 
+type ShowSearchFilters struct {
+	Year     string
+	Month    string
+	Day      string
+	Location string
+	City     string
+	Song     string
+	Venue    string
+	Notes    string
+}
+
 // ShowQuerier is needed in order to be able to make unit tests for the endpoints
 // without relying on a connection to the database
 type ShowQuerier interface {
@@ -149,11 +160,6 @@ type ShowQuerier interface {
 	GetShowDetailsFromID(ctx context.Context, showID int32) ([]database.GetShowDetailsFromIDRow, error)
 	GetShowsBetweenDates(ctx context.Context, arg database.GetShowsBetweenDatesParams) ([]database.GetShowsBetweenDatesRow, error)
 	GetShowsFromSetName(ctx context.Context, arg database.GetShowsFromSetNameParams) ([]database.GetShowsFromSetNameRow, error)
-	GetShowsFromSongName(ctx context.Context, arg database.GetShowsFromSongNameParams) ([]database.GetShowsFromSongNameRow, error)
-	GetShowsFromLocation(ctx context.Context, arg database.GetShowsFromLocationParams) ([]database.GetShowsFromLocationRow, error)
-	GetShowsFromCity(ctx context.Context, arg database.GetShowsFromCityParams) ([]database.GetShowsFromCityRow, error)
-	GetShowsFromYearAndLocation(ctx context.Context, arg database.GetShowsFromYearAndLocationParams) ([]database.GetShowsFromYearAndLocationRow, error)
-	SearchByVenue(ctx context.Context, arg database.SearchByVenueParams) ([]database.SearchByVenueRow, error)
 	ShowsWithShowNotes(ctx context.Context, arg database.ShowsWithShowNotesParams) ([]database.ShowsWithShowNotesRow, error)
 	ShowsWithoutNotes(ctx context.Context, arg database.ShowsWithoutNotesParams) ([]database.ShowsWithoutNotesRow, error)
 	SongStats(ctx context.Context, songName sql.NullString) (database.SongStatsRow, error)
@@ -166,9 +172,8 @@ type ShowQuerier interface {
 	GetValidLocations(ctx context.Context) ([]string, error)
 	ListSongStats(ctx context.Context) ([]database.ListSongStatsRow, error)
 	ListVenueStats(ctx context.Context) ([]database.ListVenueStatsRow, error)
-	SearchShowNotes(ctx context.Context, arg database.SearchShowNotesParams) ([]database.SearchShowNotesRow, error)
-	GetShowsFromDate(ctx context.Context, arg database.GetShowsFromDateParams) ([]database.GetShowsFromDateRow, error)
 	GetAllShows(ctx context.Context, arg database.GetAllShowsParams) ([]database.GetAllShowsRow, error)
 	GetAcousticShows(ctx context.Context, arg database.GetAcousticShowsParams) ([]database.GetAcousticShowsRow, error)
 	GetSongDebuts(ctx context.Context, arg database.GetSongDebutsParams) ([]database.GetSongDebutsRow, error)
+	SearchShowsWithFilters(ctx context.Context, arg database.SearchShowsWithFiltersParams) ([]database.SearchShowsWithFiltersRow, error)
 }

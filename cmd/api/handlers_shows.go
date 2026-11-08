@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -27,11 +28,15 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	query := r.URL.Query()
 
 	switch {
-	case query.Has("year") && query.Has("location"):
-		s.handleGetShowsFromYearAndLocation(w, r)
-
-	case query.Has("year") && query.Has("month") && query.Has("day"):
-		s.handleSearchShowsFromDate(w, r)
+	case query.Has("year") ||
+		query.Has("month") ||
+		query.Has("day") ||
+		query.Has("location") ||
+		query.Has("city") ||
+		query.Has("song") ||
+		query.Has("venue") ||
+		query.Has("notes"):
+		s.handleSearchShows(w, r)
 
 	case query.Has("date"):
 		s.handleGetShowFromDate(w, r)
@@ -39,29 +44,14 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	case query.Has("id"):
 		s.handleGetShowFromID(w, r)
 
-	case query.Has("location"):
-		s.handleGetShowsFromLocation(w, r)
-
-	case query.Has("city"):
-		s.handleGetShowsFromCity(w, r)
-
-	case query.Has("song"):
-		s.handleGetShowsFromSongName(w, r)
-
 	case query.Has("set_name"):
 		s.handleGetShowsFromSetName(w, r)
-
-	case query.Has("venue"):
-		s.handleGetShowsFromVenueName(w, r)
 
 	case query.Has("has_notes"):
 		s.handleGetShowsFromNotes(w, r)
 
 	case query.Has("start_date") || query.Has("end_date"):
 		s.handleGetShowsBetweenDates(w, r)
-
-	case query.Has("notes"):
-		s.handleSearchShowNotes(w, r)
 
 	default:
 		s.handleGetAllShows(w, r)
@@ -252,51 +242,6 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	respondWithJSON(w, http.StatusOK, showResults)
 }
 
-func (s *server) handleGetShowsFromSongName(w http.ResponseWriter, r *http.Request) {
-	songName := r.URL.Query().Get("song")
-	if songName == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'song' query parameter", nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-	}
-
-	searchPattern := fuzzyPattern(songName)
-	showRows, err := s.queries.GetShowsFromSongName(r.Context(), database.GetShowsFromSongNameParams{
-		SongName:   searchPattern,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "Song not found", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-	respondWithJSON(w, http.StatusOK, results)
-}
-
 func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Request) {
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
 	setName := r.URL.Query().Get("set_name")
@@ -341,52 +286,6 @@ func (s *server) handleGetShowsFromSetName(w http.ResponseWriter, r *http.Reques
 		results.Results = append(results.Results, internal.RowToShowMeta(row))
 	}
 
-	respondWithJSON(w, http.StatusOK, results)
-}
-
-func (s *server) handleGetShowsFromVenueName(w http.ResponseWriter, r *http.Request) {
-	venue := r.URL.Query().Get("venue")
-	if venue == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'venue' query parameter", nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-	}
-
-	searchPattern := fuzzyPattern(venue)
-	showRows, err := s.queries.SearchByVenue(r.Context(), database.SearchByVenueParams{
-		VenueName:  searchPattern,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "Venue not found", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
 	respondWithJSON(w, http.StatusOK, results)
 }
 
@@ -516,236 +415,6 @@ func (s *server) showsNoNotes(r *http.Request) (internal.Paginated[internal.Show
 	return results, nil
 }
 
-func (s *server) handleGetShowsFromYearAndLocation(w http.ResponseWriter, r *http.Request) {
-	yearStr := r.URL.Query().Get("year")
-	if yearStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'year' parameter", nil)
-		return
-	}
-	location := r.URL.Query().Get("location")
-	if location == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'location' parameter", nil)
-		return
-	}
-	location = strings.ToLower(location)
-
-	validLocations, err := s.queries.GetValidLocations(r.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
-		return
-	}
-	if len(validLocations) == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Valid locations list empty", nil)
-		return
-	}
-
-	if !slices.Contains(validLocations, location) {
-		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-		return
-	}
-
-	year, err := strconv.Atoi(yearStr)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid year parameter", err)
-		return
-	}
-
-	showRows, err := s.queries.GetShowsFromYearAndLocation(r.Context(), database.GetShowsFromYearAndLocationParams{
-		Year:       int32(year),
-		Location:   location,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "No shows found from that year and location", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-
-	respondWithJSON(w, http.StatusOK, results)
-}
-
-func (s *server) handleGetShowsFromLocation(w http.ResponseWriter, r *http.Request) {
-	location := r.URL.Query().Get("location")
-	if location == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'location' parameter", nil)
-		return
-	}
-	location = strings.ToLower(location)
-
-	validLocations, err := s.queries.GetValidLocations(r.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get valid locations", err)
-		return
-	}
-	if len(validLocations) == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Valid locations list empty", nil)
-		return
-	}
-
-	if !slices.Contains(validLocations, location) {
-		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-		return
-	}
-
-	showRows, err := s.queries.GetShowsFromLocation(r.Context(), database.GetShowsFromLocationParams{
-		Location:   location,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-
-	respondWithJSON(w, http.StatusOK, results)
-}
-
-func (s *server) handleSearchShowNotes(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("notes")
-	if query == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'notes' parameter", nil)
-		return
-	}
-	searchTerm := fuzzyPattern(query)
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-		return
-	}
-
-	showRows, err := s.queries.SearchShowNotes(r.Context(), database.SearchShowNotesParams{
-		Query:      sql.NullString{String: searchTerm, Valid: searchTerm != ""},
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, fmt.Sprintf("No show found with %q in its show notes", searchTerm), nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-
-	respondWithJSON(w, http.StatusOK, results)
-}
-
-func (s *server) handleGetShowsFromCity(w http.ResponseWriter, r *http.Request) {
-	city := r.URL.Query().Get("city")
-	if city == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'city' parameter", nil)
-		return
-	}
-
-	limit, offset, err := parsePagination(r)
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
-		return
-	}
-
-	showRows, err := s.queries.GetShowsFromCity(r.Context(), database.GetShowsFromCityParams{
-		City:       city,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
-	})
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
-		return
-	}
-
-	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
-		return
-	}
-	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "City not found", nil)
-		return
-	}
-
-	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
-	results := internal.Paginated[internal.ShowMeta]{
-		Count:    showRows[0].Count,
-		Next:     next,
-		Previous: prev,
-		Results:  make([]internal.ShowMeta, 0, len(showRows)),
-	}
-	for _, row := range showRows {
-		results.Results = append(results.Results, internal.RowToShowMeta(row))
-	}
-
-	respondWithJSON(w, http.StatusOK, results)
-}
-
 func (s *server) handleGetAcousticShows(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {
@@ -861,37 +530,83 @@ func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func (s *server) handleSearchShowsFromDate(w http.ResponseWriter, r *http.Request) {
-	filters, err := validateDate(r)
+func (s *server) isValidLocation(ctx context.Context, location string) (bool, error) {
+	if location == "" {
+		return true, nil
+	}
+	location = strings.ToLower(location)
+	validLocations, err := s.queries.GetValidLocations(ctx)
+	if err != nil {
+		return false, err
+	}
+	if len(validLocations) == 0 {
+		return false, errors.New("valid locations list empty")
+	}
+	if !slices.Contains(validLocations, location) {
+		return false, errors.New("invalid location")
+	}
+	return true, nil
+}
+
+func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+
+	filters := internal.ShowSearchFilters{
+		Year:     query.Get("year"),
+		Month:    query.Get("month"),
+		Day:      query.Get("day"),
+		Location: query.Get("location"),
+		City:     query.Get("city"),
+		Song:     query.Get("song"),
+		Venue:    query.Get("venue"),
+		Notes:    query.Get("notes"),
+	}
+	dateParts, err := validateDateParts(filters.Year, filters.Month, filters.Day)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	location := strings.TrimSpace(strings.ToLower(filters.Location))
+	ok, err := s.isValidLocation(r.Context(), location)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		return
+	}
+	if !ok {
+		respondWithError(w, http.StatusBadRequest, "invalid location", nil)
 		return
 	}
 
 	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
 		return
 	}
 
-	showRows, err := s.queries.GetShowsFromDate(r.Context(), database.GetShowsFromDateParams{
-		Year:       sql.NullInt32{Int32: filters.year, Valid: filters.year >= 1965 && filters.year <= 1995},
-		Month:      sql.NullInt32{Int32: filters.month, Valid: filters.month > 0 && filters.month <= 12},
-		Day:        sql.NullInt32{Int32: filters.day, Valid: filters.day > 0 && filters.day <= 31},
+	showRows, err := s.queries.SearchShowsWithFilters(r.Context(), database.SearchShowsWithFiltersParams{
+		Year:       sql.NullInt32{Int32: dateParts.year, Valid: filters.Year != ""},
+		Month:      sql.NullInt32{Int32: dateParts.month, Valid: filters.Month != ""},
+		Day:        sql.NullInt32{Int32: dateParts.day, Valid: filters.Day != ""},
+		Location:   sql.NullString{String: location, Valid: filters.Location != ""},
+		City:       sql.NullString{String: fuzzyPattern(filters.City), Valid: filters.City != ""},
+		Song:       sql.NullString{String: fuzzyPattern(filters.Song), Valid: filters.Song != ""},
+		Venue:      sql.NullString{String: fuzzyPattern(filters.Venue), Valid: filters.Venue != ""},
+		Notes:      sql.NullString{String: fuzzyPattern(filters.Notes), Valid: filters.Notes != ""},
 		PageOffset: int32(offset),
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, "could not get shows", err)
 		return
 	}
 
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, "offset out of range", nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "No shows found", nil)
+		respondWithError(w, http.StatusNotFound, "no shows found", err)
 		return
 	}
 
@@ -927,51 +642,53 @@ func (s *server) handleGetVenueStats(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, results)
 }
 
-func validateDate(r *http.Request) (dateFilters, error) {
-	filters := dateFilters{}
-	if r.URL.Query().Get("year") != "" {
-		year, err := strconv.ParseInt(r.URL.Query().Get("year"), 10, 32)
+func validateDateParts(year, month, day string) (dateFilters, error) {
+	df := dateFilters{}
+	if year != "" {
+		y, err := strconv.ParseInt(year, 10, 32)
 		if err != nil {
 			return dateFilters{}, errors.New("invalid year parameter")
 		}
-		if year < 1965 || year > 1995 {
-			return dateFilters{}, errors.New("year must be between 1965 and 1995")
+		if y < 1965 || y > 1995 {
+			return dateFilters{}, errors.New("year out of range")
 		}
-		filters.year = int32(year)
+		df.year = int32(y)
 	}
-	if r.URL.Query().Get("month") != "" {
-		month, err := strconv.ParseInt(r.URL.Query().Get("month"), 10, 32)
+
+	if month != "" {
+		m, err := strconv.ParseInt(month, 10, 32)
 		if err != nil {
 			return dateFilters{}, errors.New("invalid month parameter")
 		}
-		if month <= 0 || month > 12 {
-			return dateFilters{}, errors.New("month must be between 1 and 12")
+		if m < 1 || m > 12 {
+			return dateFilters{}, errors.New("month out of range")
 		}
-		filters.month = int32(month)
+		df.month = int32(m)
 	}
-	if r.URL.Query().Get("day") != "" {
-		day, err := strconv.ParseInt(r.URL.Query().Get("day"), 10, 32)
+
+	if day != "" {
+		d, err := strconv.ParseInt(day, 10, 32)
 		if err != nil {
 			return dateFilters{}, errors.New("invalid day parameter")
 		}
-		if day <= 0 || day > 31 {
-			return dateFilters{}, errors.New("day must be between 1 and 31")
+		if d < 1 || d > 31 {
+			return dateFilters{}, errors.New("day out of range")
 		}
-		filters.day = int32(day)
+		df.day = int32(d)
 	}
 	date := time.Date(
-		int(filters.year),
-		time.Month(filters.month),
-		int(filters.day),
+		int(df.year),
+		time.Month(df.month),
+		int(df.day),
 		0, 0, 0, 0,
 		time.UTC,
 	)
-	if filters.year > 0 && filters.month > 0 && filters.day > 0 {
-		if date.Year() != int(filters.year) ||
-			date.Month() != time.Month(filters.month) ||
-			date.Day() != int(filters.day) {
+	if df.year > 0 && df.month > 0 && df.day > 0 {
+		if date.Year() != int(df.year) ||
+			date.Month() != time.Month(df.month) ||
+			date.Day() != int(df.day) {
 			return dateFilters{}, errors.New("invalid date")
 		}
 	}
-	return filters, nil
+	return df, nil
 }
