@@ -63,12 +63,12 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 	}
 	showRows, err := s.queries.GetShowDetailsFromDate(r.Context(), date)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 {
-		respondWithError(w, http.StatusNotFound, "No show on that date", nil)
+		respondWithError(w, http.StatusNotFound, errShowsNotFound, nil)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 	for _, group := range groups {
 		resp, err := s.buildShowResponse(r, group)
 		if err != nil {
-			respondWithError(w, http.StatusInternalServerError, "Could not build show response", err)
+			respondWithError(w, http.StatusInternalServerError, errInternal, err)
 			return
 		}
 		results = append(results, resp)
@@ -100,23 +100,23 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 	queryID := r.URL.Query().Get("id")
 	if queryID == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing ID parameter", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 	id, err := strconv.Atoi(queryID)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid ID parameter", err)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
 		return
 	}
 
 	showRows, err := s.queries.GetShowDetailsFromID(r.Context(), int32(id))
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 {
-		respondWithError(w, http.StatusNotFound, "No show with that ID", nil)
+		respondWithError(w, http.StatusNotFound, errShowsNotFound, nil)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := s.buildShowResponse(r, parsedShow)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not build show response", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
@@ -137,23 +137,23 @@ func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 	allIDs, err := s.queries.GetAllShowIDs(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get list of IDs", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 	if len(allIDs) == 0 {
-		respondWithError(w, http.StatusInternalServerError, "No shows available", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 	id := allIDs[rand.Intn(len(allIDs))]
 
 	showRows, err := s.queries.GetShowDetailsFromID(r.Context(), int32(id))
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get show", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed show details", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -164,7 +164,7 @@ func (s *server) handleGetRandomShow(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := s.buildShowResponse(r, parsedShow)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not build show response", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
@@ -175,7 +175,7 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 	startDateStr := r.URL.Query().Get("start_date")
 	endDateStr := r.URL.Query().Get("end_date")
 	if startDateStr == "" || endDateStr == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing date parameter. Must provide both start_date and end_date", nil)
+		respondWithError(w, http.StatusBadRequest, "Missing a date parameter. Must provide both 'start_date' and 'end_date'", nil)
 		return
 	}
 
@@ -187,17 +187,17 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 
 	startDate, err := time.Parse(time.DateOnly, startDateStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid 'start_date' format, expected YYYY-MM-DD", err)
 		return
 	}
 	endDate, err := time.Parse(time.DateOnly, endDateStr)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid date format, expected YYYY-MM-DD", err)
+		respondWithError(w, http.StatusBadRequest, "Invalid 'end_date' format, expected YYYY-MM-DD", err)
 		return
 	}
 
 	if endDate.Before(startDate) {
-		respondWithError(w, http.StatusBadRequest, "end_date must be later than start_date", nil)
+		respondWithError(w, http.StatusBadRequest, "'end_date' must be later than 'start_date'", nil)
 		return
 	}
 
@@ -208,16 +208,16 @@ func (s *server) handleGetShowsBetweenDates(w http.ResponseWriter, r *http.Reque
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows between dates", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "No shows between those dates", nil)
+		respondWithError(w, http.StatusNotFound, errShowsNotFound, nil)
 		return
 	}
 
@@ -246,16 +246,16 @@ func (s *server) handleGetShowsFromTodaysDate(w http.ResponseWriter, r *http.Req
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "No shows found on today's date", nil)
+		respondWithError(w, http.StatusNotFound, errShowsNotFound, nil)
 		return
 	}
 
@@ -276,7 +276,7 @@ func (s *server) handleGetShowsFromTodaysDate(w http.ResponseWriter, r *http.Req
 func (s *server) handleGetAcousticShows(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
@@ -285,16 +285,16 @@ func (s *server) handleGetAcousticShows(w http.ResponseWriter, r *http.Request) 
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 	}
 
 	next, prev := buildLinks(r, int(showRows[0].Count), offset, limit)
@@ -314,7 +314,7 @@ func (s *server) handleGetAcousticShows(w http.ResponseWriter, r *http.Request) 
 func (s *server) handleGetShowsWithSongDebuts(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
@@ -323,15 +323,15 @@ func (s *server) handleGetShowsWithSongDebuts(w http.ResponseWriter, r *http.Req
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed show data", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -352,7 +352,7 @@ func (s *server) handleGetShowsWithSongDebuts(w http.ResponseWriter, r *http.Req
 func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
 	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
@@ -361,16 +361,16 @@ func (s *server) handleGetAllShows(w http.ResponseWriter, r *http.Request) {
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Could not get shows", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -406,36 +406,36 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 
 	dateParts, err := validateDateParts(filters.Year, filters.Month, filters.Day)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error(), err)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
 		return
 	}
 
 	location := strings.TrimSpace(strings.ToLower(filters.Location))
 	ok, err := s.isValidLocation(r.Context(), location)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 	if !ok {
-		respondWithError(w, http.StatusBadRequest, "Invalid location", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 
 	setName := strings.TrimSpace(strings.ToLower(filters.SetName))
 	if validSetName := isValidSetName(setName); !validSetName {
-		respondWithError(w, http.StatusBadRequest, "Invalid set name", err)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
 		return
 	}
 
 	hasNotes, err := strToNullBool(filters.HasNotes)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid has_notes parameter", err)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
 		return
 	}
 
 	limit, offset, err := parsePagination(r)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error(), err)
+		respondWithError(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
@@ -454,16 +454,16 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get shows", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(showRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(showRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusNotFound, "no shows found; adjust your filters", err)
+		respondWithError(w, http.StatusNotFound, errShowsSearchNotFound, err)
 		return
 	}
 
@@ -484,7 +484,7 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetVenueStats(w http.ResponseWriter, r *http.Request) {
 	venueStatRows, err := s.queries.ListVenueStats(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get venue stats", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 	results := []internal.ListVenueStatsRow{}

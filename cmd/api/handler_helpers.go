@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -131,10 +132,10 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 	if year != "" {
 		y, err := strconv.ParseInt(year, 10, 32)
 		if err != nil {
-			return dateFilters{}, errors.New("invalid year parameter")
+			return dateFilters{}, errors.New("invalid year parameter: " + year)
 		}
 		if y < 1965 || y > 1995 {
-			return dateFilters{}, errors.New("year out of range")
+			return dateFilters{}, errors.New("year out of range: " + year)
 		}
 		df.year = int32(y)
 	}
@@ -142,10 +143,10 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 	if month != "" {
 		m, err := strconv.ParseInt(month, 10, 32)
 		if err != nil {
-			return dateFilters{}, errors.New("invalid month parameter")
+			return dateFilters{}, errors.New("invalid month parameter: " + month)
 		}
 		if m < 1 || m > 12 {
-			return dateFilters{}, errors.New("month out of range")
+			return dateFilters{}, errors.New("month out of range: " + month)
 		}
 		df.month = int32(m)
 	}
@@ -153,10 +154,10 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 	if day != "" {
 		d, err := strconv.ParseInt(day, 10, 32)
 		if err != nil {
-			return dateFilters{}, errors.New("invalid day parameter")
+			return dateFilters{}, errors.New("invalid day parameter: " + day)
 		}
 		if d < 1 || d > 31 {
-			return dateFilters{}, errors.New("day out of range")
+			return dateFilters{}, errors.New("day out of range: " + day)
 		}
 		df.day = int32(d)
 	}
@@ -173,7 +174,7 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 		if date.Year() != int(df.year) ||
 			date.Month() != time.Month(df.month) ||
 			date.Day() != int(df.day) {
-			return dateFilters{}, errors.New("invalid date")
+			return dateFilters{}, fmt.Errorf("invalid date: %v", date)
 		}
 	}
 

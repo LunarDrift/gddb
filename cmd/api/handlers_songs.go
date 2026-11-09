@@ -47,16 +47,16 @@ func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get most played songs", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(songRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(songRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -77,16 +77,16 @@ func (s *server) handleGetMostPlayedSongs(w http.ResponseWriter, r *http.Request
 func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *http.Request) {
 	val := r.URL.Query().Get("played_lt")
 	if val == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing parameter", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 	num, err := strconv.Atoi(val)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid value. Expecting integer number", err)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
 		return
 	}
 	if num < 2 {
-		respondWithError(w, http.StatusBadRequest, "Number should be at least 2", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 
@@ -102,16 +102,16 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(songRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(songRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -132,7 +132,7 @@ func (s *server) handleGetSongsPlayedLessThanNTimes(w http.ResponseWriter, r *ht
 func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *http.Request) {
 	setName := r.URL.Query().Get("set_name")
 	if setName == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'set_name' parameter", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 	validSetNames := []string{"set_1", "set_2", "set_3", "encore", "acoustic_1", "acoustic_2", "acoustic", "electric"}
@@ -153,16 +153,16 @@ func (s *server) handleGetMostPlayedSongsBySetName(w http.ResponseWriter, r *htt
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(songRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(songRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -191,16 +191,16 @@ func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Requ
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get data", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(songRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(songRows) == 0 && offset == 0 {
-		respondWithError(w, http.StatusInternalServerError, "Malformed song data", nil)
+		respondWithError(w, http.StatusInternalServerError, errInternal, nil)
 		return
 	}
 
@@ -225,7 +225,7 @@ func (s *server) handleGetUniqueSongsPerCity(w http.ResponseWriter, r *http.Requ
 func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Request) {
 	venue := r.URL.Query().Get("venue")
 	if venue == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing 'venue' parameter", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 	searchPattern := fuzzyPattern(venue)
@@ -242,12 +242,12 @@ func (s *server) handleGetSongsPlayedAtVenue(w http.ResponseWriter, r *http.Requ
 		PageLimit:  int32(limit),
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Could not get songs", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 
 	if len(songRows) == 0 && offset > 0 {
-		respondWithError(w, http.StatusBadRequest, "Offset out of range", nil)
+		respondWithError(w, http.StatusBadRequest, errOffsetOutOfRange, nil)
 		return
 	}
 	if len(songRows) == 0 && offset == 0 {
@@ -281,7 +281,7 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 	// But I'll keep it just in case I make changes in the future to /songs
 	// And I'm asserting the 400 status code in the test. Otherwise I'd have to connect to the real server mux for a single test case
 	if song == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing song name parameter", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 
@@ -302,7 +302,7 @@ func (s *server) handleGetSongStats(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetAllSongStats(w http.ResponseWriter, r *http.Request) {
 	songStatsRows, err := s.queries.ListSongStats(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get song stats", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 		return
 	}
 	results := []internal.ListSongStatsRow{}

@@ -9,6 +9,14 @@ import (
 	_ "github.com/lib/pq"
 )
 
+var (
+	errInternal            = "Something went wrong... Try again later"
+	errShowsNotFound       = "No shows found"
+	errShowsSearchNotFound = "No shows found. Try adjusting your filters"
+	errBadRequest          = "Invalid or missing parameter"
+	errOffsetOutOfRange    = "Offset out of range"
+)
+
 type server struct {
 	mux     *http.ServeMux
 	db      *sql.DB
@@ -48,8 +56,6 @@ func (s *server) registerRoutes() {
 	s.mux.HandleFunc("GET /references/venues", s.handleGetAllVenues)
 	s.mux.HandleFunc("GET /references/locations", s.handleGetAllLocations)
 	s.mux.HandleFunc("GET /references/cities", s.handleGetAllCities)
-
-	s.mux.HandleFunc("GET /testing", s.handleSearchShows)
 }
 
 func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -62,7 +68,7 @@ func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetAllVenues(w http.ResponseWriter, r *http.Request) {
 	venues, err := s.queries.GetAllVenues(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get venues", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 	}
 	respondWithJSON(w, http.StatusOK, internal.AllVenues{Venues: venues})
 }
@@ -70,7 +76,7 @@ func (s *server) handleGetAllVenues(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetAllLocations(w http.ResponseWriter, r *http.Request) {
 	locations, err := s.queries.GetAllLocations(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get locations", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 	}
 	respondWithJSON(w, http.StatusOK, internal.AllLocations{Locations: locations})
 }
@@ -78,7 +84,7 @@ func (s *server) handleGetAllLocations(w http.ResponseWriter, r *http.Request) {
 func (s *server) handleGetAllCities(w http.ResponseWriter, r *http.Request) {
 	cities, err := s.queries.GetAllCities(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get cities", err)
+		respondWithError(w, http.StatusInternalServerError, errInternal, err)
 	}
 	respondWithJSON(w, http.StatusOK, internal.AllCities{Cities: cities})
 }
