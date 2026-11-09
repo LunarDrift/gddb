@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/widget"
 	xwidget "fyne.io/x/fyne/widget"
@@ -47,6 +48,7 @@ type showsTab struct {
 	// Details panel
 	placeholder    *fyne.Container
 	details        *fyne.Container
+	setlist        *container.Scroll
 	dateLabel      *widget.RichText
 	locationLabel  *widget.RichText
 	setsLabel      *widget.RichText
@@ -211,6 +213,7 @@ func (s *showsTab) onResultSelected(id widget.ListItemID) {
 		return
 	}
 	s.searchShowsByDate(s.results.Results[id].Date)
+	s.setlist.ScrollToTop()
 }
 
 // setResults is the ONE place new results enter the app. Everything that

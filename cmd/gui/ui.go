@@ -295,6 +295,7 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 	s.setsLabel.Wrapping = fyne.TextWrapWord
 	s.footnotesLabel = widget.NewRichText()
 	s.footnotesLabel.Wrapping = fyne.TextWrapWord
+	s.setlist = container.NewVScroll(s.setsLabel)
 
 	footnotes := container.NewVScroll(s.footnotesLabel)
 	footnotes.SetMinSize(fyne.NewSize(0, 100))
@@ -302,7 +303,7 @@ func (s *showsTab) buildShowsDetailsPanel() fyne.CanvasObject {
 		container.NewVBox(s.dateLabel, s.locationLabel),
 		footnotes,
 		nil, nil,
-		container.NewVScroll(s.setsLabel),
+		s.setlist,
 	)
 
 	return container.NewStack(s.placeholder, s.details)
