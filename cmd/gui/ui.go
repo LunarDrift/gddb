@@ -46,7 +46,6 @@ func (a *App) buildUI() fyne.CanvasObject {
 func (s *showsTab) buildShowsTab() fyne.CanvasObject {
 	searchAndList := container.NewHSplit(s.buildShowsSearchPanel(), s.buildShowsResultsPanel())
 	content := container.NewHSplit(searchAndList, s.buildShowsDetailsPanel())
-	content.SetOffset(0.5)
 	return content
 }
 
