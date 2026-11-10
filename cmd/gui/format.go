@@ -123,5 +123,6 @@ func formatSongs(data internal.SetResponse) []string {
 	for i, song := range data.Songs {
 		out = append(out, fmt.Sprintf("%d. %s\n\n", i+1, song))
 	}
+	out = append(out, fmt.Sprintln("&nbsp;"))
 	return out
 }
