@@ -53,7 +53,7 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 	dateQuery := r.URL.Query().Get("date")
 	if dateQuery == "" {
-		respondWithError(w, http.StatusBadRequest, "Missing date query parameter", nil)
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 	date, err := time.Parse(time.DateOnly, dateQuery)
