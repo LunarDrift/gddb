@@ -49,7 +49,7 @@ func formatShows(data []internal.ShowResponse) showText {
 		if len(show.Footnotes) > 0 {
 			fmt.Fprintf(&songNotes, "#### Show %v Footnotes\n\n", show.ShowID)
 			for _, k := range slices.Sorted(maps.Keys(show.Footnotes)) {
-				fmt.Fprintf(&songNotes, "[%s]: *%v*\n\n", k, show.Footnotes[k])
+				fmt.Fprintf(&songNotes, "`[%s]`: %s\n\n", k, show.Footnotes[k])
 			}
 		}
 	}
