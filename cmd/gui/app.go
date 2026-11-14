@@ -136,29 +136,30 @@ func (s *showsTab) searchByID(id string) {
 	}, s.showShowDetails)
 }
 
-func (s *showsTab) searchBySetName() {
-	i := s.setNameSelect.SelectedIndex()
-	if i < 0 {
-		s.app.showError(errors.New("choose a set"))
-		return
+func (s *showsTab) searchShows() {
+	setNameIdx := s.setNameSelect.SelectedIndex()
+	var setName string
+	if setNameIdx < 0 {
+		setName = ""
+	} else {
+		setName = validSetNames[setNameIdx]
 	}
-	setName := validSetNames[i]
-	async(s.app, func() (*showPage, error) { return searchSetNames(setName) }, s.setResults)
-}
 
-func (s *showsTab) searchByNotes() {
-	options := []string{"true", "false"}
-	i := s.notesSelect.SelectedIndex()
-	if i < 0 {
-		s.app.showError(errors.New("choose an option"))
-		return
-	}
-	option := options[i]
-	async(s.app, func() (*showPage, error) { return searchNotes(option) }, s.setResults)
-}
+	options := []string{"", "true", "false"}
+	hasNotesIdx := s.notesSelect.SelectedIndex()
+	hasNotes := options[hasNotesIdx]
 
-func (s *showsTab) searchBySong(song string) {
-	async(s.app, func() (*showPage, error) { return searchSongs(song) }, s.setResults)
+	async(s.app, func() (*showPage, error) {
+		return searchShows(
+			s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected,
+			s.locationSearch.Text,
+			s.citySearch.Text,
+			s.songSearch.Text,
+			s.venueSearch.Text,
+			s.notesSearch.Text,
+			setName,
+			hasNotes)
+	}, s.setResults)
 }
 
 func (s *showsTab) searchShowsByDate(date string) {
@@ -169,33 +170,8 @@ func (s *showsTab) showsFromTodaysDate() {
 	async(s.app, func() (*showPage, error) { return getShowsFromTodaysDate() }, s.setResults)
 }
 
-func (s *showsTab) searchByVenue(venue string) {
-	async(s.app, func() (*showPage, error) { return searchVenues(venue) }, s.setResults)
-	// s.venueSelect.SetText("")
-}
-
-func (s *showsTab) searchByCity(city string) {
-	async(s.app, func() (*showPage, error) { return searchCities(city) }, s.setResults)
-}
-
-func (s *showsTab) searchByLocation(location string) {
-	async(s.app, func() (*showPage, error) { return searchLocations(location) }, s.setResults)
-}
-
-func (s *showsTab) searchByDate(year, month, day string) {
-	async(s.app, func() (*showPage, error) { return getShowsFromDate(year, month, day) }, s.setResults)
-}
-
 func (s *showsTab) randomShow() {
 	async(s.app, func() ([]internal.ShowResponse, error) { return getRandomShow() }, s.showShowDetails)
-}
-
-func (s *showsTab) searchShowNotes(query string) {
-	if query == "" {
-		s.app.showError(errors.New("enter a search term"))
-		return
-	}
-	async(s.app, func() (*showPage, error) { return getShowsFromNotesQuery(query) }, s.setResults)
 }
 
 func (s *showsTab) getAcousticShows() {

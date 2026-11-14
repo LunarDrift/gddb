@@ -110,13 +110,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.idEntry.OnSubmitted = s.searchByID
 
 	// By date
-	var suppressDateFetch bool
-	dateSelect := func(_ string) {
-		if suppressDateFetch {
-			return
-		}
-		s.searchByDate(s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected)
-	}
+	dateSelect := func(_ string) { s.searchShows() }
 	s.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
 	s.yearSelect.PlaceHolder = "Year"
 	s.monthSelect = widget.NewSelect(monthNames(), nil)
@@ -127,23 +121,15 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.monthSelect.OnChanged = dateSelect
 	s.daySelect.OnChanged = dateSelect
 
-	dateClearBtn := widget.NewButtonWithIcon("Clear Date Selections", theme.CancelIcon(), func() {
-		// don't send a new API request if we're just clearing buttons
-		suppressDateFetch = true
-		s.yearSelect.ClearSelected()
-		s.monthSelect.ClearSelected()
-		s.daySelect.ClearSelected()
-		suppressDateFetch = false
-	})
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
 
 	// By song
 	s.songSearch = xwidget.NewCompletionEntry(s.app.allSongs)
-	songSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchBySong(s.songSearch.Text) })
+	songSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
 	songSearchBtn.Importance = widget.LowImportance
 	s.songSearch.ActionItem = songSearchBtn
 	s.songSearch.SetPlaceHolder("Song...")
-	s.songSearch.OnSubmitted = s.searchBySong
+	s.songSearch.OnSubmitted = func(_ string) { s.searchShows() }
 	s.songSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allSongs, input)
 		s.songSearch.SetOptions(opts)
@@ -156,11 +142,11 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By venue
 	s.venueSearch = xwidget.NewCompletionEntry(s.app.allVenues)
-	venueSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByVenue(s.venueSearch.Text) })
+	venueSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
 	venueSearchBtn.Importance = widget.LowImportance
 	s.venueSearch.ActionItem = venueSearchBtn
 	s.venueSearch.PlaceHolder = "Venue..."
-	s.venueSearch.OnSubmitted = s.searchByVenue
+	s.venueSearch.OnSubmitted = func(_ string) { s.searchShows() }
 	s.venueSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allVenues, input)
 		s.venueSearch.SetOptions(opts)
@@ -173,11 +159,11 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By city
 	s.citySearch = xwidget.NewCompletionEntry(s.app.allCities)
-	citySearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByCity(s.citySearch.Text) })
+	citySearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
 	citySearchBtn.Importance = widget.LowImportance
 	s.citySearch.ActionItem = citySearchBtn
 	s.citySearch.SetPlaceHolder("City...")
-	s.citySearch.OnSubmitted = s.searchByCity
+	s.citySearch.OnSubmitted = func(_ string) { s.searchShows() }
 	s.citySearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allCities, input)
 		s.citySearch.SetOptions(opts)
@@ -190,11 +176,11 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By location
 	s.locationSearch = xwidget.NewCompletionEntry(s.app.allLocations)
-	locationSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchByLocation(s.locationSearch.Text) })
+	locationSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
 	locationSearchBtn.Importance = widget.LowImportance
 	s.locationSearch.ActionItem = locationSearchBtn
 	s.locationSearch.PlaceHolder = "Locations (State/Country)"
-	s.locationSearch.OnSubmitted = s.searchByLocation
+	s.locationSearch.OnSubmitted = func(_ string) { s.searchShows() }
 	s.locationSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allLocations, input)
 		s.locationSearch.SetOptions(opts)
@@ -208,26 +194,26 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	// By set name
 	s.setNameSelect = widget.NewSelect(setLabels(), nil)
 	s.setNameSelect.PlaceHolder = "Sets"
-	s.setNameSelect.OnChanged = func(set string) { s.searchBySetName() }
+	s.setNameSelect.OnChanged = func(_ string) { s.searchShows() }
 
 	// By notes
-	s.notesSelect = widget.NewSelect([]string{"True", "False"}, nil)
+	s.notesSelect = widget.NewSelect([]string{"", "True", "False"}, nil)
 	s.notesSelect.PlaceHolder = "Has Notes"
-	s.notesSelect.OnChanged = func(hasNotes string) { s.searchByNotes() }
+	s.notesSelect.OnChanged = func(_ string) { s.searchShows() }
 
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 
 	s.notesSearch = widget.NewEntry()
-	notesClearBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShowNotes(s.notesSearch.Text) })
+	notesClearBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
 	notesClearBtn.Importance = widget.LowImportance
 	s.notesSearch.ActionItem = notesClearBtn
 	s.notesSearch.PlaceHolder = "Search for term in notes..."
-	s.notesSearch.OnSubmitted = s.searchShowNotes
+	s.notesSearch.OnSubmitted = func(_ string) { s.searchShows() }
 
 	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn, acousticShowsBtn, songDebutsBtn)
 	quickActionsAccordion := widget.NewAccordion(widget.NewAccordionItem("Quick Actions", quickActions))
 
-	idDate := container.NewVBox(s.idEntry, datePickers, dateClearBtn)
+	idDate := container.NewVBox(s.idEntry, datePickers)
 	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date", idDate))
 
 	songSearch := container.NewVBox(s.songSearch)
@@ -402,7 +388,8 @@ func (s *songsTab) buildSongTable() *widget.Table {
 }
 
 func numberStrings(from, to int) []string {
-	out := make([]string, 0, to-from+1)
+	out := make([]string, 1, to-from+2)
+	out[0] = ""
 	for i := from; i <= to; i++ {
 		out = append(out, strconv.Itoa(i))
 	}
@@ -410,7 +397,8 @@ func numberStrings(from, to int) []string {
 }
 
 func monthNames() []string {
-	out := make([]string, 0, 12)
+	out := make([]string, 1, 13)
+	out[0] = ""
 	for m := time.January; m <= time.December; m++ {
 		out = append(out, m.String())
 	}
@@ -418,9 +406,9 @@ func monthNames() []string {
 }
 
 func setLabels() []string {
-	out := make([]string, len(validSetNames))
-	for i, name := range validSetNames {
-		out[i] = formatSetName(name)
+	out := make([]string, 0, len(validSetNames))
+	for _, name := range validSetNames {
+		out = append(out, formatSetName(name))
 	}
 	return out
 }

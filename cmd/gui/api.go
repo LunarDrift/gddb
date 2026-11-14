@@ -23,10 +23,10 @@ type (
 var (
 	httpClient = &http.Client{Timeout: 10 * time.Second}
 
-	errNotFound   = errors.New("no results found")
+	errNotFound   = errors.New("no results found. Try adjusting search filters")
 	errBadRequest = errors.New("invalid request")
 
-	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
+	validSetNames = []string{"", "set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 )
 
 func absoluteURL(u string) string {
@@ -79,52 +79,13 @@ func getShowByID(id string) (internal.ShowResponse, error) {
 	return show, err
 }
 
-func searchSongs(song string) (*showPage, error) {
-	if song == "" {
-		return nil, errors.New("enter a song name")
-	}
-	return fetchPage[showPage]("/shows?song=" + url.QueryEscape(song))
-}
-
-func searchVenues(venue string) (*showPage, error) {
-	if venue == "" {
-		return nil, errors.New("enter a venue name")
-	}
-	return fetchPage[showPage]("/shows?venue=" + url.QueryEscape(venue))
-}
-
-func searchCities(city string) (*showPage, error) {
-	if city == "" {
-		return nil, errors.New("enter a city name")
-	}
-	return fetchPage[showPage]("/shows?city=" + url.QueryEscape(city))
-}
-
-func searchLocations(location string) (*showPage, error) {
-	if location == "" {
-		return nil, errors.New("enter a location")
-	}
-	return fetchPage[showPage]("/shows?location=" + url.QueryEscape(location))
-}
-
-func searchSetNames(setName string) (*showPage, error) {
-	return fetchPage[showPage]("/shows?set_name=" + url.QueryEscape(setName))
-}
-
-func searchNotes(option string) (*showPage, error) {
-	return fetchPage[showPage]("/shows?has_notes=" + url.QueryEscape(option))
+func searchShows(year, month, day, location, city, song, venue, notesQuery, setName, hasNotes string) (*showPage, error) {
+	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s&location=%s&city=%s&song=%s&venue=%s&notes=%s&set_name=%s&has_notes=%s",
+		year, month, day, location, city, song, venue, notesQuery, setName, hasNotes))
 }
 
 func getShowsFromTodaysDate() (*showPage, error) {
 	return fetchPage[showPage]("/shows/today")
-}
-
-func getShowsFromNotesQuery(query string) (*showPage, error) {
-	return fetchPage[showPage]("/shows?notes=" + url.QueryEscape(query))
-}
-
-func getShowsFromDate(year, month, day string) (*showPage, error) {
-	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s", year, month, day))
 }
 
 func getAcousticShows() (*showPage, error) {
