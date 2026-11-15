@@ -81,7 +81,13 @@ func getShowByID(id string) (internal.ShowResponse, error) {
 
 func searchShows(year, month, day, location, city, song, venue, notesQuery, setName, hasNotes string) (*showPage, error) {
 	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s&location=%s&city=%s&song=%s&venue=%s&notes=%s&set_name=%s&has_notes=%s",
-		year, month, day, location, city, song, venue, notesQuery, setName, hasNotes))
+		year, month, day,
+		location,
+		formatSearchParameter(city),
+		formatSearchParameter(song),
+		formatSearchParameter(venue),
+		formatSearchParameter(notesQuery),
+		setName, hasNotes))
 }
 
 func getShowsFromTodaysDate() (*showPage, error) {

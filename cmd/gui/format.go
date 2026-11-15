@@ -126,3 +126,7 @@ func formatSongs(data internal.SetResponse) []string {
 	out = append(out, fmt.Sprintln("&nbsp;"))
 	return out
 }
+
+func formatSearchParameter(s string) string {
+	return strings.ReplaceAll(s, " ", "_")
+}
