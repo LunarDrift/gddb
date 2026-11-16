@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strconv"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -129,4 +131,42 @@ func formatSongs(data internal.SetResponse) []string {
 
 func formatSearchParameter(s string) string {
 	return strings.ReplaceAll(s, " ", "_")
+}
+
+func numberStrings(from, to int) []string {
+	out := make([]string, 0, to-from+1)
+	for i := from; i <= to; i++ {
+		out = append(out, strconv.Itoa(i))
+	}
+	return out
+}
+
+func monthNames() []string {
+	out := make([]string, 0, 12)
+	for m := time.January; m <= time.December; m++ {
+		out = append(out, m.String())
+	}
+	return out
+}
+
+func setLabels() []string {
+	out := make([]string, 0, len(validSetNames))
+	for _, name := range validSetNames {
+		out = append(out, formatSetName(name))
+	}
+	return out
+}
+
+func filterOptions(all []string, input string) []string {
+	if input == "" {
+		return all
+	}
+	needle := strings.ToLower(strings.TrimSpace(input))
+	var filtered []string
+	for _, item := range all {
+		if strings.Contains(strings.ToLower(item), needle) {
+			filtered = append(filtered, item)
+		}
+	}
+	return filtered
 }

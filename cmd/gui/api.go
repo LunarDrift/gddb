@@ -26,7 +26,7 @@ var (
 	errNotFound   = errors.New("no results found. Try adjusting search filters")
 	errBadRequest = errors.New("invalid request")
 
-	validSetNames = []string{"", "set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
+	validSetNames = []string{"set_1", "set_2", "set_3", "encore", "acoustic", "electric"}
 )
 
 func absoluteURL(u string) string {

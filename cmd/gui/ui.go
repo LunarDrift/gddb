@@ -96,10 +96,50 @@ func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
 }
 
 func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
+	// Quick Actions
 	randShowBtn := widget.NewButton("Random Show", s.randomShow)
 	todayBtn := widget.NewButton("Today in GD History", s.showsFromTodaysDate)
 	acousticShowsBtn := widget.NewButton("Acoustic Shows", s.getAcousticShows)
 	songDebutsBtn := widget.NewButton("Song Debuts", s.showsWithSongDebuts)
+
+	// Don't want to send request to API if we're just clearing search terms
+	var suppressShowFetch bool
+	showSearch := func(_ string) {
+		if suppressShowFetch {
+			return
+		}
+		s.searchShows()
+	}
+
+	searchBtn := widget.NewButtonWithIcon("Search", theme.SearchIcon(), func() {
+		// can't use the above showSearch, not sure why...
+		// func() { showSearch } gives me variable showSearch is not used error
+		if suppressShowFetch {
+			return
+		}
+		s.searchShows()
+	})
+	clearBtn := widget.NewButtonWithIcon("Clear Search Terms", theme.DeleteIcon(), func() {
+		suppressShowFetch = true
+		s.idEntry.SetText("")
+		s.yearSelect.ClearSelected()
+		s.monthSelect.ClearSelected()
+		s.daySelect.ClearSelected()
+		s.songSearch.SetText("")
+		s.songSearch.HideCompletion()
+		s.venueSearch.SetText("")
+		s.venueSearch.HideCompletion()
+		s.citySearch.SetText("")
+		s.citySearch.HideCompletion()
+		s.locationSearch.SetText("")
+		s.locationSearch.HideCompletion()
+		s.notesSearch.SetText("")
+		s.setNameSelect.ClearSelected()
+		s.notesSelect.ClearSelected()
+		s.results = &showPage{}
+		s.resultsList.Refresh()
+		suppressShowFetch = false
+	})
 
 	// By ID
 	s.idEntry = widget.NewEntry()
@@ -110,17 +150,12 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.idEntry.OnSubmitted = s.searchByID
 
 	// By date
-	dateSelect := func(_ string) { s.searchShows() }
 	s.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
 	s.yearSelect.PlaceHolder = "Year"
 	s.monthSelect = widget.NewSelect(monthNames(), nil)
 	s.monthSelect.PlaceHolder = "Month"
 	s.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
 	s.daySelect.PlaceHolder = "Day"
-	s.yearSelect.OnChanged = dateSelect
-	s.monthSelect.OnChanged = dateSelect
-	s.daySelect.OnChanged = dateSelect
-
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
 
 	// By song
@@ -129,7 +164,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	songSearchBtn.Importance = widget.LowImportance
 	s.songSearch.ActionItem = songSearchBtn
 	s.songSearch.SetPlaceHolder("Song...")
-	s.songSearch.OnSubmitted = func(_ string) { s.searchShows() }
+	s.songSearch.OnSubmitted = showSearch
 	s.songSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allSongs, input)
 		s.songSearch.SetOptions(opts)
@@ -146,7 +181,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	venueSearchBtn.Importance = widget.LowImportance
 	s.venueSearch.ActionItem = venueSearchBtn
 	s.venueSearch.PlaceHolder = "Venue..."
-	s.venueSearch.OnSubmitted = func(_ string) { s.searchShows() }
+	s.venueSearch.OnSubmitted = showSearch
 	s.venueSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allVenues, input)
 		s.venueSearch.SetOptions(opts)
@@ -163,7 +198,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	citySearchBtn.Importance = widget.LowImportance
 	s.citySearch.ActionItem = citySearchBtn
 	s.citySearch.SetPlaceHolder("City...")
-	s.citySearch.OnSubmitted = func(_ string) { s.searchShows() }
+	s.citySearch.OnSubmitted = showSearch
 	s.citySearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allCities, input)
 		s.citySearch.SetOptions(opts)
@@ -180,7 +215,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	locationSearchBtn.Importance = widget.LowImportance
 	s.locationSearch.ActionItem = locationSearchBtn
 	s.locationSearch.PlaceHolder = "Locations (State/Country)"
-	s.locationSearch.OnSubmitted = func(_ string) { s.searchShows() }
+	s.locationSearch.OnSubmitted = showSearch
 	s.locationSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allLocations, input)
 		s.locationSearch.SetOptions(opts)
@@ -193,13 +228,11 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By set name
 	s.setNameSelect = widget.NewSelect(setLabels(), nil)
-	s.setNameSelect.PlaceHolder = "Sets"
-	s.setNameSelect.OnChanged = func(_ string) { s.searchShows() }
+	s.setNameSelect.PlaceHolder = "Set Name"
 
 	// By notes
-	s.notesSelect = widget.NewSelect([]string{"", "True", "False"}, nil)
+	s.notesSelect = widget.NewSelect([]string{"True", "False"}, nil)
 	s.notesSelect.PlaceHolder = "Has Notes"
-	s.notesSelect.OnChanged = func(_ string) { s.searchShows() }
 
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 
@@ -208,42 +241,44 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	notesClearBtn.Importance = widget.LowImportance
 	s.notesSearch.ActionItem = notesClearBtn
 	s.notesSearch.PlaceHolder = "Search for term in notes..."
-	s.notesSearch.OnSubmitted = func(_ string) { s.searchShows() }
+	s.notesSearch.OnSubmitted = showSearch
 
 	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn, acousticShowsBtn, songDebutsBtn)
 	quickActionsAccordion := widget.NewAccordion(widget.NewAccordionItem("Quick Actions", quickActions))
+	quickActionsAccordion.OpenAll()
 
-	idDate := container.NewVBox(s.idEntry, datePickers)
-	idDateAccordion := widget.NewAccordion(widget.NewAccordionItem("ID & Date", idDate))
+	idAccordion := widget.NewAccordion(widget.NewAccordionItem("Show ID Search", s.idEntry))
+	idAccordion.OpenAll()
 
-	songSearch := container.NewVBox(s.songSearch)
-	songAccordion := widget.NewAccordion(widget.NewAccordionItem("Shows From Song Name", songSearch))
-
-	venueLocation := container.NewVBox(s.venueSearch, s.locationSearch, s.citySearch)
-	venueLocationAccordion := widget.NewAccordion(widget.NewAccordionItem("Venue & Location", venueLocation))
-
-	otherSearches := container.NewVBox(s.notesSearch, setAndNotes)
-	otherSearchesAccordion := widget.NewAccordion(widget.NewAccordionItem("Other Searches", otherSearches))
-
-	accordions := []*widget.Accordion{quickActionsAccordion, idDateAccordion, songAccordion, venueLocationAccordion, otherSearchesAccordion}
-	for _, a := range accordions {
-		a.OpenAll()
-	}
+	combinableSearchTerms := container.NewVBox(
+		widget.NewRichTextFromMarkdown("**Search by date**"),
+		datePickers,
+		widget.NewSeparator(),
+		widget.NewRichTextFromMarkdown("**Search by song name**"),
+		s.songSearch,
+		widget.NewSeparator(),
+		widget.NewRichTextFromMarkdown("**Search by location/venue**"),
+		s.locationSearch,
+		s.citySearch,
+		s.venueSearch,
+		widget.NewSeparator(),
+		widget.NewRichTextFromMarkdown("**Other search terms**"),
+		setAndNotes,
+		widget.NewSeparator(),
+		searchBtn,
+		clearBtn,
+	)
+	combinableAccordion := widget.NewAccordion(widget.NewAccordionItem("Combinable Search Terms", combinableSearchTerms))
+	combinableAccordion.OpenAll()
 
 	return container.NewVBox(
 		quickActionsAccordion,
 		layout.NewSpacer(),
 		widget.NewSeparator(),
-		idDateAccordion,
+		idAccordion,
 		layout.NewSpacer(),
 		widget.NewSeparator(),
-		songAccordion,
-		layout.NewSpacer(),
-		widget.NewSeparator(),
-		venueLocationAccordion,
-		layout.NewSpacer(),
-		widget.NewSeparator(),
-		otherSearchesAccordion,
+		combinableAccordion,
 		layout.NewSpacer(),
 	)
 }
@@ -385,46 +420,6 @@ func (s *songsTab) buildSongTable() *widget.Table {
 		table.SetColumnWidth(c, 80)
 	}
 	return table
-}
-
-func numberStrings(from, to int) []string {
-	out := make([]string, 1, to-from+2)
-	out[0] = ""
-	for i := from; i <= to; i++ {
-		out = append(out, strconv.Itoa(i))
-	}
-	return out
-}
-
-func monthNames() []string {
-	out := make([]string, 1, 13)
-	out[0] = ""
-	for m := time.January; m <= time.December; m++ {
-		out = append(out, m.String())
-	}
-	return out
-}
-
-func setLabels() []string {
-	out := make([]string, 0, len(validSetNames))
-	for _, name := range validSetNames {
-		out = append(out, formatSetName(name))
-	}
-	return out
-}
-
-func filterOptions(all []string, input string) []string {
-	if input == "" {
-		return all
-	}
-	needle := strings.ToLower(strings.TrimSpace(input))
-	var filtered []string
-	for _, item := range all {
-		if strings.Contains(strings.ToLower(item), needle) {
-			filtered = append(filtered, item)
-		}
-	}
-	return filtered
 }
 
 func (s *songsTab) songsFilter(input string) {

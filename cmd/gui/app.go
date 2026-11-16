@@ -145,9 +145,7 @@ func (s *showsTab) searchShows() {
 		setName = validSetNames[setNameIdx]
 	}
 
-	options := []string{"", "true", "false"}
-	hasNotesIdx := s.notesSelect.SelectedIndex()
-	hasNotes := options[hasNotesIdx]
+	hasNotes := s.notesSelect.Selected
 
 	async(s.app, func() (*showPage, error) {
 		return searchShows(
