@@ -34,7 +34,7 @@ func formatShows(data []internal.ShowResponse) showText {
 	for _, show := range data {
 		fmt.Fprintf(&header, "**Show ID:** %v\n\n", show.ShowID)
 		if show.Notes != "" {
-			fmt.Fprintf(&showNotes, "%v\n", show.Notes)
+			fmt.Fprintf(&showNotes, "%v\n\n", show.Notes)
 		}
 
 		if len(show.Sets) == 0 {
