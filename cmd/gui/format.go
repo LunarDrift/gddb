@@ -41,7 +41,7 @@ func formatShows(data []internal.ShowResponse) showText {
 			setlist.WriteString("\n*No setlist available for this show*\n")
 		}
 		for _, set := range show.Sets {
-			fmt.Fprintf(&setlist, "### **%s:**\n\n", formatSetName(set.SetName))
+			fmt.Fprintf(&setlist, "\n\n### **%s:**\n\n", formatSetName(set.SetName))
 			fmt.Fprintf(&setlist, "%s\n", strings.Join(formatSongs(set), "\n"))
 		}
 		if len(show.Sets) > 0 && len(data) == 2 {
