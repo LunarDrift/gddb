@@ -57,18 +57,22 @@ func (q *Queries) CreateShow(ctx context.Context, arg CreateShowParams) error {
 }
 
 const getAcousticShows = `-- name: GetAcousticShows :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  JOIN "sets" st ON st.show_id = sh.show_id
+  WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
+  ORDER BY sh.show_date, sh.show_id
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN "sets" st ON st.show_id = sh.show_id
-WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
-ORDER BY sh.show_date, sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT $2 OFFSET $1
 `
 
@@ -206,19 +210,23 @@ func (q *Queries) GetAllShowIDs(ctx context.Context) ([]int32, error) {
 }
 
 const getAllShows = `-- name: GetAllShows :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM
+    shows sh
+  ORDER BY
+    sh.show_date,
+    sh.show_id
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM
-  shows sh
-ORDER BY
-  sh.show_date,
-  sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT $2 OFFSET $1
 `
 
@@ -437,30 +445,32 @@ func (q *Queries) GetShowDetailsFromID(ctx context.Context, showID int32) ([]Get
 }
 
 const getShowsBetweenDates = `-- name: GetShowsBetweenDates :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  WHERE sh.show_date BETWEEN $3 AND $4
+  GROUP BY
+    sh.show_date, sh.venue, sh.show_id 
+  ORDER BY
+    sh.show_date, sh.show_id
+)
 SELECT
-  sh.show_id,
-	sh.show_date,
-	sh.venue,
-	sh.city,
-	sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM
-	shows sh
-WHERE
-sh.show_date BETWEEN $1 AND $2
-GROUP BY
-	sh.show_date, sh.venue, sh.show_id 
-ORDER BY
-	sh.show_date, sh.show_id
-LIMIT $4 OFFSET $3
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
+LIMIT $2 OFFSET $1
 `
 
 type GetShowsBetweenDatesParams struct {
-	StartDate  time.Time
-	EndDate    time.Time
 	PageOffset int32
 	PageLimit  int32
+	StartDate  time.Time
+	EndDate    time.Time
 }
 
 type GetShowsBetweenDatesRow struct {
@@ -475,10 +485,10 @@ type GetShowsBetweenDatesRow struct {
 
 func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenDatesParams) ([]GetShowsBetweenDatesRow, error) {
 	rows, err := q.db.QueryContext(ctx, getShowsBetweenDates,
-		arg.StartDate,
-		arg.EndDate,
 		arg.PageOffset,
 		arg.PageLimit,
+		arg.StartDate,
+		arg.EndDate,
 	)
 	if err != nil {
 		return nil, err
@@ -510,19 +520,23 @@ func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenD
 }
 
 const getShowsFromTodaysDate = `-- name: GetShowsFromTodaysDate :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM
+    shows sh
+  WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+    AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
+  ORDER BY sh.show_date
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM
-  shows sh
-WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
-  AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
-ORDER BY sh.show_date
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT $2 OFFSET $1
 `
 
@@ -573,20 +587,24 @@ func (q *Queries) GetShowsFromTodaysDate(ctx context.Context, arg GetShowsFromTo
 }
 
 const getSongDebuts = `-- name: GetSongDebuts :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  JOIN show_footnotes sf ON sf.show_id = sh.show_id
+  WHERE sf.note_text ILIKE '%first%time%played%'
+    AND sf.note_text NOT ILIKE '%since%'
+    AND sf.note_text NOT ILIKE '%electric%'
+  ORDER BY sh.show_date, sh.show_id
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN show_footnotes sf ON sf.show_id = sh.show_id
-WHERE sf.note_text ILIKE '%first%time%played%'
-  AND sf.note_text NOT ILIKE '%since%'
-  AND sf.note_text NOT ILIKE '%electric%'
-ORDER BY sh.show_date, sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT $2 OFFSET $1
 `
 
@@ -736,39 +754,43 @@ func (q *Queries) ListVenueStats(ctx context.Context) ([]ListVenueStatsRow, erro
 }
 
 const searchShowsWithFilters = `-- name: SearchShowsWithFilters :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN "sets" st ON st.show_id = sh.show_id
-JOIN set_entries se ON se.set_id = st.id
-WHERE ($1::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = $1)
-  AND ($2::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = $2)
-  AND ($3::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = $3)
-  AND ($4::text IS NULL OR LOWER(sh.state) = LOWER($4))
-  AND ($5::text IS NULL OR sh.city ILIKE $5)
-  AND ($6::text IS NULL OR se.song_name ILIKE $6)
-  AND ($7::text IS NULL OR sh.venue ILIKE $7)
-  AND ($8::text IS NULL OR sh.notes ILIKE $8)
-  AND ($9::text IS NULL OR LOWER(st.set_name) = LOWER($9))
-  AND CASE
-    WHEN $10::boolean IS NULL THEN TRUE
-    WHEN $10::boolean = TRUE
-      THEN sh.notes IS NOT NULL AND sh.notes != ''
-    WHEN $10::boolean = FALSE
-      THEN sh.notes IS NULL OR sh.notes = ''
-  END
-GROUP BY sh.show_id
-ORDER BY sh.show_date, sh.show_id
-LIMIT $12 OFFSET $11
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  JOIN "sets" st ON st.show_id = sh.show_id
+  JOIN set_entries se ON se.set_id = st.id
+  WHERE ($3::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = $3)
+    AND ($4::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = $4)
+    AND ($5::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = $5)
+    AND ($6::text IS NULL OR LOWER(sh.state) = LOWER($6))
+    AND ($7::text IS NULL OR sh.city ILIKE $7)
+    AND ($8::text IS NULL OR se.song_name ILIKE $8)
+    AND ($9::text IS NULL OR sh.venue ILIKE $9)
+    AND ($10::text IS NULL OR sh.notes ILIKE $10)
+    AND ($11::text IS NULL OR LOWER(st.set_name) = LOWER($11))
+    AND CASE
+      WHEN $12::boolean IS NULL THEN TRUE
+      WHEN $12::boolean = TRUE
+        THEN sh.notes IS NOT NULL AND sh.notes != ''
+      WHEN $12::boolean = FALSE
+        THEN sh.notes IS NULL OR sh.notes = ''
+    END
+  ORDER BY sh.show_date, sh.show_id
+)
+SELECT show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
+LIMIT $2 OFFSET $1
 `
 
 type SearchShowsWithFiltersParams struct {
+	PageOffset int32
+	PageLimit  int32
 	Year       sql.NullInt32
 	Month      sql.NullInt32
 	Day        sql.NullInt32
@@ -779,8 +801,6 @@ type SearchShowsWithFiltersParams struct {
 	Notes      sql.NullString
 	SetName    sql.NullString
 	HasNotes   sql.NullBool
-	PageOffset int32
-	PageLimit  int32
 }
 
 type SearchShowsWithFiltersRow struct {
@@ -795,6 +815,8 @@ type SearchShowsWithFiltersRow struct {
 
 func (q *Queries) SearchShowsWithFilters(ctx context.Context, arg SearchShowsWithFiltersParams) ([]SearchShowsWithFiltersRow, error) {
 	rows, err := q.db.QueryContext(ctx, searchShowsWithFilters,
+		arg.PageOffset,
+		arg.PageLimit,
 		arg.Year,
 		arg.Month,
 		arg.Day,
@@ -805,8 +827,6 @@ func (q *Queries) SearchShowsWithFilters(ctx context.Context, arg SearchShowsWit
 		arg.Notes,
 		arg.SetName,
 		arg.HasNotes,
-		arg.PageOffset,
-		arg.PageLimit,
 	)
 	if err != nil {
 		return nil, err

@@ -69,57 +69,67 @@ ORDER BY
 	se.position;
 
 -- name: GetAllShows :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM
+    shows sh
+  ORDER BY
+    sh.show_date,
+    sh.show_id
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM
-  shows sh
-ORDER BY
-  sh.show_date,
-  sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetShowsFromTodaysDate :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM
+    shows sh
+  WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
+    AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
+  ORDER BY sh.show_date
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM
-  shows sh
-WHERE EXTRACT(MONTH FROM sh.show_date) = EXTRACT(MONTH FROM CURRENT_DATE)
-  AND EXTRACT(DAY FROM sh.show_date) = EXTRACT(DAY FROM CURRENT_DATE)
-ORDER BY sh.show_date
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetAllShowIDs :many
 SELECT show_id FROM shows ORDER BY show_id;
 
 -- name: GetShowsBetweenDates :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  WHERE sh.show_date BETWEEN @start_date AND @end_date
+  GROUP BY
+    sh.show_date, sh.venue, sh.show_id 
+  ORDER BY
+    sh.show_date, sh.show_id
+)
 SELECT
-  sh.show_id,
-	sh.show_date,
-	sh.venue,
-	sh.city,
-	sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM
-	shows sh
-WHERE
-sh.show_date BETWEEN @start_date AND @end_date
-GROUP BY
-	sh.show_date, sh.venue, sh.show_id 
-ORDER BY
-	sh.show_date, sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetSongStats :one
@@ -133,18 +143,22 @@ JOIN set_entries se ON se.set_id = st.id
 WHERE se.song_name ILIKE @song_name;
 
 -- name: GetAcousticShows :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  JOIN "sets" st ON st.show_id = sh.show_id
+  WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
+  ORDER BY sh.show_date, sh.show_id
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN "sets" st ON st.show_id = sh.show_id
-WHERE st.set_name IN ('acoustic', 'acoustic_1', 'acoustic_2')
-ORDER BY sh.show_date, sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: GetValidLocations :many
@@ -178,50 +192,56 @@ ORDER BY
   s.state, s.city, s.venue;
 
 -- name: GetSongDebuts :many
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  JOIN show_footnotes sf ON sf.show_id = sh.show_id
+  WHERE sf.note_text ILIKE '%first%time%played%'
+    AND sf.note_text NOT ILIKE '%since%'
+    AND sf.note_text NOT ILIKE '%electric%'
+  ORDER BY sh.show_date, sh.show_id
+)
 SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN show_footnotes sf ON sf.show_id = sh.show_id
-WHERE sf.note_text ILIKE '%first%time%played%'
-  AND sf.note_text NOT ILIKE '%since%'
-  AND sf.note_text NOT ILIKE '%electric%'
-ORDER BY sh.show_date, sh.show_id
+  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
 -- name: SearchShowsWithFilters :many
-SELECT
-  sh.show_id,
-  sh.show_date,
-  sh.venue,
-  sh.city,
-  sh.state AS location,
-  sh.notes,
-  COUNT(*) OVER ()
-FROM shows sh
-JOIN "sets" st ON st.show_id = sh.show_id
-JOIN set_entries se ON se.set_id = st.id
-WHERE (sqlc.narg('year')::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = sqlc.narg('year'))
-  AND (sqlc.narg('month')::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = sqlc.narg('month'))
-  AND (sqlc.narg('day')::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = sqlc.narg('day'))
-  AND (sqlc.narg('location')::text IS NULL OR LOWER(sh.state) = LOWER(sqlc.narg('location')))
-  AND (sqlc.narg('city')::text IS NULL OR sh.city ILIKE sqlc.narg('city'))
-  AND (sqlc.narg('song')::text IS NULL OR se.song_name ILIKE sqlc.narg('song'))
-  AND (sqlc.narg('venue')::text IS NULL OR sh.venue ILIKE sqlc.narg('venue'))
-  AND (sqlc.narg('notes')::text IS NULL OR sh.notes ILIKE sqlc.narg('notes'))
-  AND (sqlc.narg('set_name')::text IS NULL OR LOWER(st.set_name) = LOWER(sqlc.narg('set_name')))
-  AND CASE
-    WHEN sqlc.narg('has_notes')::boolean IS NULL THEN TRUE
-    WHEN sqlc.narg('has_notes')::boolean = TRUE
-      THEN sh.notes IS NOT NULL AND sh.notes != ''
-    WHEN sqlc.narg('has_notes')::boolean = FALSE
-      THEN sh.notes IS NULL OR sh.notes = ''
-  END
-GROUP BY sh.show_id
-ORDER BY sh.show_date, sh.show_id
+WITH matched AS (
+  SELECT DISTINCT ON(sh.show_date)
+    sh.show_id,
+    sh.show_date,
+    sh.venue,
+    sh.city,
+    sh.state AS location,
+    sh.notes
+  FROM shows sh
+  JOIN "sets" st ON st.show_id = sh.show_id
+  JOIN set_entries se ON se.set_id = st.id
+  WHERE (sqlc.narg('year')::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = sqlc.narg('year'))
+    AND (sqlc.narg('month')::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = sqlc.narg('month'))
+    AND (sqlc.narg('day')::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = sqlc.narg('day'))
+    AND (sqlc.narg('location')::text IS NULL OR LOWER(sh.state) = LOWER(sqlc.narg('location')))
+    AND (sqlc.narg('city')::text IS NULL OR sh.city ILIKE sqlc.narg('city'))
+    AND (sqlc.narg('song')::text IS NULL OR se.song_name ILIKE sqlc.narg('song'))
+    AND (sqlc.narg('venue')::text IS NULL OR sh.venue ILIKE sqlc.narg('venue'))
+    AND (sqlc.narg('notes')::text IS NULL OR sh.notes ILIKE sqlc.narg('notes'))
+    AND (sqlc.narg('set_name')::text IS NULL OR LOWER(st.set_name) = LOWER(sqlc.narg('set_name')))
+    AND CASE
+      WHEN sqlc.narg('has_notes')::boolean IS NULL THEN TRUE
+      WHEN sqlc.narg('has_notes')::boolean = TRUE
+        THEN sh.notes IS NOT NULL AND sh.notes != ''
+      WHEN sqlc.narg('has_notes')::boolean = FALSE
+        THEN sh.notes IS NULL OR sh.notes = ''
+    END
+  ORDER BY sh.show_date, sh.show_id
+)
+SELECT show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+FROM matched
 LIMIT @page_limit OFFSET @page_offset;
