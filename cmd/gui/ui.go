@@ -160,9 +160,6 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By song
 	s.songSearch = xwidget.NewCompletionEntry(s.app.allSongs)
-	songSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
-	songSearchBtn.Importance = widget.LowImportance
-	s.songSearch.ActionItem = songSearchBtn
 	s.songSearch.SetPlaceHolder("Song...")
 	s.songSearch.OnSubmitted = showSearch
 	s.songSearch.OnChanged = func(input string) {
@@ -177,9 +174,6 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By venue
 	s.venueSearch = xwidget.NewCompletionEntry(s.app.allVenues)
-	venueSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
-	venueSearchBtn.Importance = widget.LowImportance
-	s.venueSearch.ActionItem = venueSearchBtn
 	s.venueSearch.PlaceHolder = "Venue..."
 	s.venueSearch.OnSubmitted = showSearch
 	s.venueSearch.OnChanged = func(input string) {
@@ -194,9 +188,6 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By city
 	s.citySearch = xwidget.NewCompletionEntry(s.app.allCities)
-	citySearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
-	citySearchBtn.Importance = widget.LowImportance
-	s.citySearch.ActionItem = citySearchBtn
 	s.citySearch.SetPlaceHolder("City...")
 	s.citySearch.OnSubmitted = showSearch
 	s.citySearch.OnChanged = func(input string) {
@@ -211,9 +202,6 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 
 	// By location
 	s.locationSearch = xwidget.NewCompletionEntry(s.app.allLocations)
-	locationSearchBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
-	locationSearchBtn.Importance = widget.LowImportance
-	s.locationSearch.ActionItem = locationSearchBtn
 	s.locationSearch.PlaceHolder = "Locations (State/Country)"
 	s.locationSearch.OnSubmitted = showSearch
 	s.locationSearch.OnChanged = func(input string) {
@@ -288,7 +276,11 @@ func (s *showsTab) buildShowsResultsPanel() fyne.CanvasObject {
 		func() int { return len(s.results.Results) },
 		func() fyne.CanvasObject { return widget.NewLabel("template") },
 		func(id widget.ListItemID, obj fyne.CanvasObject) {
-			obj.(*widget.Label).SetText(s.results.Results[id].Date)
+			resultDetails := fmt.Sprintf("%s\n%s · %s", s.results.Results[id].Date, s.results.Results[id].Venue, s.results.Results[id].City)
+			label := obj.(*widget.Label)
+			label.Truncation = fyne.TextTruncateEllipsis
+			label.SetText(resultDetails)
+			s.resultsList.SetItemHeight(id, label.MinSize().Height)
 		},
 	)
 	s.resultsList.OnSelected = s.onResultSelected
