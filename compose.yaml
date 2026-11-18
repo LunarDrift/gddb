@@ -33,17 +33,18 @@ services:
   import:
     <<: *app
     tty: true
+    command: ["./importer"]
+    profiles: ["tools"]
     depends_on:
       migrate:
         condition: service_completed_successfully
-    command: ["./importer"]
 
   api:
     <<: *app
     tty: true
     command: ["./api"]
     depends_on:
-      import:
+      migrate:
         condition: service_completed_successfully
     ports:
       - "8080:8080"

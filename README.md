@@ -56,15 +56,15 @@ Many thanks to them for this wonderful data!
    DB_URL=postgres://your_user:your_password@db:5432/your_db_name?sslmode=disable&timezone=your_timezone
    ```
 
-3. Run the docker command
+3. Run the docker commands
 
    ```bash
-   docker compose up --build
+   docker compose up --build -d && docker compose run --rm import
    ```
 
-   Use `--build` on first run or after any change to the Go source or Dockerfile,
-   so `docker-compose` rebuilds the `deadabase:local` app image before starting
-   the containers.
+Use these commands for the initial build and import. All subsequent launches can simply use
+`docker compose up`. After deleting the Postgres volume (`docker compose down -v`) will require a rebuild/reimport.
+Any changes to the Go source code or Dockerfile will require a rebuild as well `docker compose up --build`.
 
 ## GUI Client
 
