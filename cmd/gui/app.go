@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"strconv"
 	"strings"
 
 	"fyne.io/fyne/v2"
@@ -40,10 +41,11 @@ type showsTab struct {
 	notesSearch    *widget.Entry
 
 	// Results panel
-	results     *showPage
-	resultsList *widget.List
-	prevBtn     *widget.Button
-	nextBtn     *widget.Button
+	results           *showPage
+	resultsList       *widget.List
+	resultsListHeader *widget.RichText
+	prevBtn           *widget.Button
+	nextBtn           *widget.Button
 
 	// Details panel
 	placeholder    *fyne.Container
@@ -195,6 +197,7 @@ func (s *showsTab) onResultSelected(id widget.ListItemID) {
 // list, selection, and details pane and buttons can never get out of sync.
 func (s *showsTab) setResults(p *showPage) {
 	s.results = p
+	s.resultsListHeader.ParseMarkdown("**" + strconv.FormatInt(p.Count, 10) + " shows found**")
 	s.resultsList.UnselectAll()
 	s.resultsList.Refresh()
 	s.resultsList.ScrollToTop()

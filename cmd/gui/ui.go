@@ -288,8 +288,10 @@ func (s *showsTab) buildShowsResultsPanel() fyne.CanvasObject {
 	s.prevBtn = widget.NewButtonWithIcon("Prev", theme.NavigateBackIcon(), s.loadPrev)
 	s.nextBtn = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
 
+	s.resultsListHeader = widget.NewRichTextFromMarkdown("")
+
 	return container.NewBorder(
-		nil,
+		s.resultsListHeader,
 		container.NewHBox(s.prevBtn, layout.NewSpacer(), s.nextBtn),
 		nil, nil,
 		s.resultsList,
