@@ -85,6 +85,8 @@ func searchShows(year, month, day, location, city, song, venue, notesQuery, setN
 	for abbr, name := range stateAbbreviationsToFullNames {
 		stateAbbreviations[name] = abbr
 	}
+
+	formatSearchParameter := func(s string) string { return strings.ReplaceAll(s, " ", "_") }
 	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s&location=%s&city=%s&song=%s&venue=%s&notes=%s&set_name=%s&has_notes=%s",
 		year, month, day,
 		stateAbbreviations[location],

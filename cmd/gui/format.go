@@ -183,10 +183,6 @@ func formatSongs(data internal.SetResponse) []string {
 	return out
 }
 
-func formatSearchParameter(s string) string {
-	return strings.ReplaceAll(s, " ", "_")
-}
-
 func numberStrings(from, to int) []string {
 	out := make([]string, 0, to-from+1)
 	for i := from; i <= to; i++ {
