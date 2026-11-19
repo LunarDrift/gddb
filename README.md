@@ -62,9 +62,9 @@ Many thanks to them for this wonderful data!
    docker compose up --build -d && docker compose run --rm import
    ```
 
-Use these commands for the initial build and import. All subsequent launches can simply use
-`docker compose up`. After deleting the Postgres volume (`docker compose down -v`) will require a rebuild/reimport.
-Any changes to the Go source code or Dockerfile will require a rebuild as well `docker compose up --build`.
+Use these commands for the initial build and import. All subsequent launches can simply use `docker compose up`, skipping the import time.
+If you delete the Postgres volume (`docker compose down -v`), next launch will require a rebuild/reimport.
+Any changes to the Go source code or Dockerfile will require a rebuild `docker compose up --build`.
 
 ## GUI Client
 
