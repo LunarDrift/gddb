@@ -136,7 +136,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.locationSearch.HideCompletion()
 		s.notesSearch.SetText("")
 		s.setNameSelect.ClearSelected()
-		s.notesSelect.ClearSelected()
+		s.hasNotesSelect.ClearSelected()
 		s.results = &showPage{}
 		s.resultsList.Refresh()
 		suppressShowFetch = false
@@ -220,10 +220,10 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.setNameSelect.PlaceHolder = "Set Name"
 
 	// By notes
-	s.notesSelect = widget.NewSelect([]string{"True", "False"}, nil)
-	s.notesSelect.PlaceHolder = "Has Notes"
+	s.hasNotesSelect = widget.NewSelect([]string{"True", "False"}, nil)
+	s.hasNotesSelect.PlaceHolder = "Has Notes"
 
-	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
+	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.hasNotesSelect)
 
 	s.notesSearch = widget.NewEntry()
 	s.notesSearch.PlaceHolder = "Search for term in show notes..."

@@ -38,7 +38,7 @@ type showsTab struct {
 	citySearch     *xwidget.CompletionEntry
 	locationSearch *xwidget.CompletionEntry
 	setNameSelect  *widget.Select
-	notesSelect    *widget.Select
+	hasNotesSelect *widget.Select
 	notesSearch    *widget.Entry
 
 	// Results panel
@@ -148,7 +148,7 @@ func (s *showsTab) searchShows() {
 		setName = validSetNames[setNameIdx]
 	}
 
-	hasNotes := s.notesSelect.Selected
+	hasNotes := s.hasNotesSelect.Selected
 
 	async(s.app, func() (*showPage, error) {
 		return searchShows(
@@ -206,7 +206,7 @@ func (s *showsTab) currentFilters() *showFilters {
 		City:     strings.TrimSpace(s.citySearch.Text),
 		Notes:    strings.TrimSpace(s.notesSearch.Text),
 		SetName:  s.setNameSelect.Selected,
-		HasNotes: s.notesSelect.Selected,
+		HasNotes: s.hasNotesSelect.Selected,
 	}
 }
 
