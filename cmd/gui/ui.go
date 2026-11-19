@@ -123,9 +123,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		suppressShowFetch = true
 		s.resultsListHeader.ParseMarkdown("")
 		s.idEntry.SetText("")
-		s.yearSelect.ClearSelected()
-		s.monthSelect.ClearSelected()
-		s.daySelect.ClearSelected()
+		s.yearSelect.SetText("")
+		s.monthSelect.SetText("")
+		s.daySelect.SetText("")
 		s.songSearch.SetText("")
 		s.songSearch.HideCompletion()
 		s.venueSearch.SetText("")
@@ -151,12 +151,49 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.idEntry.OnSubmitted = s.searchByID
 
 	// By date
-	s.yearSelect = widget.NewSelect(numberStrings(1965, 1995), nil)
+	s.yearSelect = xwidget.NewCompletionEntry(numberStrings(1965, 1995))
 	s.yearSelect.PlaceHolder = "Year"
-	s.monthSelect = widget.NewSelect(monthNames(), nil)
+	s.yearSelect.OnSubmitted = showSearch
+	showYearOptsBtn := widget.NewButton("⮟", func() { s.yearSelect.ShowCompletion() })
+	showYearOptsBtn.Importance = widget.LowImportance
+	s.yearSelect.ActionItem = showYearOptsBtn
+	s.yearSelect.OnChanged = func(input string) {
+		opts := filterOptions(numberStrings(1965, 1995), input)
+		s.yearSelect.SetOptions(opts)
+		if len(opts) == 0 {
+			s.yearSelect.HideCompletion()
+			return
+		}
+		s.yearSelect.ShowCompletion()
+	}
+	s.monthSelect = xwidget.NewCompletionEntry(monthNames())
 	s.monthSelect.PlaceHolder = "Month"
-	s.daySelect = widget.NewSelect(numberStrings(1, 31), nil)
+	s.monthSelect.OnSubmitted = showSearch
+	showMonthOptsBtn := widget.NewButton("⮟", func() { s.monthSelect.ShowCompletion() })
+	showMonthOptsBtn.Importance = widget.LowImportance
+	s.monthSelect.ActionItem = showMonthOptsBtn
+	s.monthSelect.OnChanged = func(input string) {
+		opts := filterOptions(monthNames(), input)
+		if len(opts) == 0 {
+			s.monthSelect.HideCompletion()
+			return
+		}
+		s.monthSelect.ShowCompletion()
+	}
+	s.daySelect = xwidget.NewCompletionEntry(numberStrings(1, 31))
 	s.daySelect.PlaceHolder = "Day"
+	s.daySelect.OnSubmitted = showSearch
+	showDayOptsBtn := widget.NewButton("⮟", func() { s.daySelect.ShowCompletion() })
+	showDayOptsBtn.Importance = widget.LowImportance
+	s.daySelect.ActionItem = showDayOptsBtn
+	s.daySelect.OnSubmitted = func(input string) {
+		opts := filterOptions(numberStrings(1, 31), input)
+		if len(opts) == 0 {
+			s.daySelect.HideCompletion()
+			return
+		}
+		s.daySelect.ShowCompletion()
+	}
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
 
 	// By song

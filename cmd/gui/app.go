@@ -30,9 +30,9 @@ type showsTab struct {
 	// Search panel
 	activeFilters  *showFilters
 	idEntry        *widget.Entry
-	yearSelect     *widget.Select
-	monthSelect    *widget.Select
-	daySelect      *widget.Select
+	yearSelect     *xwidget.CompletionEntry
+	monthSelect    *xwidget.CompletionEntry
+	daySelect      *xwidget.CompletionEntry
 	songSearch     *xwidget.CompletionEntry
 	venueSearch    *xwidget.CompletionEntry
 	citySearch     *xwidget.CompletionEntry
@@ -152,7 +152,7 @@ func (s *showsTab) searchShows() {
 
 	async(s.app, func() (*showPage, error) {
 		return searchShows(
-			s.yearSelect.Selected, monthToNumString(s.monthSelect.Selected), s.daySelect.Selected,
+			s.yearSelect.Text, monthToNumString(s.monthSelect.Text), s.daySelect.Text,
 			s.locationSearch.Text,
 			s.citySearch.Text,
 			s.songSearch.Text,
@@ -199,9 +199,9 @@ type showFilters struct {
 // read widgets once, when Search is clicked/Enter pressed
 func (s *showsTab) currentFilters() *showFilters {
 	return &showFilters{
-		Year:     s.yearSelect.Selected,
-		Month:    s.monthSelect.Selected,
-		Day:      s.daySelect.Selected,
+		Year:     strings.TrimSpace(s.yearSelect.Text),
+		Month:    strings.TrimSpace(s.monthSelect.Text),
+		Day:      strings.TrimSpace(s.daySelect.Text),
 		Song:     strings.TrimSpace(s.songSearch.Text),
 		Venue:    strings.TrimSpace(s.venueSearch.Text),
 		Location: strings.TrimSpace(s.locationSearch.Text),
