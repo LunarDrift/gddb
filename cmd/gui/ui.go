@@ -18,7 +18,7 @@ import (
 
 func newApp() *App {
 	a := &App{}
-	a.shows = &showsTab{app: a, results: &showPage{}}
+	a.shows = &showsTab{app: a, activeFilters: &showFilters{}, results: &showPage{}}
 	a.songs = &songsTab{app: a, allSongStats: []songStats{}, visibleSongs: []songStats{}}
 	a.venues = &venuesTab{app: a, allVenueStats: []venueStats{}, visibleVenues: []venueStats{}}
 	fyneApp := app.New()
@@ -121,6 +121,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	})
 	clearBtn := widget.NewButtonWithIcon("Clear Search Terms", theme.DeleteIcon(), func() {
 		suppressShowFetch = true
+		s.resultsListHeader.ParseMarkdown("")
 		s.idEntry.SetText("")
 		s.yearSelect.ClearSelected()
 		s.monthSelect.ClearSelected()
@@ -225,10 +226,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.notesSelect)
 
 	s.notesSearch = widget.NewEntry()
-	notesClearBtn := widget.NewButtonWithIcon("", theme.SearchIcon(), func() { s.searchShows() })
-	notesClearBtn.Importance = widget.LowImportance
-	s.notesSearch.ActionItem = notesClearBtn
-	s.notesSearch.PlaceHolder = "Search for term in notes..."
+	s.notesSearch.PlaceHolder = "Search for term in show notes..."
 	s.notesSearch.OnSubmitted = showSearch
 
 	quickActions := container.NewGridWithColumns(2, randShowBtn, todayBtn, acousticShowsBtn, songDebutsBtn)
@@ -251,6 +249,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.venueSearch,
 		widget.NewSeparator(),
 		widget.NewRichTextFromMarkdown("**Other search terms**"),
+		s.notesSearch,
 		setAndNotes,
 		widget.NewSeparator(),
 		searchBtn,
@@ -289,6 +288,7 @@ func (s *showsTab) buildShowsResultsPanel() fyne.CanvasObject {
 	s.nextBtn = widget.NewButtonWithIcon("Next", theme.NavigateNextIcon(), s.loadNext)
 
 	s.resultsListHeader = widget.NewRichTextFromMarkdown("")
+	s.resultsListHeader.Wrapping = fyne.TextWrapWord
 
 	return container.NewBorder(
 		s.resultsListHeader,

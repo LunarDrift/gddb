@@ -28,6 +28,7 @@ type App struct {
 type showsTab struct {
 	app *App
 	// Search panel
+	activeFilters  *showFilters
 	idEntry        *widget.Entry
 	yearSelect     *widget.Select
 	monthSelect    *widget.Select
@@ -184,6 +185,65 @@ func (s *showsTab) showsWithSongDebuts() {
 
 // ---------------- Results list ----------------
 
+type showFilters struct {
+	Year, Month, Day string
+	Song, Venue      string
+	Location, City   string
+	Notes            string
+	SetName          string
+	HasNotes         string
+}
+
+// read widgets once, when Search is clicked
+func (s *showsTab) currentFilters() *showFilters {
+	return &showFilters{
+		Year:     s.yearSelect.Selected,
+		Month:    s.monthSelect.Selected,
+		Day:      s.daySelect.Selected,
+		Song:     strings.TrimSpace(s.songSearch.Text),
+		Venue:    strings.TrimSpace(s.venueSearch.Text),
+		Location: strings.TrimSpace(s.locationSearch.Text),
+		City:     strings.TrimSpace(s.citySearch.Text),
+		Notes:    strings.TrimSpace(s.notesSearch.Text),
+		SetName:  s.setNameSelect.Selected,
+		HasNotes: s.notesSelect.Selected,
+	}
+}
+
+// describe skips empty fields
+func (f showFilters) Describe() string {
+	var parts []string
+	add := func(label, v string) {
+		if v != "" {
+			parts = append(parts, label+v)
+		}
+	}
+	date := strings.Join(nonEmpty(f.Year, f.Month, f.Day), " ")
+	add("", date)
+	add("song: ", f.Song)
+	add("location: ", f.Location)
+	add("city: ", f.City)
+	add("venue: ", f.Venue)
+	add("notes: ", f.Notes)
+	add("set: ", f.SetName)
+	add("has notes: ", f.HasNotes)
+	return strings.Join(parts, " · ")
+}
+
+func nonEmpty(year, month, day string) []string {
+	out := []string{}
+	if year != "" {
+		out = append(out, year)
+	}
+	if month != "" {
+		out = append(out, month)
+	}
+	if day != "" {
+		out = append(out, day)
+	}
+	return out
+}
+
 func (s *showsTab) onResultSelected(id widget.ListItemID) {
 	if id >= len(s.results.Results) {
 		return
@@ -197,7 +257,8 @@ func (s *showsTab) onResultSelected(id widget.ListItemID) {
 // list, selection, and details pane and buttons can never get out of sync.
 func (s *showsTab) setResults(p *showPage) {
 	s.results = p
-	s.resultsListHeader.ParseMarkdown("**" + strconv.FormatInt(p.Count, 10) + " shows found**")
+	s.activeFilters = s.currentFilters()
+	s.resultsListHeader.ParseMarkdown("**" + strconv.FormatInt(p.Count, 10) + " shows found**\n\n" + s.activeFilters.Describe())
 	s.resultsList.UnselectAll()
 	s.resultsList.Refresh()
 	s.resultsList.ScrollToTop()
