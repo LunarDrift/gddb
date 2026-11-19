@@ -207,7 +207,16 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	s.locationSearch.OnSubmitted = showSearch
 	s.locationSearch.OnChanged = func(input string) {
 		opts := filterOptions(s.app.allLocations, input)
-		s.locationSearch.SetOptions(opts)
+		// Convert state abbreviations to full state names
+		fullNames := []string{}
+		for _, opt := range opts {
+			if len(opt) == 2 {
+				fullNames = append(fullNames, stateAbbreviationsToFullNames[opt])
+			} else {
+				fullNames = append(fullNames, opt)
+			}
+		}
+		s.locationSearch.SetOptions(fullNames)
 		if len(opts) == 0 {
 			s.locationSearch.HideCompletion()
 			return
