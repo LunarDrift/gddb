@@ -185,6 +185,8 @@ func (s *showsTab) showsWithSongDebuts() {
 
 // ---------------- Results list ----------------
 
+// keep track of active filters to use in the resultsListHeader
+// display what produced the results
 type showFilters struct {
 	Year, Month, Day string
 	Song, Venue      string
@@ -194,7 +196,7 @@ type showFilters struct {
 	HasNotes         string
 }
 
-// read widgets once, when Search is clicked
+// read widgets once, when Search is clicked/Enter pressed
 func (s *showsTab) currentFilters() *showFilters {
 	return &showFilters{
 		Year:     s.yearSelect.Selected,
