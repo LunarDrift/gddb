@@ -163,6 +163,7 @@ var stateAbbreviationsToFullNames = map[string]string{
 	"WY": "Wyoming",
 	"DC": "Washington, D.C.",
 }
+var stateAbbreviations = make(map[string]string, len(stateAbbreviationsToFullNames))
 
 func buildArchiveOrgLink(date string) string {
 	if date == "" {

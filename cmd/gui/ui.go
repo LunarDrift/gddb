@@ -135,8 +135,8 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.locationSearch.SetText("")
 		s.locationSearch.HideCompletion()
 		s.notesSearch.SetText("")
-		s.setNameSelect.ClearSelected()
-		s.hasNotesSelect.ClearSelected()
+		s.setNameSearch.SetText("")
+		s.hasNotesSearch.SetText("")
 		s.results = &showPage{}
 		s.resultsList.Refresh()
 		suppressShowFetch = false
@@ -262,14 +262,38 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	}
 
 	// By set name
-	s.setNameSelect = widget.NewSelect(setLabels(), nil)
-	s.setNameSelect.PlaceHolder = "Set Name"
+	s.setNameSearch = xwidget.NewCompletionEntry(setLabels())
+	s.setNameSearch.PlaceHolder = "Set Name"
+	s.setNameSearch.OnSubmitted = showSearch
+	setNameOptsBtn := widget.NewButton("⮟", func() { s.setNameSearch.ShowCompletion() })
+	setNameOptsBtn.Importance = widget.LowImportance
+	s.setNameSearch.ActionItem = setNameOptsBtn
+	s.setNameSearch.OnChanged = func(input string) {
+		opts := filterOptions(setLabels(), input)
+		if len(opts) == 0 {
+			s.setNameSearch.HideCompletion()
+			return
+		}
+		s.setNameSearch.ShowCompletion()
+	}
 
 	// By notes
-	s.hasNotesSelect = widget.NewSelect([]string{"True", "False"}, nil)
-	s.hasNotesSelect.PlaceHolder = "Has Notes"
+	s.hasNotesSearch = xwidget.NewCompletionEntry([]string{"True", "False"})
+	s.hasNotesSearch.PlaceHolder = "Has Notes"
+	s.hasNotesSearch.OnSubmitted = showSearch
+	hasNotesOptsBtn := widget.NewButton("⮟", func() { s.hasNotesSearch.ShowCompletion() })
+	hasNotesOptsBtn.Importance = widget.LowImportance
+	s.hasNotesSearch.ActionItem = hasNotesOptsBtn
+	s.hasNotesSearch.OnChanged = func(input string) {
+		opts := filterOptions([]string{"True", "False"}, input)
+		if len(opts) == 0 {
+			s.hasNotesSearch.HideCompletion()
+			return
+		}
+		s.hasNotesSearch.ShowCompletion()
+	}
 
-	setAndNotes := container.NewGridWithColumns(2, s.setNameSelect, s.hasNotesSelect)
+	setAndNotes := container.NewGridWithColumns(2, s.setNameSearch, s.hasNotesSearch)
 
 	s.notesSearch = widget.NewEntry()
 	s.notesSearch.PlaceHolder = "Search for term in show notes..."

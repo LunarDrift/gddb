@@ -81,7 +81,6 @@ func getShowByID(id string) (internal.ShowResponse, error) {
 
 func searchShows(year, month, day, location, city, song, venue, notesQuery, setName, hasNotes string) (*showPage, error) {
 	// Convert back from full state name -> abbreviation for API request. "California" -> "CA"
-	stateAbbreviations := make(map[string]string, len(stateAbbreviationsToFullNames))
 	for abbr, name := range stateAbbreviationsToFullNames {
 		stateAbbreviations[name] = abbr
 	}
@@ -94,7 +93,8 @@ func searchShows(year, month, day, location, city, song, venue, notesQuery, setN
 		formatSearchParameter(song),
 		formatSearchParameter(venue),
 		formatSearchParameter(notesQuery),
-		setName, hasNotes))
+		formatSearchParameter(setName),
+		hasNotes))
 }
 
 func getShowsFromTodaysDate() (*showPage, error) {

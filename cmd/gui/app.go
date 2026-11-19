@@ -37,8 +37,8 @@ type showsTab struct {
 	venueSearch    *xwidget.CompletionEntry
 	citySearch     *xwidget.CompletionEntry
 	locationSearch *xwidget.CompletionEntry
-	setNameSelect  *widget.Select
-	hasNotesSelect *widget.Select
+	setNameSearch  *xwidget.CompletionEntry
+	hasNotesSearch *xwidget.CompletionEntry
 	notesSearch    *widget.Entry
 
 	// Results panel
@@ -140,16 +140,6 @@ func (s *showsTab) searchByID(id string) {
 }
 
 func (s *showsTab) searchShows() {
-	setNameIdx := s.setNameSelect.SelectedIndex()
-	var setName string
-	if setNameIdx < 0 {
-		setName = ""
-	} else {
-		setName = validSetNames[setNameIdx]
-	}
-
-	hasNotes := s.hasNotesSelect.Selected
-
 	async(s.app, func() (*showPage, error) {
 		return searchShows(
 			s.yearSelect.Text, monthToNumString(s.monthSelect.Text), s.daySelect.Text,
@@ -158,8 +148,8 @@ func (s *showsTab) searchShows() {
 			s.songSearch.Text,
 			s.venueSearch.Text,
 			s.notesSearch.Text,
-			setName,
-			hasNotes)
+			s.setNameSearch.Text,
+			s.hasNotesSearch.Text)
 	}, s.setResults)
 }
 
@@ -207,8 +197,8 @@ func (s *showsTab) currentFilters() *showFilters {
 		Location: strings.TrimSpace(s.locationSearch.Text),
 		City:     strings.TrimSpace(s.citySearch.Text),
 		Notes:    strings.TrimSpace(s.notesSearch.Text),
-		SetName:  s.setNameSelect.Selected,
-		HasNotes: s.hasNotesSelect.Selected,
+		SetName:  strings.TrimSpace(s.setNameSearch.Text),
+		HasNotes: strings.TrimSpace(s.hasNotesSearch.Text),
 	}
 }
 
