@@ -79,7 +79,7 @@ func getShowByID(id string) (internal.ShowResponse, error) {
 	return show, err
 }
 
-func searchShows(year, month, day, location, city, song, venue, notesQuery, setName, hasNotes string) (*showPage, error) {
+func searchShows(year, month, day, weekday, location, city, song, venue, notesQuery, setName, hasNotes string) (*showPage, error) {
 	// Convert back from full state name -> abbreviation for API request. "California" -> "CA"
 	stateNameToAbbrev := make(map[string]string, len(stateAbbrevToFullName))
 	for abbr, name := range stateAbbrevToFullName {
@@ -95,8 +95,8 @@ func searchShows(year, month, day, location, city, song, venue, notesQuery, setN
 	}
 
 	formatSearchParameter := func(s string) string { return strings.ReplaceAll(s, " ", "_") }
-	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s&location=%s&city=%s&song=%s&venue=%s&notes=%s&set_name=%s&has_notes=%s",
-		year, month, day,
+	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s&weekday=%s&location=%s&city=%s&song=%s&venue=%s&notes=%s&set_name=%s&has_notes=%s",
+		year, month, day, daysOfWeekAbbreviations[weekday],
 		loc,
 		formatSearchParameter(city),
 		formatSearchParameter(song),

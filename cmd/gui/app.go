@@ -39,6 +39,7 @@ type showsTab struct {
 	yearSelect     *xwidget.CompletionEntry
 	monthSelect    *xwidget.CompletionEntry
 	daySelect      *xwidget.CompletionEntry
+	weekdaySelect  *xwidget.CompletionEntry
 	songSearch     *xwidget.CompletionEntry
 	venueSearch    *xwidget.CompletionEntry
 	citySearch     *xwidget.CompletionEntry
@@ -149,6 +150,7 @@ func (s *showsTab) searchShows() {
 	async(s.app, func() (*showPage, error) {
 		return searchShows(
 			s.yearSelect.Text, monthToNumString(s.monthSelect.Text), s.daySelect.Text,
+			s.weekdaySelect.Text,
 			s.locationSearch.Text,
 			s.citySearch.Text,
 			s.songSearch.Text,
@@ -190,6 +192,7 @@ type showFilters struct {
 	SongDebuts    string
 	// Search filters
 	Year, Month, Day string
+	Weekday          string
 	Song, Venue      string
 	Location, City   string
 	Notes            string
@@ -203,6 +206,7 @@ func (s *showsTab) currentFilters() *showFilters {
 		Year:     strings.TrimSpace(s.yearSelect.Text),
 		Month:    strings.TrimSpace(s.monthSelect.Text),
 		Day:      strings.TrimSpace(s.daySelect.Text),
+		Weekday:  strings.TrimSpace(s.weekdaySelect.Text),
 		Song:     strings.TrimSpace(s.songSearch.Text),
 		Venue:    strings.TrimSpace(s.venueSearch.Text),
 		Location: strings.TrimSpace(s.locationSearch.Text),
@@ -235,6 +239,7 @@ func (f showFilters) Describe() string {
 	add("", f.Today)
 	add("", f.SongDebuts)
 	date := strings.Join(nonEmpty(f.Year, f.Month, f.Day), " ")
+	add("**Weekday:** ", f.Weekday)
 	add("", date)
 	add("**Song:** ", f.Song)
 	add("**Location:** ", f.Location)

@@ -212,6 +212,21 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		}
 		s.daySelect.ShowCompletion()
 	}
+	s.weekdaySelect = xwidget.NewCompletionEntry(daysOfWeek())
+	s.weekdaySelect.PlaceHolder = "Weekday"
+	s.weekdaySelect.OnSubmitted = showSearch
+	weekdayOptsBtn := widget.NewButton("⮟", func() { s.weekdaySelect.ShowCompletion() })
+	weekdayOptsBtn.Importance = widget.LowImportance
+	s.weekdaySelect.ActionItem = weekdayOptsBtn
+	s.weekdaySelect.OnSubmitted = func(input string) {
+		opts := filterOptions(daysOfWeek(), input)
+		if len(opts) == 0 {
+			s.weekdaySelect.HideCompletion()
+			return
+		}
+		s.weekdaySelect.ShowCompletion()
+	}
+
 	datePickers := container.NewGridWithColumns(3, s.yearSelect, s.monthSelect, s.daySelect)
 
 	// By song
@@ -327,6 +342,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	combinableSearchTerms := container.NewVBox(
 		widget.NewRichTextFromMarkdown("**Search by date**"),
 		datePickers,
+		s.weekdaySelect,
 		widget.NewSeparator(),
 		widget.NewRichTextFromMarkdown("**Search by song name**"),
 		s.songSearch,
