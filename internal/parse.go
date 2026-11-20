@@ -64,6 +64,7 @@ func SortSetPositions(rawEntries []ShowSortInput) (ShowResponse, error) {
 	return ShowResponse{
 		ShowID:   rawEntries[0].ShowID,
 		Date:     date.Format(time.DateOnly),
+		Weekday:  rawEntries[0].Weekday,
 		Venue:    venue,
 		City:     rawEntries[0].City,
 		Location: rawEntries[0].Location,
