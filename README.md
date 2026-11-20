@@ -88,6 +88,7 @@ These parameters can be combined together in a single request:
 - `year`
 - `month`
 - `day`
+- `weekday`
 - `location`
 - `city`
 - `venue`
