@@ -116,13 +116,6 @@ func ImportShow(db *sql.DB, show internal.Show, songCounter, showCounter *int64)
 					SetEntryID: int64(entryID),
 					SongName:   name,
 				})
-				// err = q.InsertEntrySong(context.Background(), database.InsertEntrySongParams{
-				// 	SetEntryID: int64(entryID),
-				// 	SongName:   name,
-				// })
-				// if err != nil {
-				// 	return fmt.Errorf("error creating entry song: %w", err)
-				// }
 			}
 			*songCounter++
 			currentProgress := *songCounter
