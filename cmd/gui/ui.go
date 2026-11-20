@@ -96,27 +96,6 @@ func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
 }
 
 func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
-	// Quick Actions
-	randShowBtn := widget.NewButton("Random Show", s.randomShow)
-	todayBtn := widget.NewButton("Today in GD History", func() {
-		s.todayBtnClicked = true
-		s.acousticShowsBtnClicked = false
-		s.songDebutsBtnClicked = false
-		s.showsFromTodaysDate()
-	})
-	acousticShowsBtn := widget.NewButton("Acoustic Shows", func() {
-		s.acousticShowsBtnClicked = true
-		s.todayBtnClicked = false
-		s.songDebutsBtnClicked = false
-		s.getAcousticShows()
-	})
-	songDebutsBtn := widget.NewButton("Song Debuts", func() {
-		s.songDebutsBtnClicked = true
-		s.todayBtnClicked = false
-		s.acousticShowsBtnClicked = false
-		s.showsWithSongDebuts()
-	})
-
 	// Don't want to send request to API if we're just clearing search terms
 	var suppressShowFetch bool
 	showSearch := func(_ string) {
@@ -126,18 +105,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.searchShows()
 	}
 
-	searchBtn := widget.NewButtonWithIcon("Search", theme.SearchIcon(), func() {
-		// can't use the above showSearch, not sure why...
-		// func() { showSearch } gives me variable showSearch is not used error
-		if suppressShowFetch {
-			return
-		}
-		s.songDebutsBtnClicked = false
-		s.acousticShowsBtnClicked = false
-		s.todayBtnClicked = false
-		s.searchShows()
-	})
-	clearBtn := widget.NewButtonWithIcon("Clear Search Terms", theme.DeleteIcon(), func() {
+	clearFn := func() {
 		suppressShowFetch = true
 		completionEntries := []*xwidget.CompletionEntry{
 			s.yearSelect, s.monthSelect, s.daySelect,
@@ -153,7 +121,44 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		s.results = &showPage{}
 		s.resultsList.Refresh()
 		suppressShowFetch = false
+	}
+
+	// Quick Actions
+	randShowBtn := widget.NewButton("Random Show", s.randomShow)
+	todayBtn := widget.NewButton("Today in GD History", func() {
+		s.todayBtnClicked = true
+		s.acousticShowsBtnClicked = false
+		s.songDebutsBtnClicked = false
+		clearFn()
+		s.showsFromTodaysDate()
 	})
+	acousticShowsBtn := widget.NewButton("Acoustic Shows", func() {
+		s.acousticShowsBtnClicked = true
+		s.todayBtnClicked = false
+		s.songDebutsBtnClicked = false
+		clearFn()
+		s.getAcousticShows()
+	})
+	songDebutsBtn := widget.NewButton("Song Debuts", func() {
+		s.songDebutsBtnClicked = true
+		s.todayBtnClicked = false
+		s.acousticShowsBtnClicked = false
+		clearFn()
+		s.showsWithSongDebuts()
+	})
+
+	searchBtn := widget.NewButtonWithIcon("Search", theme.SearchIcon(), func() {
+		// can't use the above showSearch, not sure why...
+		// func() { showSearch } gives me variable showSearch is not used error
+		if suppressShowFetch {
+			return
+		}
+		s.songDebutsBtnClicked = false
+		s.acousticShowsBtnClicked = false
+		s.todayBtnClicked = false
+		s.searchShows()
+	})
+	clearBtn := widget.NewButtonWithIcon("Clear Search Terms", theme.DeleteIcon(), clearFn)
 
 	// By ID
 	s.idEntry = widget.NewEntry()
