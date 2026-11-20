@@ -110,6 +110,7 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 | `/shows?venue=`                     | Search for shows by venue.                                                                                            |
 | `/shows?has_notes=true/false`       | Search for shows with/without show notes                                                                              |
 | `/shows?year=&month=&day=`          | List of shows filtered by date. E.g. all shows played on the 15th in 1978                                             |
+| `/shows?weekday=`                   | List of shows filtered by day of the week. Use 3 letter abbreviations: Mon, Tue, Wed, etc...                          |
 | `/shows?location=`                  | List of shows filtered by location<br>(states or country names. states should be the standard 2 letter abbreviations) |
 | `/shows?city=`                      | List of shows filtered by city                                                                                        |
 | `/shows?notes=`                     | List of shows filtered by show notes query                                                                            |
