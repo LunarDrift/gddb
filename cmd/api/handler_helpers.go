@@ -101,6 +101,7 @@ func (s *server) buildShowResponse(r *http.Request, parsedShowRows []internal.Sh
 		return internal.ShowWithNoSetlist{
 			ShowID:   row.ShowID,
 			Date:     row.Date.Format(time.DateOnly),
+			Weekday:  row.Weekday,
 			Venue:    row.Venue,
 			City:     row.City,
 			Location: row.Location,
@@ -179,6 +180,14 @@ func validateDateParts(year, month, day string) (dateFilters, error) {
 	}
 
 	return df, nil
+}
+
+func isValidDayOfWeek(day string) bool {
+	if day == "" {
+		return true
+	}
+	validDays := []string{"sun", "mon", "tue", "wed", "thu", "fri", "sat"}
+	return slices.Contains(validDays, day)
 }
 
 func isValidSetName(setName string) bool {

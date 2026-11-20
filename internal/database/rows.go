@@ -16,6 +16,7 @@ import (
 type ShowRow interface {
 	GetShowID() int32
 	GetShowDate() time.Time
+	GetShowWeekday() sql.NullString
 	GetVenue() string
 	GetCity() string
 	GetLocation() string
@@ -24,23 +25,25 @@ type ShowRow interface {
 	GetRawEntry() sql.NullString
 }
 
-func (r GetShowDetailsFromIDRow) GetShowID() int32            { return r.ShowID }
-func (r GetShowDetailsFromIDRow) GetShowDate() time.Time      { return r.ShowDate }
-func (r GetShowDetailsFromIDRow) GetVenue() string            { return r.Venue }
-func (r GetShowDetailsFromIDRow) GetCity() string             { return r.City }
-func (r GetShowDetailsFromIDRow) GetLocation() string         { return r.Location }
-func (r GetShowDetailsFromIDRow) GetNotes() sql.NullString    { return r.Notes }
-func (r GetShowDetailsFromIDRow) GetSetName() sql.NullString  { return r.SetName }
-func (r GetShowDetailsFromIDRow) GetRawEntry() sql.NullString { return r.RawEntry }
+func (r GetShowDetailsFromIDRow) GetShowID() int32               { return r.ShowID }
+func (r GetShowDetailsFromIDRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetShowDetailsFromIDRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetShowDetailsFromIDRow) GetVenue() string               { return r.Venue }
+func (r GetShowDetailsFromIDRow) GetCity() string                { return r.City }
+func (r GetShowDetailsFromIDRow) GetLocation() string            { return r.Location }
+func (r GetShowDetailsFromIDRow) GetNotes() sql.NullString       { return r.Notes }
+func (r GetShowDetailsFromIDRow) GetSetName() sql.NullString     { return r.SetName }
+func (r GetShowDetailsFromIDRow) GetRawEntry() sql.NullString    { return r.RawEntry }
 
-func (r GetShowDetailsFromDateRow) GetShowID() int32            { return r.ShowID }
-func (r GetShowDetailsFromDateRow) GetShowDate() time.Time      { return r.ShowDate }
-func (r GetShowDetailsFromDateRow) GetVenue() string            { return r.Venue }
-func (r GetShowDetailsFromDateRow) GetCity() string             { return r.City }
-func (r GetShowDetailsFromDateRow) GetLocation() string         { return r.Location }
-func (r GetShowDetailsFromDateRow) GetNotes() sql.NullString    { return r.Notes }
-func (r GetShowDetailsFromDateRow) GetSetName() sql.NullString  { return r.SetName }
-func (r GetShowDetailsFromDateRow) GetRawEntry() sql.NullString { return r.RawEntry }
+func (r GetShowDetailsFromDateRow) GetShowID() int32               { return r.ShowID }
+func (r GetShowDetailsFromDateRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetShowDetailsFromDateRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetShowDetailsFromDateRow) GetVenue() string               { return r.Venue }
+func (r GetShowDetailsFromDateRow) GetCity() string                { return r.City }
+func (r GetShowDetailsFromDateRow) GetLocation() string            { return r.Location }
+func (r GetShowDetailsFromDateRow) GetNotes() sql.NullString       { return r.Notes }
+func (r GetShowDetailsFromDateRow) GetSetName() sql.NullString     { return r.SetName }
+func (r GetShowDetailsFromDateRow) GetRawEntry() sql.NullString    { return r.RawEntry }
 
 //------------------------------------------------------------------------------------
 
@@ -63,50 +66,57 @@ func (r SongsPlayedLessThanRow) GetTimesPlayed() int64       { return r.TimesPla
 type ShowSummaryRow interface {
 	GetShowID() int32
 	GetShowDate() time.Time
+	GetShowWeekday() sql.NullString
 	GetVenue() string
 	GetCity() string
 	GetLocation() string
 	GetNotes() sql.NullString
 }
 
-func (r GetShowsBetweenDatesRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsBetweenDatesRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsBetweenDatesRow) GetVenue() string         { return r.Venue }
-func (r GetShowsBetweenDatesRow) GetCity() string          { return r.City }
-func (r GetShowsBetweenDatesRow) GetLocation() string      { return r.Location }
-func (r GetShowsBetweenDatesRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetShowsBetweenDatesRow) GetShowID() int32               { return r.ShowID }
+func (r GetShowsBetweenDatesRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetShowsBetweenDatesRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetShowsBetweenDatesRow) GetVenue() string               { return r.Venue }
+func (r GetShowsBetweenDatesRow) GetCity() string                { return r.City }
+func (r GetShowsBetweenDatesRow) GetLocation() string            { return r.Location }
+func (r GetShowsBetweenDatesRow) GetNotes() sql.NullString       { return r.Notes }
 
-func (r GetShowsFromTodaysDateRow) GetShowID() int32         { return r.ShowID }
-func (r GetShowsFromTodaysDateRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetShowsFromTodaysDateRow) GetVenue() string         { return r.Venue }
-func (r GetShowsFromTodaysDateRow) GetCity() string          { return r.City }
-func (r GetShowsFromTodaysDateRow) GetLocation() string      { return r.Location }
-func (r GetShowsFromTodaysDateRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetShowsFromTodaysDateRow) GetShowID() int32               { return r.ShowID }
+func (r GetShowsFromTodaysDateRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetShowsFromTodaysDateRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetShowsFromTodaysDateRow) GetVenue() string               { return r.Venue }
+func (r GetShowsFromTodaysDateRow) GetCity() string                { return r.City }
+func (r GetShowsFromTodaysDateRow) GetLocation() string            { return r.Location }
+func (r GetShowsFromTodaysDateRow) GetNotes() sql.NullString       { return r.Notes }
 
-func (r GetAllShowsRow) GetShowID() int32         { return r.ShowID }
-func (r GetAllShowsRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetAllShowsRow) GetVenue() string         { return r.Venue }
-func (r GetAllShowsRow) GetCity() string          { return r.City }
-func (r GetAllShowsRow) GetLocation() string      { return r.Location }
-func (r GetAllShowsRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetAllShowsRow) GetShowID() int32               { return r.ShowID }
+func (r GetAllShowsRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetAllShowsRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetAllShowsRow) GetVenue() string               { return r.Venue }
+func (r GetAllShowsRow) GetCity() string                { return r.City }
+func (r GetAllShowsRow) GetLocation() string            { return r.Location }
+func (r GetAllShowsRow) GetNotes() sql.NullString       { return r.Notes }
 
-func (r GetAcousticShowsRow) GetShowID() int32         { return r.ShowID }
-func (r GetAcousticShowsRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetAcousticShowsRow) GetVenue() string         { return r.Venue }
-func (r GetAcousticShowsRow) GetCity() string          { return r.City }
-func (r GetAcousticShowsRow) GetLocation() string      { return r.Location }
-func (r GetAcousticShowsRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetAcousticShowsRow) GetShowID() int32               { return r.ShowID }
+func (r GetAcousticShowsRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetAcousticShowsRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetAcousticShowsRow) GetVenue() string               { return r.Venue }
+func (r GetAcousticShowsRow) GetCity() string                { return r.City }
+func (r GetAcousticShowsRow) GetLocation() string            { return r.Location }
+func (r GetAcousticShowsRow) GetNotes() sql.NullString       { return r.Notes }
 
-func (r GetSongDebutsRow) GetShowID() int32         { return r.ShowID }
-func (r GetSongDebutsRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r GetSongDebutsRow) GetVenue() string         { return r.Venue }
-func (r GetSongDebutsRow) GetCity() string          { return r.City }
-func (r GetSongDebutsRow) GetLocation() string      { return r.Location }
-func (r GetSongDebutsRow) GetNotes() sql.NullString { return r.Notes }
+func (r GetSongDebutsRow) GetShowID() int32               { return r.ShowID }
+func (r GetSongDebutsRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r GetSongDebutsRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r GetSongDebutsRow) GetVenue() string               { return r.Venue }
+func (r GetSongDebutsRow) GetCity() string                { return r.City }
+func (r GetSongDebutsRow) GetLocation() string            { return r.Location }
+func (r GetSongDebutsRow) GetNotes() sql.NullString       { return r.Notes }
 
-func (r SearchShowsWithFiltersRow) GetShowID() int32         { return r.ShowID }
-func (r SearchShowsWithFiltersRow) GetShowDate() time.Time   { return r.ShowDate }
-func (r SearchShowsWithFiltersRow) GetVenue() string         { return r.Venue }
-func (r SearchShowsWithFiltersRow) GetCity() string          { return r.City }
-func (r SearchShowsWithFiltersRow) GetLocation() string      { return r.Location }
-func (r SearchShowsWithFiltersRow) GetNotes() sql.NullString { return r.Notes }
+func (r SearchShowsWithFiltersRow) GetShowID() int32               { return r.ShowID }
+func (r SearchShowsWithFiltersRow) GetShowDate() time.Time         { return r.ShowDate }
+func (r SearchShowsWithFiltersRow) GetShowWeekday() sql.NullString { return r.Weekday }
+func (r SearchShowsWithFiltersRow) GetVenue() string               { return r.Venue }
+func (r SearchShowsWithFiltersRow) GetCity() string                { return r.City }
+func (r SearchShowsWithFiltersRow) GetLocation() string            { return r.Location }
+func (r SearchShowsWithFiltersRow) GetNotes() sql.NullString       { return r.Notes }

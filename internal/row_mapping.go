@@ -12,6 +12,7 @@ func RowToShowSortInput(r database.ShowRow) ShowSortInput {
 	return ShowSortInput{
 		ShowID:   r.GetShowID(),
 		Date:     r.GetShowDate(),
+		Weekday:  r.GetShowWeekday().String,
 		Venue:    r.GetVenue(),
 		City:     r.GetCity(),
 		Location: r.GetLocation(),
@@ -32,6 +33,7 @@ func RowToShowMeta(r database.ShowSummaryRow) ShowMeta {
 	return ShowMeta{
 		ShowID:   r.GetShowID(),
 		Date:     r.GetShowDate().Format(time.DateOnly),
+		Weekday:  r.GetShowWeekday().String,
 		Venue:    r.GetVenue(),
 		City:     r.GetCity(),
 		Location: r.GetLocation(),

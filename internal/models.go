@@ -38,6 +38,7 @@ type Dataset map[string][]Show
 type ShowMeta struct {
 	ShowID   int32  `json:"show_id"`
 	Date     string `json:"date"`
+	Weekday  string `json:"weekday"`
 	Venue    string `json:"venue"`
 	City     string `json:"city"`
 	Location string `json:"location"`
@@ -74,6 +75,7 @@ type ShowWithNoSetlist struct {
 type ShowSortInput struct {
 	ShowID   int32     `json:"show_id"`
 	Date     time.Time `json:"date"`
+	Weekday  string    `json:"weekday"`
 	Venue    string    `json:"venue"`
 	City     string    `json:"city"`
 	Location string    `json:"location"`
@@ -141,6 +143,7 @@ type ShowSearchFilters struct {
 	Year     string
 	Month    string
 	Day      string
+	Weekday  string
 	Location string
 	City     string
 	Song     string

@@ -23,6 +23,7 @@ ON CONFLICT (show_id) DO NOTHING;
 SELECT 
   sh.show_id,
 	sh.show_date,
+  sh."day" AS weekday,
 	sh.venue,
   sh.city,
   sh.state AS location,
@@ -48,6 +49,7 @@ ORDER BY
 SELECT
   sh.show_id,
 	sh.show_date,
+  sh."day" AS weekday,
 	sh.venue,
   sh.city,
   sh.state AS location,
@@ -73,6 +75,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -84,7 +87,7 @@ WITH matched AS (
     sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
@@ -93,6 +96,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -104,7 +108,7 @@ WITH matched AS (
   ORDER BY sh.show_date
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
@@ -116,6 +120,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -128,7 +133,7 @@ WITH matched AS (
     sh.show_date, sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
@@ -147,6 +152,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -157,7 +163,7 @@ WITH matched AS (
   ORDER BY sh.show_date, sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
@@ -196,6 +202,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -208,7 +215,7 @@ WITH matched AS (
   ORDER BY sh.show_date, sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT @page_limit OFFSET @page_offset;
 
@@ -217,6 +224,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -227,6 +235,7 @@ WITH matched AS (
   WHERE (sqlc.narg('year')::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = sqlc.narg('year'))
     AND (sqlc.narg('month')::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = sqlc.narg('month'))
     AND (sqlc.narg('day')::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = sqlc.narg('day'))
+    AND (sqlc.narg('weekday')::text IS NULL OR LOWER(sh."day") = LOWER(sqlc.narg('weekday')))
     AND (sqlc.narg('location')::text IS NULL OR LOWER(sh.state) = LOWER(sqlc.narg('location')))
     AND (sqlc.narg('city')::text IS NULL OR sh.city ILIKE sqlc.narg('city'))
     AND (sqlc.narg('song')::text IS NULL OR se.song_name ILIKE sqlc.narg('song'))
@@ -242,6 +251,6 @@ WITH matched AS (
     END
   ORDER BY sh.show_date, sh.show_id
 )
-SELECT show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+SELECT show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT @page_limit OFFSET @page_offset;

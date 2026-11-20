@@ -27,6 +27,7 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 	case query.Has("year") ||
 		query.Has("month") ||
 		query.Has("day") ||
+		query.Has("weekday") ||
 		query.Has("location") ||
 		query.Has("city") ||
 		query.Has("song") ||
@@ -395,6 +396,7 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		Year:     query.Get("year"),
 		Month:    query.Get("month"),
 		Day:      query.Get("day"),
+		Weekday:  query.Get("weekday"),
 		Location: query.Get("location"),
 		City:     query.Get("city"),
 		Song:     query.Get("song"),
@@ -407,6 +409,12 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 	dateParts, err := validateDateParts(filters.Year, filters.Month, filters.Day)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
+		return
+	}
+
+	weekday := strings.TrimSpace(strings.ToLower(filters.Weekday))
+	if !isValidDayOfWeek(weekday) {
+		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
 
@@ -440,9 +448,12 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 	}
 
 	showRows, err := s.queries.SearchShowsWithFilters(r.Context(), database.SearchShowsWithFiltersParams{
+		PageOffset: int32(offset),
+		PageLimit:  int32(limit),
 		Year:       sql.NullInt32{Int32: dateParts.year, Valid: filters.Year != ""},
 		Month:      sql.NullInt32{Int32: dateParts.month, Valid: filters.Month != ""},
 		Day:        sql.NullInt32{Int32: dateParts.day, Valid: filters.Day != ""},
+		Weekday:    sql.NullString{String: filters.Weekday, Valid: filters.Weekday != ""},
 		Location:   sql.NullString{String: location, Valid: filters.Location != ""},
 		City:       sql.NullString{String: fuzzyPattern(filters.City), Valid: filters.City != ""},
 		Song:       sql.NullString{String: fuzzyPattern(filters.Song), Valid: filters.Song != ""},
@@ -450,8 +461,6 @@ func (s *server) handleSearchShows(w http.ResponseWriter, r *http.Request) {
 		Notes:      sql.NullString{String: fuzzyPattern(filters.Notes), Valid: filters.Notes != ""},
 		SetName:    sql.NullString{String: setName, Valid: filters.SetName != ""},
 		HasNotes:   hasNotes,
-		PageOffset: int32(offset),
-		PageLimit:  int32(limit),
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, errInternal, err)

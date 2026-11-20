@@ -61,6 +61,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -71,7 +72,7 @@ WITH matched AS (
   ORDER BY sh.show_date, sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT $2 OFFSET $1
 `
@@ -84,6 +85,7 @@ type GetAcousticShowsParams struct {
 type GetAcousticShowsRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -103,6 +105,7 @@ func (q *Queries) GetAcousticShows(ctx context.Context, arg GetAcousticShowsPara
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -214,6 +217,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -225,7 +229,7 @@ WITH matched AS (
     sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT $2 OFFSET $1
 `
@@ -238,6 +242,7 @@ type GetAllShowsParams struct {
 type GetAllShowsRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -257,6 +262,7 @@ func (q *Queries) GetAllShows(ctx context.Context, arg GetAllShowsParams) ([]Get
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -307,6 +313,7 @@ const getShowDetailsFromDate = `-- name: GetShowDetailsFromDate :many
 SELECT 
   sh.show_id,
 	sh.show_date,
+  sh."day" AS weekday,
 	sh.venue,
   sh.city,
   sh.state AS location,
@@ -332,6 +339,7 @@ ORDER BY
 type GetShowDetailsFromDateRow struct {
 	ShowID       int32
 	ShowDate     time.Time
+	Weekday      sql.NullString
 	Venue        string
 	City         string
 	Location     string
@@ -354,6 +362,7 @@ func (q *Queries) GetShowDetailsFromDate(ctx context.Context, showDate time.Time
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -380,6 +389,7 @@ const getShowDetailsFromID = `-- name: GetShowDetailsFromID :many
 SELECT
   sh.show_id,
 	sh.show_date,
+  sh."day" AS weekday,
 	sh.venue,
   sh.city,
   sh.state AS location,
@@ -404,6 +414,7 @@ ORDER BY
 type GetShowDetailsFromIDRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -424,6 +435,7 @@ func (q *Queries) GetShowDetailsFromID(ctx context.Context, showID int32) ([]Get
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -449,6 +461,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -461,7 +474,7 @@ WITH matched AS (
     sh.show_date, sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT $2 OFFSET $1
 `
@@ -476,6 +489,7 @@ type GetShowsBetweenDatesParams struct {
 type GetShowsBetweenDatesRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -500,6 +514,7 @@ func (q *Queries) GetShowsBetweenDates(ctx context.Context, arg GetShowsBetweenD
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -524,6 +539,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -535,7 +551,7 @@ WITH matched AS (
   ORDER BY sh.show_date
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT $2 OFFSET $1
 `
@@ -548,6 +564,7 @@ type GetShowsFromTodaysDateParams struct {
 type GetShowsFromTodaysDateRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -567,6 +584,7 @@ func (q *Queries) GetShowsFromTodaysDate(ctx context.Context, arg GetShowsFromTo
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -591,6 +609,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -603,7 +622,7 @@ WITH matched AS (
   ORDER BY sh.show_date, sh.show_id
 )
 SELECT
-  show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+  show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT $2 OFFSET $1
 `
@@ -616,6 +635,7 @@ type GetSongDebutsParams struct {
 type GetSongDebutsRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -635,6 +655,7 @@ func (q *Queries) GetSongDebuts(ctx context.Context, arg GetSongDebutsParams) ([
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
@@ -758,6 +779,7 @@ WITH matched AS (
   SELECT DISTINCT ON(sh.show_date)
     sh.show_id,
     sh.show_date,
+    sh."day" AS weekday,
     sh.venue,
     sh.city,
     sh.state AS location,
@@ -768,22 +790,23 @@ WITH matched AS (
   WHERE ($3::int IS NULL OR EXTRACT(YEAR FROM sh.show_date) = $3)
     AND ($4::int IS NULL OR EXTRACT(MONTH FROM sh.show_date) = $4)
     AND ($5::int IS NULL OR EXTRACT(DAY FROM sh.show_date) = $5)
-    AND ($6::text IS NULL OR LOWER(sh.state) = LOWER($6))
-    AND ($7::text IS NULL OR sh.city ILIKE $7)
-    AND ($8::text IS NULL OR se.song_name ILIKE $8)
-    AND ($9::text IS NULL OR sh.venue ILIKE $9)
-    AND ($10::text IS NULL OR sh.notes ILIKE $10)
-    AND ($11::text IS NULL OR LOWER(st.set_name) = LOWER($11))
+    AND ($6::text IS NULL OR LOWER(sh."day") = LOWER($6))
+    AND ($7::text IS NULL OR LOWER(sh.state) = LOWER($7))
+    AND ($8::text IS NULL OR sh.city ILIKE $8)
+    AND ($9::text IS NULL OR se.song_name ILIKE $9)
+    AND ($10::text IS NULL OR sh.venue ILIKE $10)
+    AND ($11::text IS NULL OR sh.notes ILIKE $11)
+    AND ($12::text IS NULL OR LOWER(st.set_name) = LOWER($12))
     AND CASE
-      WHEN $12::boolean IS NULL THEN TRUE
-      WHEN $12::boolean = TRUE
+      WHEN $13::boolean IS NULL THEN TRUE
+      WHEN $13::boolean = TRUE
         THEN sh.notes IS NOT NULL AND sh.notes != ''
-      WHEN $12::boolean = FALSE
+      WHEN $13::boolean = FALSE
         THEN sh.notes IS NULL OR sh.notes = ''
     END
   ORDER BY sh.show_date, sh.show_id
 )
-SELECT show_id, show_date, venue, city, location, notes, COUNT(*) OVER ()
+SELECT show_id, show_date, weekday, venue, city, location, notes, COUNT(*) OVER ()
 FROM matched
 LIMIT $2 OFFSET $1
 `
@@ -794,6 +817,7 @@ type SearchShowsWithFiltersParams struct {
 	Year       sql.NullInt32
 	Month      sql.NullInt32
 	Day        sql.NullInt32
+	Weekday    sql.NullString
 	Location   sql.NullString
 	City       sql.NullString
 	Song       sql.NullString
@@ -806,6 +830,7 @@ type SearchShowsWithFiltersParams struct {
 type SearchShowsWithFiltersRow struct {
 	ShowID   int32
 	ShowDate time.Time
+	Weekday  sql.NullString
 	Venue    string
 	City     string
 	Location string
@@ -820,6 +845,7 @@ func (q *Queries) SearchShowsWithFilters(ctx context.Context, arg SearchShowsWit
 		arg.Year,
 		arg.Month,
 		arg.Day,
+		arg.Weekday,
 		arg.Location,
 		arg.City,
 		arg.Song,
@@ -838,6 +864,7 @@ func (q *Queries) SearchShowsWithFilters(ctx context.Context, arg SearchShowsWit
 		if err := rows.Scan(
 			&i.ShowID,
 			&i.ShowDate,
+			&i.Weekday,
 			&i.Venue,
 			&i.City,
 			&i.Location,
