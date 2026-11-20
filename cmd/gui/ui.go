@@ -121,22 +121,16 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	})
 	clearBtn := widget.NewButtonWithIcon("Clear Search Terms", theme.DeleteIcon(), func() {
 		suppressShowFetch = true
+		completionEntries := []*xwidget.CompletionEntry{
+			s.yearSelect, s.monthSelect, s.daySelect,
+			s.songSearch, s.venueSearch, s.citySearch, s.locationSearch,
+			s.setNameSearch, s.hasNotesSearch,
+		}
+		for _, entry := range completionEntries {
+			entry.SetText("")
+			entry.HideCompletion()
+		}
 		s.resultsListHeader.ParseMarkdown("")
-		s.idEntry.SetText("")
-		s.yearSelect.SetText("")
-		s.monthSelect.SetText("")
-		s.daySelect.SetText("")
-		s.songSearch.SetText("")
-		s.songSearch.HideCompletion()
-		s.venueSearch.SetText("")
-		s.venueSearch.HideCompletion()
-		s.citySearch.SetText("")
-		s.citySearch.HideCompletion()
-		s.locationSearch.SetText("")
-		s.locationSearch.HideCompletion()
-		s.notesSearch.SetText("")
-		s.setNameSearch.SetText("")
-		s.hasNotesSearch.SetText("")
 		s.results = &showPage{}
 		s.resultsList.Refresh()
 		suppressShowFetch = false
