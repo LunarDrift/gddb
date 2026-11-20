@@ -27,6 +27,12 @@ type App struct {
 
 type showsTab struct {
 	app *App
+
+	// Quick Actions
+	acousticShowsBtnClicked bool
+	todayBtnClicked         bool
+	songDebutsBtnClicked    bool
+
 	// Search panel
 	activeFilters  *showFilters
 	idEntry        *widget.Entry
@@ -178,6 +184,11 @@ func (s *showsTab) showsWithSongDebuts() {
 // keep track of active filters to use in the resultsListHeader
 // display what produced the results
 type showFilters struct {
+	// Quick Actions
+	AcousticShows string
+	Today         string
+	SongDebuts    string
+	// Search filters
 	Year, Month, Day string
 	Song, Venue      string
 	Location, City   string
@@ -188,7 +199,7 @@ type showFilters struct {
 
 // read widgets once, when Search is clicked/Enter pressed
 func (s *showsTab) currentFilters() *showFilters {
-	return &showFilters{
+	filters := &showFilters{
 		Year:     strings.TrimSpace(s.yearSelect.Text),
 		Month:    strings.TrimSpace(s.monthSelect.Text),
 		Day:      strings.TrimSpace(s.daySelect.Text),
@@ -200,6 +211,16 @@ func (s *showsTab) currentFilters() *showFilters {
 		SetName:  strings.TrimSpace(s.setNameSearch.Text),
 		HasNotes: strings.TrimSpace(s.hasNotesSearch.Text),
 	}
+	if s.acousticShowsBtnClicked {
+		filters.AcousticShows = "Acoustic Shows"
+	}
+	if s.todayBtnClicked {
+		filters.Today = "Today in GD History"
+	}
+	if s.songDebutsBtnClicked {
+		filters.SongDebuts = "Song Debuts"
+	}
+	return filters
 }
 
 // describe skips empty fields
@@ -210,16 +231,19 @@ func (f showFilters) Describe() string {
 			parts = append(parts, label+v)
 		}
 	}
+	add("", f.AcousticShows)
+	add("", f.Today)
+	add("", f.SongDebuts)
 	date := strings.Join(nonEmpty(f.Year, f.Month, f.Day), " ")
 	add("", date)
-	add("song: ", f.Song)
-	add("location: ", f.Location)
-	add("city: ", f.City)
-	add("venue: ", f.Venue)
-	add("notes: ", f.Notes)
-	add("set: ", f.SetName)
-	add("has notes: ", f.HasNotes)
-	return strings.Join(parts, " · ")
+	add("**Song:** ", f.Song)
+	add("**Location:** ", f.Location)
+	add("**City:** ", f.City)
+	add("**Venue:** ", f.Venue)
+	add("**Notes:** ", f.Notes)
+	add("**Set:** ", f.SetName)
+	add("**Has Notes:** ", f.HasNotes)
+	return strings.Join(parts, " **·** ")
 }
 
 func nonEmpty(year, month, day string) []string {

@@ -98,9 +98,24 @@ func (v *venuesTab) buildVenuesTab() fyne.CanvasObject {
 func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 	// Quick Actions
 	randShowBtn := widget.NewButton("Random Show", s.randomShow)
-	todayBtn := widget.NewButton("Today in GD History", s.showsFromTodaysDate)
-	acousticShowsBtn := widget.NewButton("Acoustic Shows", s.getAcousticShows)
-	songDebutsBtn := widget.NewButton("Song Debuts", s.showsWithSongDebuts)
+	todayBtn := widget.NewButton("Today in GD History", func() {
+		s.todayBtnClicked = true
+		s.acousticShowsBtnClicked = false
+		s.songDebutsBtnClicked = false
+		s.showsFromTodaysDate()
+	})
+	acousticShowsBtn := widget.NewButton("Acoustic Shows", func() {
+		s.acousticShowsBtnClicked = true
+		s.todayBtnClicked = false
+		s.songDebutsBtnClicked = false
+		s.getAcousticShows()
+	})
+	songDebutsBtn := widget.NewButton("Song Debuts", func() {
+		s.songDebutsBtnClicked = true
+		s.todayBtnClicked = false
+		s.acousticShowsBtnClicked = false
+		s.showsWithSongDebuts()
+	})
 
 	// Don't want to send request to API if we're just clearing search terms
 	var suppressShowFetch bool
@@ -117,6 +132,9 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		if suppressShowFetch {
 			return
 		}
+		s.songDebutsBtnClicked = false
+		s.acousticShowsBtnClicked = false
+		s.todayBtnClicked = false
 		s.searchShows()
 	})
 	clearBtn := widget.NewButtonWithIcon("Clear Search Terms", theme.DeleteIcon(), func() {
@@ -130,6 +148,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 			entry.SetText("")
 			entry.HideCompletion()
 		}
+		s.notesSearch.SetText("")
 		s.resultsListHeader.ParseMarkdown("")
 		s.results = &showPage{}
 		s.resultsList.Refresh()
@@ -242,7 +261,7 @@ func (s *showsTab) buildShowsSearchPanel() fyne.CanvasObject {
 		fullNames := []string{}
 		for _, opt := range opts {
 			if len(opt) == 2 {
-				fullNames = append(fullNames, stateAbbreviationsToFullNames[opt])
+				fullNames = append(fullNames, stateAbbrevToFullName[opt])
 			} else {
 				fullNames = append(fullNames, opt)
 			}

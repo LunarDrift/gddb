@@ -110,7 +110,7 @@ func monthToNumString(name string) string {
 	}
 }
 
-var stateAbbreviationsToFullNames = map[string]string{
+var stateAbbrevToFullName = map[string]string{
 	"AL": "Alabama",
 	"AK": "Alaska",
 	"AZ": "Arizona",
