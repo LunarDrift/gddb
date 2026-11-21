@@ -173,29 +173,29 @@ func TestHandleGetRandomShow_NoShowsAvailable(t *testing.T) {
 
 func TestHandleSearchShows(t *testing.T) {
 	date, _ := time.Parse(time.DateOnly, "1970-03-10")
-	show := []database.SearchShowsWithFiltersRow{{ShowID: 1, ShowDate: date, Venue: "Venue", City: "New York", Location: "NY", Notes: sql.NullString{String: "Mime Troupe Benefit", Valid: true}}}
+	show := []database.SearchShowsWithFiltersRow{{ShowID: 1, ShowDate: date, Weekday: sql.NullString{String: "fri", Valid: true}, Venue: "Venue", City: "New York", Location: "NY", Notes: sql.NullString{String: "Mime Troupe Benefit", Valid: true}}}
 	fake := &fakeQuerier{searchShowsFiltersRows: show}
 	tests := []struct {
-		name       string
-		url        string
-		wantStatus int
-		fake       *fakeQuerier
+		name string
+		url  string
+		fake *fakeQuerier
 	}{
-		{"year only", "/shows?year=1970", http.StatusOK, fake},
-		{"month only", "/shows?month=10", http.StatusOK, fake},
-		{"day only", "/shows?day=10", http.StatusOK, fake},
-		{"year and month", "/shows?year=1970&month=3", http.StatusOK, fake},
-		{"month and day", "/shows?month=3&day=10", http.StatusOK, fake},
-		{"year and day", "/shows?year=1970&day=10", http.StatusOK, fake},
-		{"song search", "/shows?song=althea", http.StatusOK, fake},
-		{"city search", "/shows?city=york", http.StatusOK, fake},
-		{"notes search", "/shows?notes=benefit", http.StatusOK, fake},
-		{"year and city", "/shows?year=1970&city=york", http.StatusOK, fake},
-		{"song and city", "/shows?city=york&song=althea", http.StatusOK, fake},
-		{"set name", "/shows?set_name=acoustic", http.StatusOK, fake},
-		{"has_notes=true", "/shows?has_notes=true", http.StatusOK, fake},
-		{"has_notes=false", "/shows?has_notes=false", http.StatusOK, fake},
-		{"no parameters given", "/shows?year=&month=&day=&location=&city=&song=&venue=&notes=&set_name=&has_notes=", http.StatusOK, fake},
+		{name: "year only", url: "/shows?year=1970", fake: fake},
+		{name: "month only", url: "/shows?month=10", fake: fake},
+		{name: "day only", url: "/shows?day=10", fake: fake},
+		{name: "weekday only", url: "/shows?weekday=fri", fake: fake},
+		{name: "year and month", url: "/shows?year=1970&month=3", fake: fake},
+		{name: "month and day", url: "/shows?month=3&day=10", fake: fake},
+		{name: "year and day", url: "/shows?year=1970&day=10", fake: fake},
+		{name: "song search", url: "/shows?song=althea", fake: fake},
+		{name: "city search", url: "/shows?city=york", fake: fake},
+		{name: "notes search", url: "/shows?notes=benefit", fake: fake},
+		{name: "year and city", url: "/shows?year=1970&city=york", fake: fake},
+		{name: "song and city", url: "/shows?city=york&song=althea", fake: fake},
+		{name: "set name", url: "/shows?set_name=acoustic", fake: fake},
+		{name: "has_notes=true", url: "/shows?has_notes=true", fake: fake},
+		{name: "has_notes=false", url: "/shows?has_notes=false", fake: fake},
+		{name: "no parameters given", url: "/shows?year=&month=&day=&weekday=&location=&city=&song=&venue=&notes=&set_name=&has_notes=", fake: fake},
 	}
 
 	for _, tt := range tests {
@@ -205,8 +205,8 @@ func TestHandleSearchShows(t *testing.T) {
 			w := httptest.NewRecorder()
 			s.handleSearchShows(w, req)
 			res := w.Result()
-			if res.StatusCode != tt.wantStatus {
-				t.Fatalf("status code = %d; want %d", res.StatusCode, tt.wantStatus)
+			if res.StatusCode != http.StatusOK {
+				t.Fatalf("status code = %d; want %d", res.StatusCode, http.StatusOK)
 			}
 
 			got := internal.Paginated[internal.ShowMeta]{}
@@ -221,6 +221,29 @@ func TestHandleSearchShows(t *testing.T) {
 				t.Errorf("got.ShowID = %d; want %d", got.Results[0].ShowID, show[0].ShowID)
 			}
 		})
+	}
+}
+
+func TestHandleSearchShows_Errors(t *testing.T) {
+	tests := []struct {
+		name       string
+		url        string
+		wantStatus int
+		fake       *fakeQuerier
+	}{
+		{name: "no shows found / too specific search", url: "/shows?year=1980&month=4&weekday=tue&city=chicago&song=dark+star", wantStatus: http.StatusNotFound, fake: &fakeQuerier{}},
+		{name: "invalid month parameter", url: "/shows?month=april", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+	}
+
+	for _, tt := range tests {
+		s := &server{queries: tt.fake}
+		req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+		w := httptest.NewRecorder()
+		s.handleSearchShows(w, req)
+		res := w.Result()
+		if res.StatusCode != tt.wantStatus {
+			t.Errorf("status code = %d; want %d", res.StatusCode, tt.wantStatus)
+		}
 	}
 }
 
