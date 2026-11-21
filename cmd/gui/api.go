@@ -72,7 +72,7 @@ func fetchPage[T any](u string) (*T, error) {
 // ----- Shows -----
 
 func getShowByID(id string) (internal.ShowResponse, error) {
-	show, err := getJSON[internal.ShowResponse]("/shows?id=" + url.QueryEscape(id))
+	show, err := getJSON[internal.ShowResponse]("/shows/" + url.PathEscape(id))
 	if errors.Is(err, errNotFound) {
 		return show, fmt.Errorf("no show with ID %s", id)
 	}
