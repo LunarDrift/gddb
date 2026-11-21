@@ -31,7 +31,6 @@ COPY --from=build /app/bin/api ./api
 COPY --from=build /app/bin/importer ./importer
 COPY --from=build /app/bin/goose ./goose
 COPY --from=build /app/static ./static
-COPY scripts/migrate-and-import.sh ./migrate-and-import.sh
 COPY data ./data
 COPY sql/schema ./sql/schema
 
@@ -41,5 +40,3 @@ COPY sql/schema ./sql/schema
 RUN touch .env
 
 EXPOSE 8080
-
-CMD ["./migrate-and-import.sh"]
