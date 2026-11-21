@@ -71,7 +71,7 @@ Any changes to the Go source code or Dockerfile will require a rebuild `docker c
 After spinning up the database + API server in Docker, `go run ./cmd/gui` will
 launch the GUI client with various show search methods, a table of all song stats,
 and a table of all venue stats. The initial launch may take a few moments for
-Fyne to build/compile.
+Fyne to build/compile. Pre-built executables for Windows/Linux are also [available](https://github.com/LunarDrift/gddb/releases).
 
 ![Example Screenshot](./examples/gddb1.png)
 ![Example Screenshot](./examples/gddb2.png)
