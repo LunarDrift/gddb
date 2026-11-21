@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -97,8 +96,6 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
-	log.Printf("r.URL.Path = %v", r.URL.Path)
-	log.Printf("r.PathValue('showID') = %v", r.PathValue("showID"))
 	showID := r.PathValue("showID")
 	if showID == "" {
 		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
