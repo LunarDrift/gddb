@@ -233,6 +233,9 @@ func TestHandleSearchShows_Errors(t *testing.T) {
 	}{
 		{name: "no shows found / too specific search", url: "/shows?year=1980&month=4&weekday=tue&city=chicago&song=dark+star", wantStatus: http.StatusNotFound, fake: &fakeQuerier{}},
 		{name: "invalid month parameter", url: "/shows?month=april", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "year out of range", url: "/shows?year=2000", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "invalid weekday", url: "/shows?weekday=monday", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "server error", url: "/shows?year=1982&city=new+york", wantStatus: http.StatusInternalServerError, fake: &fakeQuerier{searchShowsFiltersErr: errors.New("db exploded")}},
 	}
 
 	for _, tt := range tests {
