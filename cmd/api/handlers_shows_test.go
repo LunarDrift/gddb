@@ -232,9 +232,12 @@ func TestHandleSearchShows_Errors(t *testing.T) {
 		fake       *fakeQuerier
 	}{
 		{name: "no shows found / too specific search", url: "/shows?year=1980&month=4&weekday=tue&city=chicago&song=dark+star", wantStatus: http.StatusNotFound, fake: &fakeQuerier{}},
-		{name: "invalid month parameter", url: "/shows?month=april", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
 		{name: "year out of range", url: "/shows?year=2000", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "invalid month parameter", url: "/shows?month=april", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "invalid date: feb 31", url: "/shows?year=1980&month=2&day=31", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
 		{name: "invalid weekday", url: "/shows?weekday=monday", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "invalid set name", url: "/shows?set_name=set+1", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
+		{name: "invalid has_notes", url: "/shows?has_notes=yes", wantStatus: http.StatusBadRequest, fake: &fakeQuerier{}},
 		{name: "server error", url: "/shows?year=1982&city=new+york", wantStatus: http.StatusInternalServerError, fake: &fakeQuerier{searchShowsFiltersErr: errors.New("db exploded")}},
 	}
 
@@ -245,7 +248,7 @@ func TestHandleSearchShows_Errors(t *testing.T) {
 		s.handleSearchShows(w, req)
 		res := w.Result()
 		if res.StatusCode != tt.wantStatus {
-			t.Errorf("status code = %d; want %d", res.StatusCode, tt.wantStatus)
+			t.Errorf("%s: status code = %d; want %d", tt.name, res.StatusCode, tt.wantStatus)
 		}
 	}
 }
