@@ -235,12 +235,15 @@ func (f showFilters) Describe() string {
 			parts = append(parts, label+v)
 		}
 	}
+
+	// Quick action buttons
 	add("", f.AcousticShows)
 	add("", f.Today)
 	add("", f.SongDebuts)
+
 	date := strings.Join(nonEmpty(f.Year, f.Month, f.Day), " ")
-	add("**Weekday:** ", f.Weekday)
 	add("", date)
+	add("**Weekday:** ", f.Weekday)
 	add("**Song:** ", f.Song)
 	add("**Location:** ", f.Location)
 	add("**City:** ", f.City)
@@ -304,7 +307,7 @@ func (s *showsTab) loadPage(u string) {
 	s.prevBtn.Disable()
 	s.nextBtn.Disable()
 	go func() {
-		p, err := fetchPage[showPage](absoluteURL(u))
+		p, err := fetchPage[showPage](u)
 		fyne.Do(func() {
 			if err != nil {
 				s.app.showError(err)
