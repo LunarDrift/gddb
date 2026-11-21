@@ -29,7 +29,11 @@ func formatShows(data []internal.ShowResponse) showText {
 
 	var header, setlist, songNotes, showNotes strings.Builder
 	first := data[0]
-	fmt.Fprintf(&header, "# %v, %v\n", first.Weekday, first.Date)
+	dayAbbrvToName := make(map[string]string, len(dayNameToAbbr))
+	for name, abbr := range dayNameToAbbr {
+		dayAbbrvToName[abbr] = name
+	}
+	fmt.Fprintf(&header, "# %v · %v\n", first.Date, dayAbbrvToName[first.Weekday])
 
 	for _, show := range data {
 		fmt.Fprintf(&header, "**Show ID:** %v\n\n", show.ShowID)
@@ -164,14 +168,14 @@ var stateAbbrevToFullName = map[string]string{
 	"DC": "Washington, D.C.",
 }
 
-var daysOfWeekAbbreviations = map[string]string{
-	"Sunday":    "sun",
-	"Monday":    "mon",
-	"Tuesday":   "tue",
-	"Wednesday": "wed",
-	"Thursday":  "thu",
-	"Friday":    "fri",
-	"Saturday":  "sat",
+var dayNameToAbbr = map[string]string{
+	"Sunday":    "Sun",
+	"Monday":    "Mon",
+	"Tuesday":   "Tue",
+	"Wednesday": "Wed",
+	"Thursday":  "Thu",
+	"Friday":    "Fri",
+	"Saturday":  "Sat",
 }
 
 func buildArchiveOrgLink(date string) string {

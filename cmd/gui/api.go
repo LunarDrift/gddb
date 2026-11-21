@@ -96,7 +96,7 @@ func searchShows(year, month, day, weekday, location, city, song, venue, notesQu
 
 	formatSearchParameter := func(s string) string { return strings.ReplaceAll(s, " ", "_") }
 	return fetchPage[showPage](fmt.Sprintf("/shows?year=%s&month=%s&day=%s&weekday=%s&location=%s&city=%s&song=%s&venue=%s&notes=%s&set_name=%s&has_notes=%s",
-		year, month, day, daysOfWeekAbbreviations[weekday],
+		year, month, day, dayNameToAbbr[weekday],
 		loc,
 		formatSearchParameter(city),
 		formatSearchParameter(song),
