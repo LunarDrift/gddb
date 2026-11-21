@@ -103,7 +103,7 @@ take a look at the [wiki](https://github.com/LunarDrift/gddb/wiki).
 | ENDPOINT                            | DESCRIPTION                                                                                                           |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `/shows`                            | Paginated list of all shows played                                                                                    |
-| `/shows?id=`                        | Search for a specific show by its ID                                                                                  |
+| `/shows/{showID}`                   | Search for a specific show by its ID                                                                                  |
 | `/shows?date=`                      | Search for a show by date (YYYY-MM-DD)                                                                                |
 | `/shows?start_date=&end_date=`      | List of shows between two dates (YYYY-MM-DD)                                                                          |
 | `/shows?song=`                      | Search for shows where a specific song was played. Returns a list of shows                                            |
