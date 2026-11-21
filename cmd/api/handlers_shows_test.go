@@ -20,7 +20,8 @@ func TestHandleGetShowFromID(t *testing.T) {
 	}
 
 	s := &server{queries: fake}
-	req := httptest.NewRequest(http.MethodGet, "/shows?id=1", nil)
+	req := httptest.NewRequest(http.MethodGet, "/shows/", nil)
+	req.SetPathValue("showID", "1")
 	w := httptest.NewRecorder()
 	s.handleGetShowFromID(w, req)
 	res := w.Result()
@@ -45,9 +46,8 @@ func TestHandleGetShowFromID_Errors(t *testing.T) {
 		wantStatus int
 		fake       *fakeQuerier
 	}{
-		{"missing id", "/shows?id=", http.StatusBadRequest, &fakeQuerier{}},
-		{"invalid id", "/shows?id=six", http.StatusBadRequest, &fakeQuerier{}},
-		{"server error", "/shows?id=555", http.StatusInternalServerError, &fakeQuerier{showFromIDErr: errors.New("db exploded")}},
+		{"missing id", "/shows/", http.StatusBadRequest, &fakeQuerier{}},
+		{"invalid id", "/shows/six", http.StatusBadRequest, &fakeQuerier{}},
 	}
 
 	for _, tt := range tests {

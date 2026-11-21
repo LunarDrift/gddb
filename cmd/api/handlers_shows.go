@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -39,9 +40,6 @@ func (s *server) handleShowsFromQueryParam(w http.ResponseWriter, r *http.Reques
 
 	case query.Has("date"):
 		s.handleGetShowFromDate(w, r)
-
-	case query.Has("id"):
-		s.handleGetShowFromID(w, r)
 
 	case query.Has("start_date") || query.Has("end_date"):
 		s.handleGetShowsBetweenDates(w, r)
@@ -99,12 +97,14 @@ func (s *server) handleGetShowFromDate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) handleGetShowFromID(w http.ResponseWriter, r *http.Request) {
-	queryID := r.URL.Query().Get("id")
-	if queryID == "" {
+	log.Printf("r.URL.Path = %v", r.URL.Path)
+	log.Printf("r.PathValue('showID') = %v", r.PathValue("showID"))
+	showID := r.PathValue("showID")
+	if showID == "" {
 		respondWithError(w, http.StatusBadRequest, errBadRequest, nil)
 		return
 	}
-	id, err := strconv.Atoi(queryID)
+	id, err := strconv.Atoi(showID)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, errBadRequest, err)
 		return
