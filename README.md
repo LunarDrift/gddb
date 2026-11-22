@@ -2,7 +2,7 @@
 
 [![Go](https://img.shields.io/badge/Go-1.27-00ADD8?logo=go&logoColor=white)](https://go.dev/)[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Deadabase is a REST API for browsing and exploring Grateful Dead concert history.
+[Deadabase](https://api.deadabase.net) is a REST API for browsing and exploring Grateful Dead concert history.
 Search through thousands of shows by date, venue, song, or set name - with full
 setlists and show footnotes. A data importer script populates the database from
 a JSON source. The API server then provides read-only access to the data.
@@ -29,6 +29,10 @@ Many thanks to them for this wonderful data!
 - **goose:** database migrations
 - **sqlc:** type-safe SQL query generation
 - **Docker:** package dependencies together and make setup a simple command
+
+## Now Live
+
+API server now live at <https://api.deadabase.net>
 
 ## Local Setup
 
