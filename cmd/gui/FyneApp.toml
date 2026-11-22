@@ -4,5 +4,5 @@ Website = "https://github.com/LunarDrift/gddb"
 Icon = "Icon.png"
 Name = "Deadabase"
 ID = "gddb.app"
-Version = "0.1.3"
-Build = 5
+Version = "0.2.0"
+Build = 7
