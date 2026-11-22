@@ -12,7 +12,7 @@ import (
 	"github.com/LunarDrift/deadabase/internal"
 )
 
-const baseURL = "http://localhost:8080"
+const baseURL = "https://api.deadabase.net"
 
 type (
 	showPage   = internal.Paginated[internal.ShowMeta]
